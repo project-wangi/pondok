@@ -10,8 +10,8 @@ use Filament\Schemas\Schema;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
-use Filament\Actions\EditAction;        // <-- Pastikan namespace ini sesuai
-use Filament\Actions\DeleteBulkAction; // <-- Pastikan namespace ini sesuai
+use Filament\Actions\EditAction;
+use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\BulkActionGroup;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
@@ -33,6 +33,9 @@ class UserResource extends Resource
                     ->email()
                     ->required()
                     ->maxLength(255),
+                Forms\Components\Select::make('roles')
+                    ->relationship('roles', 'name')
+                    ->required(),
                 Forms\Components\TextInput::make('password')
                     ->password()
                     ->revealable()
@@ -51,9 +54,11 @@ class UserResource extends Resource
                     ->searchable(),
                 Tables\Columns\TextColumn::make('email')
                     ->searchable(),
-                Tables\Columns\TextColumn::make('email_verified_at')
-                    ->dateTime()
-                    ->sortable(),
+                Tables\Columns\TextColumn::make('roles.name')
+                    ->formatStateUsing(fn ($state): string => str()->headline($state))
+                    ->badge()
+                    ->color('success')
+                    ->searchable(),
                 Tables\Columns\TextColumn::make('created_at')
                     ->dateTime()
                     ->sortable()
