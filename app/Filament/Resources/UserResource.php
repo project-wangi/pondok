@@ -34,7 +34,9 @@ class UserResource extends Resource
                     ->required()
                     ->maxLength(255),
                 Forms\Components\Select::make('roles')
-                    ->relationship('roles', 'name')
+                    ->relationship('roles', 'name', fn ($query) =>
+                        !auth()->user()->hasRole('super_admin') ? $query->where('name', '!=', 'super_admin') : null
+                    )
                     ->required(),
                 Forms\Components\TextInput::make('password')
                     ->password()
