@@ -4,6 +4,7 @@ namespace App\Filament\Resources\Gurus\Tables;
 
 use Filament\Actions\DeleteAction;
 use Filament\Actions\EditAction;
+use Filament\Tables\Columns\ImageColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 
@@ -16,6 +17,9 @@ class GurusTable
                 TextColumn::make('row_index')
                     ->label('No')
                     ->rowIndex(),
+                ImageColumn::make('foto')
+                    ->label('Foto')
+                    ->circular(),
                 TextColumn::make('user.name')
                     ->label('Nama')
                     ->searchable(),
@@ -24,8 +28,25 @@ class GurusTable
                     ->badge()
                     ->separator(',')
                     ->searchable(),
-                TextColumn::make('jenis_kelamin')
+                TextColumn::make('agama')
+                    ->label('Agama')
                     ->searchable(),
+                TextColumn::make('jenis_kelamin')
+                    ->label('Jenis Kelamin'),
+                TextColumn::make('jarak_rumah')
+                    ->label('Jarak Rumah')
+                    ->formatStateUsing(fn ($state) => round($state) . ' KM')
+                    ->sortable(),
+                TextColumn::make('tempat_lahir')
+                    ->label('Tempat Lahir')
+                    ->toggleable(isToggledHiddenByDefault: true),
+                TextColumn::make('tanggal_lahir')
+                    ->label('Tanggal Lahir')
+                    ->date('d-m-Y')
+                    ->toggleable(isToggledHiddenByDefault: true),
+                TextColumn::make('alamat')
+                    ->label('Alamat')
+                    ->toggleable(isToggledHiddenByDefault: true),
                 TextColumn::make('created_at')
                     ->dateTime()
                     ->sortable()

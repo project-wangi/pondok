@@ -52,7 +52,11 @@ class UserResource extends Resource
                 Forms\Components\TextInput::make('email')
                     ->email()
                     ->required()
-                    ->maxLength(255),
+                    ->maxLength(255)
+                    ->unique(table: 'users', ignoreRecord: true)
+                    ->validationMessages([
+                        'unique' => 'Email sudah digunakan.',
+                    ]),
                 Forms\Components\Select::make('roles')
                     ->label('Role')
                     ->relationship('roles', 'name', fn ($query) =>
