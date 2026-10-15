@@ -19,6 +19,13 @@ class Guru extends Model
         'jenis_kelamin',
     ];
 
+    protected $appends = ['nama'];
+
+    public function getNamaAttribute()
+    {
+        return $this->user->name;
+    }
+
     public function user()
     {
         return $this->belongsTo(User::class, 'user_id', 'id');
@@ -28,4 +35,5 @@ class Guru extends Model
     {
         return $this->belongsToMany(Jabatan::class, 'guru_jabatan', 'guru_id', 'jabatan_id');
     }
+
 }
