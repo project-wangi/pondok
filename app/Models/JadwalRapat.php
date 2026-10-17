@@ -10,7 +10,6 @@ class JadwalRapat extends Model
 
     public function gurus()
     {
-        return $this->belongsToMany(Guru::class, '
-        s', 'jadwal_rapat_id', 'guru_id');
+        return $this->belongsToMany(Guru::class, 'jadwal_rapat_gurus', 'jadwal_rapat_id', 'guru_id');
     }
 }
