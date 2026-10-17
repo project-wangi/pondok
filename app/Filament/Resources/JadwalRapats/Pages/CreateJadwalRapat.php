@@ -8,4 +8,9 @@ use Filament\Resources\Pages\CreateRecord;
 class CreateJadwalRapat extends CreateRecord
 {
     protected static string $resource = JadwalRapatResource::class;
+
+    protected function getRedirectUrl(): string
+    {
+        return $this->getResource()::getUrl('index');
+    }
 }

@@ -8,4 +8,9 @@ use Filament\Resources\Pages\CreateRecord;
 class CreateMurid extends CreateRecord
 {
     protected static string $resource = MuridResource::class;
+
+    protected function getRedirectUrl(): string
+    {
+        return $this->getResource()::getUrl('index');
+    }
 }
