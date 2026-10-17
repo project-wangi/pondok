@@ -1,18 +1,18 @@
 .fi {
-    --pondok-background: #f0fdf4; /* Latar halaman */
-    --pondok-navigation: #ecfdf5; /* Sidebar dan header */
-    --pondok-border: #bbf7d0;     /* Garis pembatas */
-    --pondok-active: #dcfce7;     /* Menu aktif dan hover */
-    --pondok-accent: #166534;     /* Teks aksen */
+    --pondok-background: #eff6ff; /* Latar halaman */
+    --pondok-navigation: #dbeafe; /* Sidebar dan header */
+    --pondok-border: #bfdbfe;     /* Garis pembatas */
+    --pondok-active: #bfdbfe;     /* Menu aktif dan hover */
+    --pondok-accent: #1e40af;     /* Teks aksen */
 }
 
 
 .fi.dark {
-    --pondok-background: #081c15;
-    --pondok-navigation: #10271e;
-    --pondok-border: #244b37;
-    --pondok-active: #17452e;
-    --pondok-accent: #86efac;
+    --pondok-background: #0b1d33;
+    --pondok-navigation: #102a48;
+    --pondok-border: #1e3d63;
+    --pondok-active: #173a5e;
+    --pondok-accent: #93c5fd;
 }
 
 .fi .fi-body {

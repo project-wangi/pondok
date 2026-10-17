@@ -12,6 +12,7 @@ class JadwalPelajaran extends Model
         'mata_pelajaran',
         'jam_mulai',
         'jam_selesai',
+        'kelas_id',
     ];
 
     public function guru()
@@ -22,6 +23,11 @@ class JadwalPelajaran extends Model
     public function mataPelajaran()
     {
         return $this->belongsTo(MataPelajaran::class, 'mata_pelajaran');
+    }
+
+    public function kelas()
+    {
+        return $this->belongsTo(Kelas::class, 'kelas_id');
     }
 
 }

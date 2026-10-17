@@ -2,9 +2,8 @@
 
 namespace App\Filament\Resources\MataPelajarans\Tables;
 
-use Filament\Actions\BulkActionGroup;
-use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
+use Filament\Actions\DeleteAction;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 
@@ -14,6 +13,9 @@ class MataPelajaransTable
     {
         return $table
             ->columns([
+                TextColumn::make('row_index')
+                    ->label('No')
+                    ->rowIndex(),
                 TextColumn::make('kode_mapel')
                     ->searchable(),
                 TextColumn::make('nama_mapel')
@@ -32,11 +34,10 @@ class MataPelajaransTable
             ])
             ->recordActions([
                 EditAction::make(),
+                DeleteAction::make(),
             ])
             ->toolbarActions([
-                BulkActionGroup::make([
-                    DeleteBulkAction::make(),
-                ]),
+
             ]);
     }
 }

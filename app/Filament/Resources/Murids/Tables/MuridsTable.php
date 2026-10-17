@@ -15,11 +15,14 @@ class MuridsTable
     {
         return $table
             ->columns([
+                TextColumn::make('row_index')
+                    ->label('No')
+                    ->rowIndex(),
                 ImageColumn::make('foto')
                     ->label('Foto')
                     ->circular(),
                 TextColumn::make('nama')
-                    ->label('Nama Murid')
+                    ->label('Nama Siswa')
                     ->searchable()
                     ->sortable(),
                 TextColumn::make('nisn')

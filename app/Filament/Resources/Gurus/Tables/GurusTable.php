@@ -28,15 +28,17 @@ class GurusTable
                     ->badge()
                     ->separator(',')
                     ->searchable(),
-                TextColumn::make('agama')
-                    ->label('Agama')
-                    ->searchable(),
-                TextColumn::make('jenis_kelamin')
-                    ->label('Jenis Kelamin'),
                 TextColumn::make('jarak_rumah')
                     ->label('Jarak Rumah')
                     ->formatStateUsing(fn ($state) => round($state) . ' KM')
                     ->sortable(),
+                TextColumn::make('agama')
+                    ->label('Agama')
+                    ->toggleable(isToggledHiddenByDefault: true)
+                    ->searchable(),
+                TextColumn::make('jenis_kelamin')
+                    ->label('Jenis Kelamin')
+                    ->toggleable(isToggledHiddenByDefault: true),
                 TextColumn::make('tempat_lahir')
                     ->label('Tempat Lahir')
                     ->toggleable(isToggledHiddenByDefault: true),

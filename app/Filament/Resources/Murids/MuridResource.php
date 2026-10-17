@@ -18,13 +18,13 @@ class MuridResource extends Resource
 {
     protected static ?string $model = Murid::class;
 
-    protected static ?string $modelLabel = 'Murid';
+    protected static ?string $modelLabel = 'Siswa';
 
-    protected static ?string $pluralModelLabel = 'Data Murid';
+    protected static ?string $pluralModelLabel = 'Data Siswa';
 
-    protected static ?string $slug = 'murid';
+    protected static ?string $slug = 'siswa';
 
-    protected static ?string $navigationLabel = 'Murid';
+    protected static ?string $navigationLabel = 'Siswa';
 
     protected static string | \UnitEnum | null $navigationGroup = 'Manajemen Sekolah';
 

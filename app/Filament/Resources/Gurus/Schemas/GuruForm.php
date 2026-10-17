@@ -7,6 +7,7 @@ use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Textarea;
+use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 
 class GuruForm
@@ -66,6 +67,9 @@ class GuruForm
                     ->numeric()
                     ->minValue(0)
                     ->maxValue(10)
+                    ->extraInputAttributes([
+                        'oninput' => "if(this.value > 10) this.value = 10; if(this.value < 0) this.value = 0;"
+                    ])
                     ->suffix('KM'),
 
                 Textarea::make('alamat')
@@ -86,6 +90,33 @@ class GuruForm
                         'perempuan' => 'perempuan',
                     ])
                     ->required(),
-            ]);
+            Section::make('Dokumen')
+                ->schema([
+                    FileUpload::make('ijazah')
+                        ->label('Ijazah')
+                        ->disk('local')
+                        ->maxSize(2048)
+                        ->helperText('Format: PDF / Gambar, maksimal 2MB')
+                        ->acceptedFileTypes(['application/pdf', 'image/jpeg', 'image/png'])
+                        ->directory('guru-dokumen/ijazah'),
+
+                    FileUpload::make('kk')
+                        ->label('Kartu Keluarga (KK)')
+                        ->disk('local')
+                        ->maxSize(2048)
+                        ->helperText('Format: PDF / Gambar, maksimal 2MB')
+                        ->acceptedFileTypes(['application/pdf', 'image/jpeg', 'image/png'])
+                        ->directory('guru-dokumen/kk'),
+
+                    FileUpload::make('kip')
+                        ->label('KIP (Kartu Indonesia Pintar - Opsional)')
+                        ->disk('local')
+                        ->maxSize(2048)
+                        ->helperText('Format: PDF / Gambar, maksimal 2MB')
+                        ->acceptedFileTypes(['application/pdf', 'image/jpeg', 'image/png'])
+                        ->directory('guru-dokumen/kip'),
+                ])->columns(3),
+            ])
+            ->columns(1);
     }
 }

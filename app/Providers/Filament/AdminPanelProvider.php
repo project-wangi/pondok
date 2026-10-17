@@ -31,9 +31,10 @@ class AdminPanelProvider extends PanelProvider
             ->id('admin')
             ->path('admin')
             ->topNavigation()
+            ->globalSearch(false)
             ->login()
             ->colors([
-                'primary' => Color::Green,
+                'primary' => Color::Blue,
             ])
             ->renderHook(
                 PanelsRenderHook::STYLES_AFTER,

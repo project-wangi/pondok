@@ -18,6 +18,8 @@ class JadwalPelajaransTable
                     ->rowIndex(),
                 TextColumn::make('hari')
                     ->searchable(),
+                TextColumn::make('kelas.nama_kelas')
+                    ->searchable(),
                 TextColumn::make('guru.nama')
                     ->label('Guru')
                     ->sortable(),

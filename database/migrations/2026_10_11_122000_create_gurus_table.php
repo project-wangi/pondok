@@ -18,6 +18,9 @@ return new class extends Migration
             $table->text('alamat')->nullable();
             $table->decimal('jarak_rumah', 8, 2)->nullable();
             $table->string('jenis_kelamin');
+            $table->string('ijazah')->nullable();
+            $table->string('ktp')->nullable();
+            $table->string('kk')->nullable();
             $table->timestamps();
         });
     }

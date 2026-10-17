@@ -27,7 +27,7 @@ class MuridForm
                         ->required(),
 
                     FileUpload::make('foto')
-                        ->label('Foto Murid')
+                        ->label('Foto Siswa')
                         ->image()
                         ->maxSize(2048)
                         ->disk('local')

@@ -7,6 +7,8 @@ use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\TimePicker;
 use Filament\Schemas\Schema;
 use App\Models\Guru;
+use App\Models\Kelas;
+
 
 class JadwalPelajaranForm
 {
@@ -44,6 +46,12 @@ class JadwalPelajaranForm
                     ->seconds(false)
                     ->displayFormat('H:i')
                     ->required(),
+                Select::make('kelas_id')
+                    ->relationship('kelas', 'id')
+                    ->getOptionLabelFromRecordUsing(fn (Kelas $record) => $record->nama_kelas ?? $record->id)
+                    ->required()
+                    ->searchable()
+                    ->preload(),
             ]);
     }
 }
