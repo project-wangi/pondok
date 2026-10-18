@@ -100,6 +100,14 @@ class GuruForm
                         ->acceptedFileTypes(['application/pdf', 'image/jpeg', 'image/png'])
                         ->directory('guru-dokumen/ijazah'),
 
+                    FileUpload::make('ktp')
+                        ->label('Kartu Tanda Penduduk (KTP)')
+                        ->disk('local')
+                        ->maxSize(2048)
+                        ->helperText('Format: PDF / Gambar, maksimal 2MB')
+                        ->acceptedFileTypes(['application/pdf', 'image/jpeg', 'image/png'])
+                        ->directory('guru-dokumen/ktp'),
+
                     FileUpload::make('kk')
                         ->label('Kartu Keluarga (KK)')
                         ->disk('local')
@@ -107,14 +115,6 @@ class GuruForm
                         ->helperText('Format: PDF / Gambar, maksimal 2MB')
                         ->acceptedFileTypes(['application/pdf', 'image/jpeg', 'image/png'])
                         ->directory('guru-dokumen/kk'),
-
-                    FileUpload::make('kip')
-                        ->label('KIP (Kartu Indonesia Pintar - Opsional)')
-                        ->disk('local')
-                        ->maxSize(2048)
-                        ->helperText('Format: PDF / Gambar, maksimal 2MB')
-                        ->acceptedFileTypes(['application/pdf', 'image/jpeg', 'image/png'])
-                        ->directory('guru-dokumen/kip'),
                 ])->columns(3),
             ])
             ->columns(1);

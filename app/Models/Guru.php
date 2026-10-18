@@ -17,6 +17,9 @@ class Guru extends Model
         'alamat',
         'jarak_rumah',
         'jenis_kelamin',
+        'ijazah',
+        'ktp',
+        'kk',
     ];
 
     protected $appends = ['nama'];
