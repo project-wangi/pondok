@@ -46,12 +46,12 @@
                         <caption class="presensi-sr-only">Jadwal dan jurnal mengajar tanggal {{ $tanggal }}</caption>
                         <thead>
                             <tr>
-                                <th scope="col" class="presensi-number">No</th>
-                                <th scope="col">Waktu</th>
-                                <th scope="col">Kelas</th>
-                                <th scope="col">Mata pelajaran</th>
-                                <th scope="col">Jurnal</th>
-                                <th scope="col">Aksi</th>
+                                <th scope="col" class="presensi-number jurnal-number-col">No</th>
+                                <th scope="col" class="jurnal-time-col">Waktu</th>
+                                <th scope="col" class="jurnal-class-col">Kelas</th>
+                                <th scope="col" class="jurnal-subject-col">Mata pelajaran</th>
+                                <th scope="col" class="jurnal-status-col">Jurnal</th>
+                                <th scope="col" class="jurnal-action-col">Aksi</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -60,7 +60,7 @@
                                     <td class="presensi-number">{{ $loop->iteration }}</td>
                                     <td>
                                         <div class="presensi-cell-stack presensi-time">
-                                            <time datetime="{{ $tanggal }}">{{ $tanggal }}</time>
+                                            <time datetime="{{ $tanggal }}">{{ $tanggalLabel }}</time>
                                             <span class="presensi-help">{{ substr((string) $row['jam_mulai'], 0, 5) }} - {{ substr((string) $row['jam_selesai'], 0, 5) }}</span>
                                         </div>
                                     </td>
@@ -76,10 +76,11 @@
                                             <span class="presensi-help">Belum diisi</span>
                                         @endif
                                     </td>
-                                    <td>
+                                    <td class="jurnal-action-col">
                                         @if ($row['jadwal_id'] !== null && $isToday)
                                             <x-filament::button
                                                 type="button"
+                                                size="sm"
                                                 wire:click="pilihJadwal({{ $row['jadwal_id'] }})"
                                                 wire:loading.attr="disabled"
                                                 wire:target="tanggal,pilihJadwal,lihatJurnal,simpan"
@@ -92,6 +93,7 @@
                                             <x-filament::button
                                                 type="button"
                                                 color="gray"
+                                                size="sm"
                                                 wire:click="lihatJurnal({{ $row['jurnal_id'] }})"
                                                 wire:loading.attr="disabled"
                                                 wire:target="tanggal,pilihJadwal,lihatJurnal,simpan"
@@ -165,7 +167,7 @@
                         </div>
                         <div>
                             <dt>Tanggal dan waktu</dt>
-                            <dd>{{ $tanggal }}, {{ substr((string) ($jadwal?->jam_mulai ?? $jurnal?->jam_mulai), 0, 5) }} - {{ substr((string) ($jadwal?->jam_selesai ?? $jurnal?->jam_selesai), 0, 5) }}</dd>
+                            <dd>{{ $tanggalLabel }}, {{ substr((string) ($jadwal?->jam_mulai ?? $jurnal?->jam_mulai), 0, 5) }} - {{ substr((string) ($jadwal?->jam_selesai ?? $jurnal?->jam_selesai), 0, 5) }}</dd>
                         </div>
                     </dl>
                 @endif
@@ -303,16 +305,19 @@
                                                 </td>
                                                 <td class="jurnal-row-action">
                                                     @if (count($baris) > 1)
-                                                        <button
+                                                        <x-filament::button
                                                             type="button"
-                                                            class="jurnal-remove"
+                                                            color="danger"
+                                                            size="sm"
+                                                            :outlined="true"
+                                                            :loading-indicator="false"
                                                             wire:click="hapusBaris({{ $index }})"
                                                             wire:loading.attr="disabled"
                                                             wire:target="hapusBaris,tambahBaris,simpan"
                                                             aria-label="Hapus baris jurnal {{ $loop->iteration }}"
                                                         >
                                                             Hapus
-                                                        </button>
+                                                        </x-filament::button>
                                                     @endif
                                                 </td>
                                             </tr>

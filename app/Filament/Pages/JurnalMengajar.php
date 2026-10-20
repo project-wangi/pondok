@@ -258,6 +258,7 @@ class JurnalMengajar extends Page
         abort_unless(static::canAccess(), 403);
         $validDate = Validator::make(['tanggal' => $this->tanggal], $this->dateRules())->passes();
         $isToday = $validDate && $this->tanggal === now()->toDateString();
+        $tanggalLabel = $validDate ? CarbonImmutable::parse($this->tanggal)->format('d/m/Y') : $this->tanggal;
         $period = JadwalPelajaran::activePeriod();
         $schedules = $isToday ? $this->todaySchedules()->get() : collect();
         $journals = $validDate ? $this->ownJournals()->get() : collect();
@@ -282,6 +283,7 @@ class JurnalMengajar extends Page
         return [
             'today' => now()->toDateString(),
             'isToday' => $isToday,
+            'tanggalLabel' => $tanggalLabel,
             'period' => $period,
             'tableRows' => collect($rows)->sortBy('jam_mulai')->values(),
             'jadwal' => $canEdit ? $schedule : null,

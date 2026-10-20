@@ -325,6 +325,41 @@
 
 .jurnal-page .jurnal-table {
     min-width: 54rem;
+    table-layout: fixed;
+}
+
+.jurnal-page .jurnal-table thead th,
+.jurnal-page .jurnal-table tbody td {
+    vertical-align: middle;
+}
+
+.jurnal-page .jurnal-table .jurnal-number-col {
+    width: 6%;
+}
+
+.jurnal-page .jurnal-table .jurnal-time-col {
+    width: 14%;
+}
+
+.jurnal-page .jurnal-table .jurnal-class-col {
+    width: 12%;
+}
+
+.jurnal-page .jurnal-table .jurnal-subject-col {
+    width: 30%;
+}
+
+.jurnal-page .jurnal-table .jurnal-status-col {
+    width: 24%;
+}
+
+.jurnal-page .jurnal-table .jurnal-action-col {
+    width: 14%;
+    text-align: center;
+}
+
+.jurnal-page .jurnal-table .jurnal-action-col .fi-btn {
+    white-space: nowrap;
 }
 
 .jurnal-page .jurnal-form-table {
@@ -387,21 +422,15 @@
     min-width: 13rem;
 }
 
-.jurnal-page .jurnal-row-action {
+.jurnal-page .jurnal-form-table .jurnal-row-action {
+    width: 7rem;
+    min-width: 7rem;
     text-align: center;
-    vertical-align: middle;
+    white-space: nowrap;
 }
 
-.jurnal-page .jurnal-remove {
-    min-height: 2.75rem;
-    padding: 0 0.25rem;
-    border: 0;
-    background: none;
-    color: var(--presensi-error);
-    font: inherit;
-    font-size: 0.8125rem;
-    text-decoration: underline;
-    cursor: pointer;
+.jurnal-page .jurnal-form-table .jurnal-row-action .fi-btn {
+    white-space: nowrap;
 }
 
 .jurnal-page .jurnal-link {
@@ -533,6 +562,59 @@
     overflow-x: auto;
     border: 1px solid var(--pondok-border);
     border-radius: 0.5rem;
+}
+
+.materi-page .materi-overview-table {
+    min-width: 66rem;
+    table-layout: fixed;
+}
+
+.materi-page .materi-overview-table thead th {
+    vertical-align: middle;
+    white-space: nowrap;
+    overflow-wrap: normal;
+    word-break: normal;
+}
+
+.materi-page .materi-overview-table tbody td {
+    vertical-align: middle;
+    overflow-wrap: anywhere;
+}
+
+.materi-page .materi-overview-table .materi-number {
+    width: 4rem;
+}
+
+.materi-page .materi-overview-table .materi-subject-col {
+    width: 22%;
+}
+
+.materi-page .materi-overview-table .materi-class-col {
+    width: 16%;
+}
+
+.materi-page .materi-overview-table .materi-material-count-col {
+    width: 10rem;
+}
+
+.materi-page .materi-overview-table .materi-purpose-count-col {
+    width: 12rem;
+}
+
+.materi-page .materi-overview-table .materi-status-col {
+    width: 9rem;
+}
+
+.materi-page .materi-overview-table .materi-actions-column {
+    width: 6rem;
+}
+
+.materi-page .materi-overview-table .materi-row-action .fi-btn {
+    white-space: nowrap;
+}
+
+.materi-page .materi-back {
+    display: flex;
 }
 
 .materi-page .materi-table {
