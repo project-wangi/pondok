@@ -11,7 +11,11 @@
             </div>
         @endif
 
-        <x-filament::section heading="Tanggal dan jadwal">
+        @php
+            $periodLabel = 'Periode berjalan: semester '.$activePeriod['semester'].' tahun ajaran '.$activePeriod['tahun_ajaran'].'.';
+        @endphp
+
+        <x-filament::section heading="Jadwal mengajar" :description="$periodLabel">
             <div class="presensi-stack">
                 <div class="presensi-date">
                     <label class="presensi-label" for="presensi-tanggal">Tanggal</label>
@@ -39,7 +43,7 @@
                 @if ($isToday)
                     @if ($jadwals->isEmpty())
                         <div class="presensi-notice">
-                            <p class="presensi-label">Tidak ada jadwal mengajar hari ini.</p>
+                            <p class="presensi-label">Tidak ada jadwal mengajar pada periode berjalan.</p>
                             <p class="presensi-help">Hubungi admin jika jadwal Anda belum tercantum. Sesi yang sudah tersimpan tetap ditampilkan pada tabel.</p>
                         </div>
                     @else

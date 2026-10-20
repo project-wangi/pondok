@@ -20,6 +20,8 @@ class SesiMengajar extends Model
         'pencatat_id',
         'revisi',
         'tanggal',
+        'semester',
+        'tahun_ajaran',
         'nama_guru',
         'nama_kelas',
         'nama_mapel',

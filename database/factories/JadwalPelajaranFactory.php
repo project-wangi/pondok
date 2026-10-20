@@ -19,6 +19,7 @@ class JadwalPelajaranFactory extends Factory
             'hari' => 'Senin',
             'jam_mulai' => '07:00:00',
             'jam_selesai' => '09:00:00',
+            ...JadwalPelajaran::activePeriod(),
         ];
     }
 }

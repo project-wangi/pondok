@@ -178,6 +178,8 @@ class PresensiSiswa extends Page
                     'pencatat_id' => Filament::auth()->id(),
                     'kelas_id' => $schedule->kelas_id,
                     'tanggal' => $this->tanggal,
+                    'semester' => $schedule->semester,
+                    'tahun_ajaran' => $schedule->tahun_ajaran,
                     'nama_guru' => $schedule->guru->user->name,
                     'nama_kelas' => $schedule->kelas->nama_kelas,
                     'nama_mapel' => $schedule->mataPelajaran->nama_mapel,
@@ -225,8 +227,9 @@ class PresensiSiswa extends Page
         $session = $schedule !== null ? $this->sessionFor($schedule) : null;
         $canEditSession = $session === null || ($session->guru_id === $schedule?->guru_id && $session->pencatat_id === Filament::auth()->id());
 
+        $activePeriod = JadwalPelajaran::activePeriod();
         $sessions = $validDate ? $this->ownSessions()->get() : collect();
-        $modalSession = $sessions->firstWhere('id', $this->riwayatId) ?? ($sessions->count() === 1 ? $sessions->first() : null);
+        $modalSession = $sessions->firstWhere('id', $this->riwayatId);
         $tableRows = [];
 
         foreach ($schedules as $item) {
@@ -241,6 +244,7 @@ class PresensiSiswa extends Page
         }
 
         return [
+            'activePeriod' => $activePeriod,
             'modalSession' => $modalSession,
             'tableRows' => collect($tableRows)->sortBy('jam_mulai')->values(),
             'today' => now()->toDateString(),
@@ -277,6 +281,7 @@ class PresensiSiswa extends Page
 
     private function ownSessions(): Builder
     {
+        // History stays readable across periods; only new attendance uses the running period.
         return SesiMengajar::query()->where('pencatat_id', Filament::auth()->id())
             ->whereDate('tanggal', $this->tanggal)->with('presensiMurids')
             ->orderBy('jam_mulai')->orderBy('id');
@@ -286,9 +291,11 @@ class PresensiSiswa extends Page
     {
         abort_unless(static::canAccess(), 403);
         $day = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'][now()->dayOfWeek];
+        $period = JadwalPelajaran::activePeriod();
 
         return JadwalPelajaran::query()
             ->whereHas('guru', fn (Builder $query): Builder => $query->where('user_id', Filament::auth()->id()))
+            ->forPeriod($period['semester'], $period['tahun_ajaran'])
             ->where('hari', $day)->with(['kelas', 'mataPelajaran', 'guru.user'])
             ->orderBy('jam_mulai')->orderBy('id');
     }

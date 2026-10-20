@@ -80,7 +80,7 @@ test('renders for a linked teacher without roles or permissions', function () {
     $this->get(route('filament.admin.pages.presensi-siswa'))
         ->assertOk()
         ->assertSeeLivewire(PresensiSiswa::class)
-        ->assertSee('Tidak ada jadwal mengajar hari ini.');
+        ->assertSee('Tidak ada jadwal mengajar pada periode berjalan.');
 });
 
 test('initializes the Livewire page for a linked teacher without roles or permissions', function () {
@@ -88,7 +88,7 @@ test('initializes the Livewire page for a linked teacher without roles or permis
 
     Livewire::test(PresensiSiswa::class)
         ->assertOk()
-        ->assertSee('Tidak ada jadwal mengajar hari ini.')
+        ->assertSee('Tidak ada jadwal mengajar pada periode berjalan.')
         ->assertSet('tanggal', '2026-10-19')
         ->assertSet('jadwalId', null)
         ->assertSet('kehadiran', []);
@@ -531,7 +531,9 @@ test('shows only the teachers history for the selected date as read only', funct
     $this->actingAs($schedule->guru->user);
 
     Livewire::test(PresensiSiswa::class)->set('tanggal', '2026-10-18')
-        ->assertHasNoErrors()->assertSee('Riwayat Milik Sendiri')->assertSee('Siswa Riwayat Sendiri')->assertSee('Catatan sendiri')
+        ->assertHasNoErrors()->assertSee('Riwayat Milik Sendiri')
+        ->call('lihatPresensi', $own->id)
+        ->assertSee('Siswa Riwayat Sendiri')->assertSee('Catatan sendiri')
         ->assertDontSee('Riwayat Guru Lain')->assertDontSee('Siswa Riwayat Rahasia')->assertDontSee('Catatan rahasia')
         ->assertDontSee('Riwayat Tanggal Lain')->assertDontSeeHtml('wire:submit="simpan"')
         ->assertDontSeeHtml('wire:click="tandaiSemuaHadir"')
@@ -636,6 +638,7 @@ test('retains history for the original teacher rather than the reassigned schedu
     $this->actingAs($originalTeacher->user);
 
     Livewire::test(PresensiSiswa::class)->set('tanggal', '2026-10-18')
+        ->call('lihatPresensi', $session->id)
         ->assertSee('Siswa Guru Semula')->assertSee('Riwayat guru semula');
 
     $this->actingAs($newTeacher->user);
@@ -695,7 +698,9 @@ test('keeps historical snapshots visible after renaming and deleting the source 
     $this->travelTo(CarbonImmutable::parse('2026-10-20 10:00:00', 'Asia/Jakarta'));
 
     Livewire::test(PresensiSiswa::class)->set('tanggal', '2026-10-19')
-        ->assertHasNoErrors()->assertSee('Nama Kelas Asli')->assertSee('Nama Mapel Asli')->assertSee('Siswa Snapshot')
+        ->assertHasNoErrors()->assertSee('Nama Kelas Asli')->assertSee('Nama Mapel Asli')
+        ->call('lihatPresensi', $session->id)
+        ->assertSee('Siswa Snapshot')
         ->assertSee('07:00 - 09:00')->assertSee('19/10/2026 10:00')
         ->assertDontSee('Nama Kelas Baru')->assertDontSee('Nama Mapel Baru')
         ->assertDontSeeHtml('wire:submit="simpan"');
@@ -706,6 +711,121 @@ test('keeps historical snapshots visible after renaming and deleting the source 
         'jam_mulai' => '07:00:00', 'jam_selesai' => '09:00:00', 'dicatat_pada' => '2026-10-19 10:00:00',
     ]);
 });
+
+test('renders the schedule table and opens the student attendance modal', function () {
+    $schedule = JadwalPelajaranFactory::new()->create();
+    $student = MuridFactory::new()->create(['kelas_id' => $schedule->kelas_id]);
+    $this->actingAs($schedule->guru->user);
+
+    Livewire::test(PresensiSiswa::class)
+        ->assertSee('Periode berjalan: semester Ganjil tahun ajaran 2026/2027.')
+        ->assertSee('Waktu')->assertSee('Mata pelajaran')->assertSee('Hadir')->assertSee('Absen')
+        ->call('pilihJadwal', $schedule->id)
+        ->assertDispatched('open-modal')
+        ->assertSee('Presensi siswa')
+        ->assertSee($student->nama)
+        ->assertSeeHtml('wire:submit="simpan"')
+        ->assertSeeHtml('wire:click="tutupPresensi"');
+});
+
+test('closes the modal after saving and shows real attendance counts in the table', function () {
+    $schedule = JadwalPelajaranFactory::new()->create();
+    $students = MuridFactory::new()->count(2)->create(['kelas_id' => $schedule->kelas_id]);
+    $this->actingAs($schedule->guru->user);
+
+    Livewire::test(PresensiSiswa::class)->call('pilihJadwal', $schedule->id)
+        ->call('tandaiSemuaHadir')->call('simpan')
+        ->assertHasNoErrors()->assertDispatched('close-modal')
+        ->assertSee('2/2')->assertSee('100,00%')
+        ->assertSee('Absen');
+
+    $this->assertDatabaseCount('sesi_mengajars', 1);
+    $this->assertDatabaseCount('presensi_murids', 2);
+});
+
+test('keeps the modal open when validation fails', function () {
+    $schedule = JadwalPelajaranFactory::new()->create();
+    $student = MuridFactory::new()->create(['kelas_id' => $schedule->kelas_id]);
+    $this->actingAs($schedule->guru->user);
+
+    Livewire::test(PresensiSiswa::class)->call('pilihJadwal', $schedule->id)
+        ->call('simpan')->assertHasErrors(['kehadiran.m'.$student->id.'.status'])
+        ->assertNotDispatched('close-modal')->assertNotNotified();
+
+    $this->assertDatabaseCount('sesi_mengajars', 0);
+});
+
+test('closes without saving and clears the selected attendance', function () {
+    $schedule = JadwalPelajaranFactory::new()->create();
+    $student = MuridFactory::new()->create(['kelas_id' => $schedule->kelas_id]);
+    $this->actingAs($schedule->guru->user);
+
+    Livewire::test(PresensiSiswa::class)->call('pilihJadwal', $schedule->id)
+        ->set('kehadiran.m'.$student->id.'.status', 'Hadir')
+        ->call('tutupPresensi')
+        ->assertDispatched('close-modal')
+        ->assertSet('jadwalId', null)->assertSet('kehadiran', []);
+
+    $this->assertDatabaseCount('sesi_mengajars', 0);
+    $this->assertDatabaseCount('presensi_murids', 0);
+});
+
+test('limits fillable schedules to the active period while keeping older session history', function () {
+    $schedule = JadwalPelajaranFactory::new()->create();
+    $schedule->mataPelajaran->update(['nama_mapel' => 'Mapel Periode Aktif']);
+    $oldSchedule = JadwalPelajaranFactory::new()->create([
+        'guru_id' => $schedule->guru_id, 'hari' => 'Senin',
+        'semester' => 'Genap', 'tahun_ajaran' => '2025/2026',
+    ]);
+    $oldSchedule->mataPelajaran->update(['nama_mapel' => 'Mapel Periode Lama']);
+    $oldSession = SesiMengajarFactory::new()->create([
+        'jadwal_pelajaran_id' => $oldSchedule->id, 'tanggal' => '2026-10-18', 'nama_mapel' => 'Sesi Periode Lama',
+    ]);
+    PresensiMuridFactory::new()->create([
+        'sesi_mengajar_id' => $oldSession->id, 'nama_murid' => 'Siswa Periode Lama',
+    ]);
+    $this->actingAs($schedule->guru->user);
+
+    Livewire::test(PresensiSiswa::class)
+        ->assertSee('Mapel Periode Aktif')
+        ->assertDontSee('Mapel Periode Lama')
+        ->assertDontSee('Sesi Periode Lama')
+        ->assertDontSee('Siswa Periode Lama')
+        ->set('tanggal', '2026-10-18')
+        ->call('lihatPresensi', $oldSession->id)
+        ->assertSee('Sesi Periode Lama')->assertSee('Siswa Periode Lama');
+
+    $this->assertDatabaseHas('sesi_mengajars', [
+        'id' => $oldSession->id, 'semester' => 'Genap', 'tahun_ajaran' => '2025/2026',
+    ]);
+});
+
+test('does not allow clients to replace the locked history id', function () {
+    $schedule = JadwalPelajaranFactory::new()->create();
+    $session = SesiMengajarFactory::new()->create(['jadwal_pelajaran_id' => $schedule->id, 'tanggal' => '2026-10-18']);
+    $this->actingAs($schedule->guru->user);
+    $component = Livewire::test(PresensiSiswa::class)->set('tanggal', '2026-10-18')->call('lihatPresensi', $session->id);
+
+    expect(fn () => $component->set('riwayatId', 999999))->toThrow(CannotUpdateLockedPropertyException::class);
+});
+
+test('returns 404 for history that is not owned by the teacher on the selected date', function (string $case) {
+    $schedule = JadwalPelajaranFactory::new()->create();
+    $own = SesiMengajarFactory::new()->create(['jadwal_pelajaran_id' => $schedule->id, 'tanggal' => '2026-10-18']);
+    $otherDate = SesiMengajarFactory::new()->create(['jadwal_pelajaran_id' => $schedule->id, 'tanggal' => '2026-10-17']);
+    $foreign = SesiMengajarFactory::new()->create(['tanggal' => '2026-10-18']);
+    $this->actingAs($schedule->guru->user);
+    $id = match ($case) {
+        'other date' => $otherDate->id,
+        'other teacher' => $foreign->id,
+        'unknown' => 999999,
+    };
+
+    Livewire::test(PresensiSiswa::class)->set('tanggal', '2026-10-18')
+        ->call('lihatPresensi', $id)->assertNotFound();
+
+    expect($own->exists)->toBeTrue();
+})->with(['other date', 'other teacher', 'unknown']);
 
 test('escapes student class subject names and notes in the editor and saved history', function () {
     $className = '<script>kelas()</script>';
@@ -723,8 +843,9 @@ test('escapes student class subject names and notes in the editor and saved hist
         ->assertDontSeeHtml($className)->assertDontSeeHtml($subjectName)->assertDontSeeHtml($studentName)
         ->set('kehadiran.m'.$student->id, ['status' => 'Izin', 'catatan' => $note])
         ->call('simpan')->assertHasNoErrors();
+    $session = SesiMengajar::query()->sole();
 
-    $component->set('tanggal', '2026-10-18')->set('tanggal', '2026-10-19')
+    $component->call('lihatPresensi', $session->id)
         ->assertSee($className)->assertSee($subjectName)->assertSee($studentName)->assertSee($note)
         ->assertDontSeeHtml($className)->assertDontSeeHtml($subjectName)
         ->assertDontSeeHtml($studentName)->assertDontSeeHtml($note, false);

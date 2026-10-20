@@ -46,6 +46,7 @@ class JadwalPelajaranWorkbook
     public function write(string $path, Builder $query, string $semester, string $tahunAjaran, ?int $kelasId = null): void
     {
         $schedules = (clone $query)
+            ->forPeriod($semester, $tahunAjaran)
             ->when($kelasId !== null, fn (Builder $query): Builder => $query->where('kelas_id', $kelasId))
             ->with(['kelas', 'guru.user', 'mataPelajaran'])
             ->reorder()->orderBy('jam_mulai')->orderBy('jam_selesai')->orderBy('id')->get();

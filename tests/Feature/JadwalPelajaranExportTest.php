@@ -5,6 +5,7 @@ use App\Filament\Resources\JadwalPelajarans\Pages\ListJadwalPelajarans;
 use App\Models\JadwalPelajaran;
 use App\Models\SiteSetting;
 use App\Models\User;
+use Carbon\CarbonImmutable;
 use Database\Factories\GuruFactory;
 use Database\Factories\JadwalPelajaranFactory;
 use Database\Factories\KelasFactory;
@@ -25,9 +26,12 @@ beforeEach(function () {
     Filament::setCurrentPanel('admin');
     Filament::bootCurrentPanel();
     $this->exportPath = tempnam(sys_get_temp_dir(), 'jadwal-test-');
+    $this->travelTo(CarbonImmutable::parse('2026-10-19 10:00:00', 'Asia/Jakarta'));
 });
 
 afterEach(function () {
+    $this->travelBack();
+
     if (is_file($this->exportPath)) {
         unlink($this->exportPath);
     }
@@ -74,13 +78,13 @@ test('exports a printable timetable with configured identity and subject and tea
     JadwalPelajaranFactory::new()->create(['kelas_id' => $class->id, 'guru_id' => $teacher->id, 'mata_pelajaran' => $subject->id]);
     JadwalPelajaranFactory::new()->create(['kelas_id' => $class->id, 'hari' => 'Minggu', 'jam_mulai' => '10:00:00', 'jam_selesai' => '11:00:00']);
 
-    app(JadwalPelajaranWorkbook::class)->write($this->exportPath, JadwalPelajaran::query(), 'Genap', '2026/2027');
+    app(JadwalPelajaranWorkbook::class)->write($this->exportPath, JadwalPelajaran::query(), 'Ganjil', '2026/2027');
     $rows = jadwalWorkbookSheets($this->exportPath)[0]['rows'];
 
     expect($rows[0][1])->toBe('Pondok Uji')
         ->and($rows[2][1])->toBe('Alamat sekolah uji')
         ->and($rows[4][0])->toBe('JADWAL PELAJARAN')
-        ->and($rows[5][0])->toBe('SEMESTER GENAP 2026/2027')
+        ->and($rows[5][0])->toBe('SEMESTER GANJIL 2026/2027')
         ->and($rows[6][0])->toBe('Kelas: VII A')
         ->and($rows[7])->toBe(['JAM', 'SABTU', 'AHAD', 'SENIN', 'SELASA', 'RABU', 'KAMIS'])
         ->and($rows[8][0])->toBe('07.00 - 09.00')
@@ -102,7 +106,7 @@ test('keeps Friday and duplicate lessons while using safe sheet names and litera
     JadwalPelajaranFactory::new()->count(2)->create(['kelas_id' => $class->id, 'mata_pelajaran' => $subject->id, 'hari' => 'Jumat']);
     JadwalPelajaranFactory::new()->create();
 
-    app(JadwalPelajaranWorkbook::class)->write($this->exportPath, JadwalPelajaran::query(), 'Ganjil', '2027/2028');
+    app(JadwalPelajaranWorkbook::class)->write($this->exportPath, JadwalPelajaran::query(), 'Ganjil', '2026/2027');
     $sheets = jadwalWorkbookSheets($this->exportPath);
 
     expect($sheets)->toHaveCount(2)
@@ -116,12 +120,31 @@ test('keeps Friday and duplicate lessons while using safe sheet names and litera
     $zip->close();
 });
 
+test('exports only schedules from the selected semester and academic year', function () {
+    $activeClass = KelasFactory::new()->create(['nama_kelas' => 'Kelas Aktif']);
+    $oldClass = KelasFactory::new()->create(['nama_kelas' => 'Kelas Lama']);
+    JadwalPelajaranFactory::new()->create([
+        'kelas_id' => $activeClass->id, 'semester' => 'Ganjil', 'tahun_ajaran' => '2026/2027',
+    ]);
+    JadwalPelajaranFactory::new()->create([
+        'kelas_id' => $oldClass->id, 'semester' => 'Genap', 'tahun_ajaran' => '2025/2026',
+    ]);
+
+    app(JadwalPelajaranWorkbook::class)->write($this->exportPath, JadwalPelajaran::query(), 'Ganjil', '2026/2027');
+    $sheets = jadwalWorkbookSheets($this->exportPath);
+
+    expect($sheets)->toHaveCount(1)
+        ->and($sheets[0]['rows'][5][0])->toBe('SEMESTER GANJIL 2026/2027')
+        ->and($sheets[0]['rows'][6][0])->toBe('Kelas: Kelas Aktif')
+        ->and($sheets[0]['rows'][8][3])->not->toBe('');
+});
+
 test('honors the input query and selected class and produces an honest empty timetable', function () {
     $selected = KelasFactory::new()->create(['nama_kelas' => 'VIII B']);
     JadwalPelajaranFactory::new()->create(['kelas_id' => $selected->id]);
     JadwalPelajaranFactory::new()->create();
     $query = JadwalPelajaran::query()->where('hari', 'Sabtu');
-    app(JadwalPelajaranWorkbook::class)->write($this->exportPath, $query, 'Genap', '2026/2027', $selected->id);
+    app(JadwalPelajaranWorkbook::class)->write($this->exportPath, $query, 'Ganjil', '2026/2027', $selected->id);
     $sheets = jadwalWorkbookSheets($this->exportPath);
 
     expect($sheets)->toHaveCount(1)
@@ -132,7 +155,7 @@ test('honors the input query and selected class and produces an honest empty tim
 
 test('handles missing subject references and null times without losing the lesson', function () {
     JadwalPelajaranFactory::new()->create(['mata_pelajaran' => '999999', 'jam_mulai' => null, 'jam_selesai' => null]);
-    app(JadwalPelajaranWorkbook::class)->write($this->exportPath, JadwalPelajaran::query(), 'Genap', '2026/2027');
+    app(JadwalPelajaranWorkbook::class)->write($this->exportPath, JadwalPelajaran::query(), 'Ganjil', '2026/2027');
     $rows = jadwalWorkbookSheets($this->exportPath)[0]['rows'];
     expect($rows[8][0])->toBe('— - —')
         ->and($rows[8][3])->toContain('Mapel tidak tersedia');
@@ -144,7 +167,7 @@ test('embeds the configured logo on every class worksheet with valid XML relatio
     Storage::disk('public')->put('logo.png', $image);
     SiteSetting::factory()->create(['logo' => 'logo.png']);
     JadwalPelajaranFactory::new()->count(2)->create();
-    app(JadwalPelajaranWorkbook::class)->write($this->exportPath, JadwalPelajaran::query(), 'Genap', '2026/2027');
+    app(JadwalPelajaranWorkbook::class)->write($this->exportPath, JadwalPelajaran::query(), 'Ganjil', '2026/2027');
     $zip = new ZipArchive;
     expect($zip->open($this->exportPath, ZipArchive::CHECKCONS))->toBeTrue();
     expect($zip->getFromName('xl/media/jadwal-logo1.png'))->toBe($image);
@@ -178,9 +201,9 @@ test('downloads the real workbook through the table action with table search app
 
     $component = Livewire::test(ListJadwalPelajarans::class)
         ->searchTable('Kelas Terpilih')
-        ->callAction(TestAction::make('exportExcel')->table(), data: ['semester' => 'Genap', 'tahun_ajaran' => '2026/2027', 'kelas_id' => null])
+        ->callAction(TestAction::make('exportExcel')->table(), data: ['semester' => 'Ganjil', 'tahun_ajaran' => '2026/2027', 'kelas_id' => null])
         ->assertHasNoActionErrors()
-        ->assertFileDownloaded('jadwal-pelajaran-genap-2026-2027.xlsx');
+        ->assertFileDownloaded('jadwal-pelajaran-ganjil-2026-2027.xlsx');
 
     $download = $component->effects['download'];
     file_put_contents($this->exportPath, base64_decode($download['content']));
@@ -191,7 +214,7 @@ test('downloads the real workbook through the table action with table search app
 test('rejects invalid export headings and nonexistent classes', function (array $data, string $field) {
     $this->actingAs(jadwalExportUser());
     Livewire::test(ListJadwalPelajarans::class)
-        ->callAction(TestAction::make('exportExcel')->table(), data: array_replace(['semester' => 'Genap', 'tahun_ajaran' => '2026/2027', 'kelas_id' => null], $data))
+        ->callAction(TestAction::make('exportExcel')->table(), data: array_replace(['semester' => 'Ganjil', 'tahun_ajaran' => '2026/2027', 'kelas_id' => null], $data))
         ->assertHasActionErrors([$field])
         ->assertNoFileDownloaded();
 })->with([
@@ -205,7 +228,7 @@ test('splits large timetable cells into printable rows without dropping lessons'
     $class = KelasFactory::new()->create();
     $subject = MataPelajaranFactory::new()->create(['nama_mapel' => str_repeat('Matematika ', 8)]);
     JadwalPelajaranFactory::new()->count(12)->create(['kelas_id' => $class->id, 'mata_pelajaran' => $subject->id]);
-    app(JadwalPelajaranWorkbook::class)->write($this->exportPath, JadwalPelajaran::query(), 'Genap', '2026/2027');
+    app(JadwalPelajaranWorkbook::class)->write($this->exportPath, JadwalPelajaran::query(), 'Ganjil', '2026/2027');
     $rows = jadwalWorkbookSheets($this->exportPath)[0]['rows'];
     $text = collect($rows)->skip(8)->pluck(3)->implode('');
 
@@ -236,7 +259,7 @@ test('converts configured WebP logos to PNG when GD supports WebP', function () 
     imagedestroy($image);
     Storage::disk('public')->put('logo.webp', $bytes);
     SiteSetting::factory()->create(['logo' => 'logo.webp']);
-    app(JadwalPelajaranWorkbook::class)->write($this->exportPath, JadwalPelajaran::query(), 'Genap', '2026/2027');
+    app(JadwalPelajaranWorkbook::class)->write($this->exportPath, JadwalPelajaran::query(), 'Ganjil', '2026/2027');
     $zip = new ZipArchive;
     $zip->open($this->exportPath);
     expect(getimagesizefromstring($zip->getFromName('xl/media/jadwal-logo1.png'))[2])->toBe(IMAGETYPE_PNG);
