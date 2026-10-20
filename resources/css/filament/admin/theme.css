@@ -323,6 +323,105 @@
     }
 }
 
+.jurnal-page .jurnal-table {
+    min-width: 54rem;
+}
+
+.jurnal-page .jurnal-form-table {
+    min-width: 78rem;
+}
+
+.jurnal-page .jurnal-summary {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr));
+    gap: 0.75rem 1.5rem;
+    margin: 0;
+    padding: 1rem;
+    border: 1px solid var(--pondok-border);
+    border-radius: 0.5rem;
+    background-color: var(--pondok-background);
+}
+
+.jurnal-page .jurnal-summary dt {
+    font-size: 0.8125rem;
+    color: var(--presensi-muted);
+}
+
+.jurnal-page .jurnal-summary dd {
+    margin: 0;
+    font-weight: 600;
+    color: var(--presensi-text);
+}
+
+.jurnal-page .jurnal-textarea {
+    width: 100%;
+    min-width: 0;
+    min-height: 5.5rem;
+    padding: 0.5rem 0.75rem;
+    border: 1px solid var(--pondok-border);
+    border-radius: 0.5rem;
+    background-color: #ffffff;
+    color: var(--presensi-text);
+    font: inherit;
+    resize: vertical;
+}
+
+.fi.dark .jurnal-page .jurnal-textarea {
+    background-color: var(--gray-900, #111827);
+    color: var(--gray-100, #f3f4f6);
+}
+
+.jurnal-page .jurnal-cell-lm {
+    min-width: 15rem;
+}
+
+.jurnal-page .jurnal-cell-tp {
+    min-width: 18rem;
+}
+
+.jurnal-page .jurnal-cell-activity {
+    min-width: 18rem;
+}
+
+.jurnal-page .jurnal-cell-note {
+    min-width: 13rem;
+}
+
+.jurnal-page .jurnal-row-action {
+    text-align: center;
+    vertical-align: middle;
+}
+
+.jurnal-page .jurnal-remove {
+    min-height: 2.75rem;
+    padding: 0 0.25rem;
+    border: 0;
+    background: none;
+    color: var(--presensi-error);
+    font: inherit;
+    font-size: 0.8125rem;
+    text-decoration: underline;
+    cursor: pointer;
+}
+
+.jurnal-page .jurnal-link {
+    display: inline-flex;
+    align-items: center;
+    min-height: 2.75rem;
+    color: var(--pondok-accent);
+    font-weight: 600;
+    text-decoration: underline;
+}
+
+.jurnal-page .jurnal-history-text {
+    white-space: pre-wrap;
+}
+
+.jurnal-page :is(button, input, select, textarea, [tabindex="0"]):focus-visible {
+    outline: 2px solid var(--pondok-accent);
+    outline-offset: 3px;
+}
+
 .materi-page {
     --materi-text: var(--gray-950, #030712);
     --materi-muted: var(--gray-600, #4b5563);
