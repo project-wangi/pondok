@@ -322,3 +322,289 @@
         flex-wrap: wrap;
     }
 }
+
+.materi-page {
+    --materi-text: var(--gray-950, #030712);
+    --materi-muted: var(--gray-600, #4b5563);
+    --materi-error: var(--danger-700, #b91c1c);
+    display: grid;
+    gap: 1.5rem;
+    min-width: 0;
+    color: var(--materi-text);
+    font-size: 0.875rem;
+    line-height: 1.5;
+    overflow-wrap: anywhere;
+}
+
+.fi.dark .materi-page {
+    --materi-text: var(--gray-100, #f3f4f6);
+    --materi-muted: var(--gray-300, #d1d5db);
+    --materi-error: var(--danger-400, #f87171);
+}
+
+.materi-page .materi-label {
+    font-weight: 600;
+    color: var(--materi-text);
+}
+
+.materi-page .materi-help {
+    font-size: 0.875rem;
+    font-weight: 400;
+    color: var(--materi-muted);
+}
+
+.materi-page .materi-error {
+    margin-block-start: 0.25rem;
+    color: var(--materi-error);
+}
+
+.materi-page .materi-errors {
+    padding: 1rem;
+    border: 1px solid var(--materi-error);
+    border-radius: 0.5rem;
+    background-color: var(--pondok-background);
+}
+
+.materi-page .materi-errors ul {
+    padding-inline-start: 1.25rem;
+    margin-block-start: 0.5rem;
+    list-style: disc;
+}
+
+.materi-page .materi-identity {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr));
+    gap: 1rem 1.5rem;
+    align-items: start;
+}
+
+.materi-page .materi-identity-item {
+    display: grid;
+    gap: 0.25rem;
+    min-width: 0;
+}
+
+.materi-page .materi-identity-subject {
+    grid-column: span 2;
+}
+
+.materi-page .materi-info {
+    padding: 1rem;
+    border: 1px solid #d97706;
+    border-radius: 0.5rem;
+    background-color: #fef3c7;
+    color: #78350f;
+}
+
+.materi-page .materi-info-title {
+    font-weight: 700;
+}
+
+.materi-page .materi-info ol {
+    padding-inline-start: 1.25rem;
+    margin-block-start: 0.5rem;
+    list-style: decimal;
+}
+
+.fi.dark .materi-page .materi-info {
+    border-color: #b45309;
+    background-color: #3f2d08;
+    color: #fde68a;
+}
+
+.materi-page .materi-empty {
+    padding: 1rem;
+    border: 1px solid var(--pondok-border);
+    border-radius: 0.5rem;
+    background-color: var(--pondok-background);
+}
+
+.materi-page .materi-empty p + p {
+    margin-block-start: 0.25rem;
+}
+
+.materi-page .materi-form {
+    display: grid;
+    gap: 1.25rem;
+    min-width: 0;
+}
+
+.materi-page .materi-table-scroll {
+    min-width: 0;
+    overflow-x: auto;
+    border: 1px solid var(--pondok-border);
+    border-radius: 0.5rem;
+}
+
+.materi-page .materi-table {
+    width: 100%;
+    min-width: 48rem;
+    border-collapse: collapse;
+    text-align: start;
+}
+
+.materi-page .materi-table th,
+.materi-page .materi-table td {
+    padding: 0.75rem;
+    border: 1px solid var(--pondok-border);
+    vertical-align: top;
+}
+
+.materi-page .materi-table thead th {
+    background-color: var(--primary-700, #1d4ed8);
+    color: #ffffff;
+    font-weight: 600;
+    text-align: center;
+}
+
+.materi-page .materi-table tbody tr:nth-child(even) {
+    background-color: var(--pondok-background);
+}
+
+.materi-page .materi-number {
+    width: 3.5rem;
+    text-align: center;
+    font-variant-numeric: tabular-nums;
+    vertical-align: middle;
+}
+
+.materi-page .materi-material {
+    width: 38%;
+}
+
+.materi-page .materi-actions-column {
+    width: 6rem;
+}
+
+.materi-page .materi-textarea {
+    width: 100%;
+    min-height: 8rem;
+    padding: 0.5rem 0.75rem;
+    border: 1px solid var(--pondok-border);
+    border-radius: 0.5rem;
+    background-color: #ffffff;
+    color: var(--materi-text);
+    font: inherit;
+    resize: vertical;
+}
+
+.fi.dark .materi-page .materi-textarea {
+    background-color: var(--gray-900, #111827);
+    color: var(--gray-100, #f3f4f6);
+}
+
+.materi-page .materi-goals {
+    display: grid;
+    gap: 0.5rem;
+    min-width: 22rem;
+}
+
+.materi-page .materi-goal {
+    display: grid;
+    gap: 0.125rem;
+}
+
+.materi-page .materi-goal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+}
+
+.materi-page .materi-goal-remove {
+    min-height: 2.75rem;
+    padding: 0 0.25rem;
+    border: 0;
+    background: none;
+    color: var(--materi-error);
+    font: inherit;
+    font-size: 0.8125rem;
+    text-decoration: underline;
+    cursor: pointer;
+}
+
+.materi-page .materi-goal-add {
+    padding-block-start: 0.25rem;
+}
+
+.materi-page .materi-goal-label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--materi-muted);
+}
+
+.materi-page .materi-table input.fi-input,
+.materi-page .materi-table .fi-input-wrp {
+    min-width: 0;
+    width: 100%;
+}
+
+.materi-page .materi-table input.fi-input,
+.materi-page .materi-table .fi-input-wrp {
+    min-height: 2.75rem;
+}
+
+.materi-page .materi-row-action {
+    text-align: center;
+    vertical-align: middle;
+}
+
+.materi-page .materi-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding-block-start: 1rem;
+    border-block-start: 1px solid var(--pondok-border);
+}
+
+.materi-page .materi-footer > p {
+    max-width: 38rem;
+}
+
+.materi-page .materi-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+}
+
+.materi-page .materi-actions .fi-btn {
+    min-height: 2.75rem;
+    white-space: normal;
+}
+
+.materi-page :is(button, textarea, input, select):focus-visible {
+    outline: 2px solid var(--pondok-accent);
+    outline-offset: 3px;
+}
+
+.materi-page .materi-sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+    border: 0;
+}
+
+@media (max-width: 48rem) {
+    .materi-page .materi-identity-subject {
+        grid-column: auto;
+    }
+
+    .materi-page .materi-footer {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .materi-page .materi-actions {
+        flex-direction: column;
+    }
+
+    .materi-page .materi-actions .fi-btn {
+        width: 100%;
+    }
+}
