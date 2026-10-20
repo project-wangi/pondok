@@ -7,6 +7,7 @@ use App\Models\Murid;
 use App\Models\PresensiMurid;
 use App\Models\SesiMengajar;
 use BackedEnum;
+use UnitEnum;
 use Carbon\CarbonImmutable;
 use Filament\Facades\Filament;
 use Filament\Notifications\Notification;
@@ -25,6 +26,8 @@ class PresensiSiswa extends Page
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedClipboardDocumentCheck;
 
     protected static ?string $navigationLabel = 'Presensi Siswa';
+
+    protected static string|UnitEnum|null $navigationGroup = 'Pembelajaran';
 
     protected static ?string $title = 'Presensi Siswa';
 
