@@ -30,7 +30,7 @@ class IsiAsesmenFormatif extends Page
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedClipboardDocumentCheck;
 
-    protected static ?string $title = 'Input Asesmen Formatif';
+    protected static ?string $title = 'Asesmen Formatif';
 
     protected string $view = 'filament.pages.isi-asesmen-formatif';
 

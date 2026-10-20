@@ -71,15 +71,16 @@ function asesmenOverviewMaterial(Guru $teacher, MataPelajaran $subject, int $ord
 
 test('shows the menu in the Pembelajaran group', function () {
     expect(InputAsesmenFormatif::getNavigationGroup())->toBe('Pembelajaran')
-        ->and(InputAsesmenFormatif::getNavigationLabel())->toBe('Input Asesmen Formatif');
+        ->and(InputAsesmenFormatif::getNavigationLabel())->toBe('Asesmen Formatif')
+        ->and(InputAsesmenFormatif::getSlug())->toBe('asesmen-formatif');
 });
 
 test('redirects guests and forbids accounts without a teacher profile', function () {
-    $this->get(route('filament.admin.pages.input-asesmen-formatif'))
+    $this->get(route('filament.admin.pages.asesmen-formatif'))
         ->assertRedirectToRoute('filament.admin.auth.login');
 
     $this->actingAs(User::factory()->create());
-    $this->get(route('filament.admin.pages.input-asesmen-formatif'))->assertForbidden();
+    $this->get(route('filament.admin.pages.asesmen-formatif'))->assertForbidden();
     Livewire::test(InputAsesmenFormatif::class)->assertForbidden();
 });
 

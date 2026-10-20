@@ -17,11 +17,13 @@ class InputLingkupMateri extends Page
 
     protected static string|UnitEnum|null $navigationGroup = 'Pembelajaran';
 
-    protected static ?string $navigationLabel = 'Input Lingkup Materi dan Tujuan Pembelajaran';
+    protected static ?string $navigationLabel = 'Lingkup Materi dan Tujuan Pembelajaran';
 
     protected static ?string $title = 'Lingkup Materi dan Tujuan Pembelajaran';
 
     protected static ?int $navigationSort = 1;
+
+    protected static ?string $slug = 'lingkup-materi';
 
     protected string $view = 'filament.pages.input-lingkup-materi';
 

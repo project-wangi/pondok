@@ -18,11 +18,13 @@ class InputAsesmenFormatif extends Page
 
     protected static string|UnitEnum|null $navigationGroup = 'Pembelajaran';
 
-    protected static ?string $navigationLabel = 'Input Asesmen Formatif';
+    protected static ?string $navigationLabel = 'Asesmen Formatif';
 
     protected static ?string $title = 'Asesmen Formatif';
 
     protected static ?int $navigationSort = 3;
+
+    protected static ?string $slug = 'asesmen-formatif';
 
     protected string $view = 'filament.pages.input-asesmen-formatif';
 

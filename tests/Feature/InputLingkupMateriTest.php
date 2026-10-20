@@ -70,16 +70,17 @@ function inputOverviewMaterial(Guru $teacher, MataPelajaran $subject, string $ma
 
 test('shows the requested menu label under the Pembelajaran group', function () {
     expect(InputLingkupMateri::getNavigationGroup())->toBe('Pembelajaran')
-        ->and(InputLingkupMateri::getNavigationLabel())->toBe('Input Lingkup Materi dan Tujuan Pembelajaran')
+        ->and(InputLingkupMateri::getNavigationLabel())->toBe('Lingkup Materi dan Tujuan Pembelajaran')
+        ->and(InputLingkupMateri::getSlug())->toBe('lingkup-materi')
         ->and(InputLingkupMateri::shouldRegisterNavigation())->toBeTrue();
 });
 
 test('redirects guests and forbids accounts without a teacher profile', function () {
-    $this->get(route('filament.admin.pages.input-lingkup-materi'))
+    $this->get(route('filament.admin.pages.lingkup-materi'))
         ->assertRedirectToRoute('filament.admin.auth.login');
 
     $this->actingAs(User::factory()->create());
-    $this->get(route('filament.admin.pages.input-lingkup-materi'))->assertForbidden();
+    $this->get(route('filament.admin.pages.lingkup-materi'))->assertForbidden();
     Livewire::test(InputLingkupMateri::class)->assertForbidden();
 });
 

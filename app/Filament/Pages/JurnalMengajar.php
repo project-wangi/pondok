@@ -143,7 +143,7 @@ class JurnalMengajar extends Page
             $materials = $this->availableMaterials((int) $schedule->mata_pelajaran);
 
             if ($materials->isEmpty()) {
-                throw ValidationException::withMessages(['baris' => 'Belum ada lingkup materi untuk mata pelajaran ini. Isi dulu melalui menu Input Lingkup Materi.']);
+                throw ValidationException::withMessages(['baris' => 'Belum ada lingkup materi untuk mata pelajaran ini. Isi dulu melalui menu Lingkup Materi dan Tujuan Pembelajaran.']);
             }
 
             $this->baris = array_values(array_map(function (mixed $row): array {

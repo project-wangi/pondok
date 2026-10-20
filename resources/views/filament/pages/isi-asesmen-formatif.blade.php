@@ -64,7 +64,7 @@
             <div class="presensi-notice">
                 <p class="presensi-label">Belum ada tujuan pembelajaran untuk {{ $subject?->nama_mapel ?? 'mata pelajaran ini' }}.</p>
                 <p class="presensi-help">Asesmen formatif membutuhkan lingkup materi dan tujuan pembelajaran. Isi data tersebut terlebih dahulu.</p>
-                <p><a class="asesmen-link" href="{{ $lingkupUrl }}">Buka Input Lingkup Materi dan Tujuan Pembelajaran</a></p>
+                <p><a class="asesmen-link" href="{{ $lingkupUrl }}">Buka Lingkup Materi dan Tujuan Pembelajaran</a></p>
             </div>
         @elseif ($students->isEmpty())
             <div class="presensi-notice">
