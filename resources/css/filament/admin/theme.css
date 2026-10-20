@@ -451,6 +451,179 @@
     outline-offset: 3px;
 }
 
+.asesmen-page .asesmen-back {
+    display: flex;
+}
+
+.asesmen-page .asesmen-identity {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr));
+    gap: 1rem 1.5rem;
+}
+
+.asesmen-page .asesmen-identity-item {
+    display: grid;
+    gap: 0.25rem;
+    min-width: 0;
+}
+
+.asesmen-page .asesmen-identity-value {
+    font-weight: 600;
+    color: var(--presensi-text);
+}
+
+.asesmen-page .asesmen-form {
+    display: grid;
+    gap: 1rem;
+    min-width: 0;
+}
+
+.asesmen-page .asesmen-matrix {
+    width: max-content;
+    min-width: 100%;
+    border-collapse: collapse;
+    color: var(--presensi-text);
+    font-size: 0.8125rem;
+}
+
+.asesmen-page .asesmen-matrix :is(th, td) {
+    padding: 0.4rem;
+    border: 1px solid var(--pondok-border);
+    text-align: center;
+    vertical-align: middle;
+    white-space: nowrap;
+}
+
+.asesmen-page .asesmen-matrix thead th {
+    background-color: var(--presensi-heading);
+    color: #ffffff;
+    font-weight: 600;
+}
+
+.asesmen-page .asesmen-matrix thead tr:last-child th {
+    background-color: var(--primary-600, #2563eb);
+}
+
+.asesmen-page .asesmen-matrix .asesmen-material {
+    min-width: 8rem;
+    max-width: 15rem;
+    white-space: normal;
+    overflow-wrap: normal;
+}
+
+.asesmen-page .asesmen-matrix .asesmen-name-col {
+    min-width: 14rem;
+    text-align: left;
+}
+
+.asesmen-page .asesmen-matrix .asesmen-gender-col {
+    min-width: 7rem;
+}
+
+.asesmen-page .asesmen-matrix .asesmen-name-cell {
+    min-width: 14rem;
+    text-align: left;
+    white-space: normal;
+    overflow-wrap: anywhere;
+    font-weight: 600;
+}
+
+.asesmen-page .asesmen-matrix .asesmen-nis {
+    min-width: 7rem;
+    font-variant-numeric: tabular-nums;
+}
+
+.asesmen-page .asesmen-matrix .asesmen-number {
+    width: 3rem;
+}
+
+.asesmen-page .asesmen-matrix .asesmen-score-cell {
+    padding: 0.3rem;
+}
+
+.asesmen-page .asesmen-score {
+    width: 4.25rem;
+    min-height: 2.75rem;
+    padding: 0.25rem 0.35rem;
+    border: 1px solid var(--pondok-border);
+    border-radius: 0.375rem;
+    background-color: #ffffff;
+    color: var(--presensi-text);
+    font: inherit;
+    text-align: center;
+    appearance: textfield;
+}
+
+.asesmen-page .asesmen-score::-webkit-inner-spin-button,
+.asesmen-page .asesmen-score::-webkit-outer-spin-button {
+    margin: 0;
+    appearance: none;
+}
+
+.fi.dark .asesmen-page .asesmen-score {
+    background-color: var(--gray-900, #111827);
+    color: var(--gray-100, #f3f4f6);
+}
+
+.asesmen-page .asesmen-matrix .asesmen-average {
+    min-width: 6rem;
+    background-color: var(--pondok-background);
+    font-variant-numeric: tabular-nums;
+    font-weight: 600;
+}
+
+.asesmen-page .asesmen-matrix .asesmen-status {
+    min-width: 8rem;
+}
+
+.asesmen-page .asesmen-matrix .asesmen-rank {
+    width: 5rem;
+    font-variant-numeric: tabular-nums;
+}
+
+.asesmen-page .asesmen-matrix tbody tr:nth-child(even) {
+    background-color: var(--presensi-stripe);
+}
+
+.asesmen-page .asesmen-matrix tbody tr:hover,
+.asesmen-page .asesmen-matrix tbody tr:focus-within {
+    background-color: var(--pondok-navigation);
+}
+
+.asesmen-page .asesmen-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding-block-start: 1rem;
+    border-block-start: 1px solid var(--pondok-border);
+}
+
+.asesmen-page .asesmen-footer > p {
+    max-width: 42rem;
+}
+
+.asesmen-page .asesmen-link {
+    display: inline-flex;
+    align-items: center;
+    min-height: 2.75rem;
+    color: var(--pondok-accent);
+    font-weight: 600;
+    text-decoration: underline;
+}
+
+.asesmen-page .asesmen-score:focus-visible {
+    outline: 2px solid var(--pondok-accent);
+    outline-offset: 2px;
+}
+
+@media (max-width: 48rem) {
+    .asesmen-page .asesmen-footer {
+        flex-direction: column;
+        align-items: stretch;
+    }
+}
+
 .materi-page {
     --materi-text: var(--gray-950, #030712);
     --materi-muted: var(--gray-600, #4b5563);

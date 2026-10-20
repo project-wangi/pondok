@@ -17,7 +17,7 @@ class MuridFactory extends Factory
             'kelas_id' => KelasFactory::new(),
             'nama' => fake()->name(),
             'email' => fake()->unique()->safeEmail(),
-            'jenis_kelamin' => fake()->randomElement(['Laki-laki', 'Perempuan']),
+            'jenis_kelamin' => fake()->randomElement(['laki-laki', 'perempuan']),
         ];
     }
 }

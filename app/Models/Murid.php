@@ -40,4 +40,13 @@ class Murid extends Model
     {
         return $this->belongsTo(Kelas::class);
     }
+
+    public function jenisKelaminKode(): string
+    {
+        return match (mb_strtolower(trim((string) $this->jenis_kelamin))) {
+            'laki-laki', 'laki laki', 'l', 'lk' => 'L',
+            'perempuan', 'p', 'pr' => 'P',
+            default => '-',
+        };
+    }
 }
