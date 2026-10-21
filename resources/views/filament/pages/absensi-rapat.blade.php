@@ -116,6 +116,7 @@
                                 captured: false,
                                 async start() {
                                     this.error = null;
+                                    this.stop();
                                     if (! navigator.mediaDevices?.getUserMedia) {
                                         this.error = 'Perangkat ini tidak mendukung kamera. Gunakan perangkat dengan kamera dan izinkan akses kamera.';
                                         return;
@@ -125,6 +126,8 @@
                                         this.$refs.video.srcObject = this.stream;
                                         await this.$refs.video.play();
                                         this.captured = false;
+                                        this.stopHandler = () => this.stop();
+                                        window.addEventListener('rapat-camera-stop', this.stopHandler);
                                     } catch (exception) {
                                         this.error = 'Kamera tidak dapat diakses. Izinkan akses kamera pada peramban lalu coba lagi.';
                                     }
@@ -136,6 +139,10 @@
                                     }
                                     if (this.$refs.video) {
                                         this.$refs.video.srcObject = null;
+                                    }
+                                    if (this.stopHandler) {
+                                        window.removeEventListener('rapat-camera-stop', this.stopHandler);
+                                        this.stopHandler = null;
                                     }
                                 },
                                 capture() {
@@ -157,8 +164,8 @@
                                         this.error = null;
                                         const file = new File([blob], 'selfie-rapat.jpg', { type: 'image/jpeg' });
                                         $wire.upload('foto', file,
-                                            () => { this.uploading = false; this.captured = true; },
-                                            () => { this.uploading = false; this.error = 'Gagal mengunggah foto. Periksa koneksi lalu coba lagi.'; },
+                                            () => { this.uploading = false; this.captured = true; this.stop(); },
+                                            () => { this.uploading = false; this.captured = false; this.error = 'Gagal mengunggah foto. Periksa koneksi lalu coba lagi.'; },
                                             () => {},
                                         );
                                     }, 'image/jpeg', 0.9);
@@ -166,6 +173,7 @@
                                 retake() {
                                     this.captured = false;
                                     $wire.set('foto', null);
+                                    this.start();
                                 },
                             }"
                             x-on:close-modal.window="if ($event.detail.id === 'absensi-rapat-modal') stop()"
@@ -187,7 +195,7 @@
                                 @endif
 
                                 @if (! $foto)
-                                    <div class="rapat-camera-placeholder" x-show="! stream">
+                                    <div class="rapat-camera-placeholder" x-show="! stream && ! captured">
                                         <p class="presensi-label">Kamera belum dinyalakan</p>
                                         <p class="presensi-help">Tekan Nyalakan kamera, lalu ambil selfie.</p>
                                     </div>
@@ -197,7 +205,7 @@
                             <div class="rapat-camera-actions">
                                 <x-filament::button
                                     type="button"
-                                    x-show="! stream"
+                                    x-show="! stream && ! captured"
                                     x-on:click="start()"
                                     :loading-indicator="false"
                                 >
