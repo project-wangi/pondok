@@ -49,7 +49,7 @@ function rapatMeeting(string $agenda, array $members, string $tanggal = '2026-10
 }
 
 test('shows the menu in the Pembelajaran group', function () {
-    expect(AbsensiRapat::getNavigationGroup())->toBe('Pembelajaran')
+    expect(AbsensiRapat::getNavigationGroup())->toBe('Absensi')
         ->and(AbsensiRapat::getNavigationLabel())->toBe('Absensi Rapat')
         ->and(AbsensiRapat::getSlug())->toBe('absensi-rapat')
         ->and(AbsensiRapat::shouldRegisterNavigation())->toBeTrue();

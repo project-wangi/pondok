@@ -44,7 +44,7 @@ function piketSchedule(Guru $teacher, string $day = 'Senin'): JadwalPiket
 }
 
 test('shows the menu in the Pembelajaran group', function () {
-    expect(AbsensiPiket::getNavigationGroup())->toBe('Pembelajaran')
+    expect(AbsensiPiket::getNavigationGroup())->toBe('Absensi')
         ->and(AbsensiPiket::getNavigationLabel())->toBe('Absensi Piket')
         ->and(AbsensiPiket::getSlug())->toBe('absensi-piket')
         ->and(AbsensiPiket::shouldRegisterNavigation())->toBeTrue();

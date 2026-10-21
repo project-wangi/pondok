@@ -66,7 +66,7 @@ function peminatanStudent(string $name, ?string $nis = null, ?int $classId = nul
 }
 
 test('shows the menu in the Pembelajaran group', function () {
-    expect(AbsensiPeminatan::getNavigationGroup())->toBe('Pembelajaran')
+    expect(AbsensiPeminatan::getNavigationGroup())->toBe('Absensi')
         ->and(AbsensiPeminatan::getNavigationLabel())->toBe('Absensi Peminatan')
         ->and(AbsensiPeminatan::getSlug())->toBe('absensi-peminatan')
         ->and(AbsensiPeminatan::shouldRegisterNavigation())->toBeTrue();

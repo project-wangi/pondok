@@ -29,13 +29,13 @@ class AbsensiPeminatan extends Page
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedStar;
 
-    protected static string|UnitEnum|null $navigationGroup = 'Pembelajaran';
+    protected static string|UnitEnum|null $navigationGroup = 'Absensi';
 
     protected static ?string $navigationLabel = 'Absensi Peminatan';
 
     protected static ?string $title = 'Absensi Peminatan';
 
-    protected static ?int $navigationSort = 6;
+    protected static ?int $navigationSort = 3;
 
     protected string $view = 'filament.pages.absensi-peminatan';
 

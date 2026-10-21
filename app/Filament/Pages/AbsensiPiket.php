@@ -29,13 +29,13 @@ class AbsensiPiket extends Page
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedIdentification;
 
-    protected static string|UnitEnum|null $navigationGroup = 'Pembelajaran';
+    protected static string|UnitEnum|null $navigationGroup = 'Absensi';
 
     protected static ?string $navigationLabel = 'Absensi Piket';
 
     protected static ?string $title = 'Absensi Piket';
 
-    protected static ?int $navigationSort = 5;
+    protected static ?int $navigationSort = 2;
 
     protected string $view = 'filament.pages.absensi-piket';
 

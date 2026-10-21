@@ -38,6 +38,12 @@ afterEach(function () {
     date_default_timezone_set($this->originalTimezone);
 });
 
+test('shows the menu in the Absensi group', function () {
+    expect(PresensiSiswa::getNavigationGroup())->toBe('Absensi')
+        ->and(PresensiSiswa::getNavigationLabel())->toBe('Presensi Siswa')
+        ->and(PresensiSiswa::shouldRegisterNavigation())->toBeTrue();
+});
+
 test('preserves panel access for existing administrative roles without granting attendance access', function (string $roleName) {
     Role::create(['name' => $roleName, 'guard_name' => 'web']);
     $user = User::factory()->create()->assignRole($roleName);

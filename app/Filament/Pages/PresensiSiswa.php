@@ -27,11 +27,13 @@ class PresensiSiswa extends Page
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedClipboardDocumentCheck;
 
+    protected static string|UnitEnum|null $navigationGroup = 'Absensi';
+
     protected static ?string $navigationLabel = 'Presensi Siswa';
 
-    protected static string|UnitEnum|null $navigationGroup = 'Pembelajaran';
-
     protected static ?string $title = 'Presensi Siswa';
+
+    protected static ?int $navigationSort = 1;
 
     protected string $view = 'filament.pages.presensi-siswa';
 

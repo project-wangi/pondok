@@ -23,13 +23,13 @@ class AbsensiRapat extends Page
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedVideoCamera;
 
-    protected static string|UnitEnum|null $navigationGroup = 'Pembelajaran';
+    protected static string|UnitEnum|null $navigationGroup = 'Absensi';
 
     protected static ?string $navigationLabel = 'Absensi Rapat';
 
     protected static ?string $title = 'Absensi Rapat';
 
-    protected static ?int $navigationSort = 7;
+    protected static ?int $navigationSort = 4;
 
     protected string $view = 'filament.pages.absensi-rapat';
 
