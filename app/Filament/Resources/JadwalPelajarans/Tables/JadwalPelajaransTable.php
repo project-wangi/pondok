@@ -29,8 +29,7 @@ class JadwalPelajaransTable
                     ->label('No')
                     ->rowIndex(),
                 TextColumn::make('semester')
-                    ->badge()
-                    ->sortable(),
+                    ->badge(),
                 TextColumn::make('tahun_ajaran')
                     ->label('Tahun ajaran')
                     ->searchable()
