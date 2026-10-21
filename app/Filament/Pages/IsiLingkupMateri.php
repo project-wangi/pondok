@@ -3,6 +3,7 @@
 namespace App\Filament\Pages;
 
 use App\Models\JadwalPelajaran;
+use App\Models\Kelas;
 use App\Models\LingkupMateri;
 use App\Models\MataPelajaran;
 use BackedEnum;
@@ -11,7 +12,6 @@ use Filament\Notifications\Notification;
 use Filament\Pages\Page;
 use Filament\Panel;
 use Filament\Support\Icons\Heroicon;
-use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use Livewire\Attributes\Locked;
@@ -30,6 +30,9 @@ class IsiLingkupMateri extends Page
     protected string $view = 'filament.pages.isi-lingkup-materi';
 
     #[Locked]
+    public ?int $kelasId = null;
+
+    #[Locked]
     public ?int $mataPelajaranId = null;
 
     /** @var array<int, array{materi: string, tujuan: array<int, string>}> */
@@ -37,7 +40,7 @@ class IsiLingkupMateri extends Page
 
     public static function getRoutePath(Panel $panel): string
     {
-        return '/isi-lingkup-materi/{mapel}';
+        return '/isi-lingkup-materi/{kelas}/{mapel}';
     }
 
     public static function canAccess(): bool
@@ -45,24 +48,25 @@ class IsiLingkupMateri extends Page
         return Filament::auth()->user()?->guru()->exists() ?? false;
     }
 
-    public function mount(int $mapel): void
+    public function mount(int $kelas, int $mapel): void
     {
         abort_unless(static::canAccess(), 403);
-        abort_if($mapel <= 0, 404);
+        abort_if($kelas <= 0 || $mapel <= 0, 404);
+        $this->kelasId = $kelas;
         $this->mataPelajaranId = $mapel;
-        $this->assertTeachesSubject();
+        $this->assertTeachesClassSubject();
         $this->loadLingkup();
     }
 
     public function tambahLingkup(): void
     {
-        $this->assertTeachesSubject();
+        $this->assertTeachesClassSubject();
         $this->lingkup[] = $this->emptyRow();
     }
 
     public function hapusLingkup(int $index): void
     {
-        $this->assertTeachesSubject();
+        $this->assertTeachesClassSubject();
         unset($this->lingkup[$index]);
         $this->lingkup = array_values($this->lingkup);
 
@@ -75,7 +79,7 @@ class IsiLingkupMateri extends Page
 
     public function tambahTujuan(int $index): void
     {
-        $this->assertTeachesSubject();
+        $this->assertTeachesClassSubject();
 
         if (! isset($this->lingkup[$index]) || ! is_array($this->lingkup[$index]['tujuan'] ?? null)) {
             return;
@@ -87,7 +91,7 @@ class IsiLingkupMateri extends Page
 
     public function hapusTujuan(int $index, int $goalIndex): void
     {
-        $this->assertTeachesSubject();
+        $this->assertTeachesClassSubject();
 
         if (! isset($this->lingkup[$index]) || ! is_array($this->lingkup[$index]['tujuan'] ?? null)) {
             return;
@@ -108,9 +112,10 @@ class IsiLingkupMateri extends Page
 
     public function simpan(): void
     {
-        $this->assertTeachesSubject();
+        $this->assertTeachesClassSubject();
         $guru = Filament::auth()->user()->guru()->firstOrFail();
         $subject = $this->selectedSubject();
+        $class = $this->selectedClass();
         $period = JadwalPelajaran::activePeriod();
 
         $this->lingkup = array_values(array_map(function (mixed $row): array {
@@ -168,9 +173,10 @@ class IsiLingkupMateri extends Page
 
         $data = $validator->validate();
 
-        DB::transaction(function () use ($guru, $subject, $period, $data): void {
+        DB::transaction(function () use ($guru, $subject, $class, $period, $data): void {
             LingkupMateri::query()
                 ->where('guru_id', $guru->id)
+                ->where('kelas_id', $class->id)
                 ->where('mata_pelajaran_id', $subject->id)
                 ->where('semester', $period['semester'])
                 ->where('tahun_ajaran', $period['tahun_ajaran'])
@@ -181,6 +187,7 @@ class IsiLingkupMateri extends Page
             foreach ($data['lingkup'] as $index => $row) {
                 $material = LingkupMateri::query()->create([
                     'guru_id' => $guru->id,
+                    'kelas_id' => $class->id,
                     'mata_pelajaran_id' => $subject->id,
                     'semester' => $period['semester'],
                     'tahun_ajaran' => $period['tahun_ajaran'],
@@ -205,7 +212,7 @@ class IsiLingkupMateri extends Page
 
         $this->loadLingkup();
         Notification::make()->success()->title('Lingkup materi tersimpan')
-            ->body('Data tersimpan untuk mata pelajaran '.$subject->nama_mapel.' pada periode berjalan.')->send();
+            ->body('Data tersimpan untuk '.$subject->nama_mapel.' kelas '.$class->nama_kelas.' pada periode berjalan.')->send();
         $this->redirect(InputLingkupMateri::getUrl());
     }
 
@@ -216,6 +223,7 @@ class IsiLingkupMateri extends Page
 
         return [
             'guru' => Filament::auth()->user()?->guru()->with('user')->first(),
+            'class' => $this->selectedClass(),
             'subject' => $this->selectedSubject(),
             'period' => JadwalPelajaran::activePeriod(),
             'maxKarakterTujuan' => 100,
@@ -223,43 +231,34 @@ class IsiLingkupMateri extends Page
         ];
     }
 
-    /** @return Collection<int, MataPelajaran> */
-    private function taughtSubjects(): Collection
-    {
-        $guruId = Filament::auth()->user()?->guru()->value('id');
-
-        if ($guruId === null) {
-            return new Collection;
-        }
-
-        $period = JadwalPelajaran::activePeriod();
-        $subjectIds = JadwalPelajaran::query()
-            ->where('guru_id', $guruId)
-            ->forPeriod($period['semester'], $period['tahun_ajaran'])
-            ->pluck('mata_pelajaran')
-            ->map(fn (mixed $id): int => (int) $id)
-            ->filter(fn (int $id): bool => $id > 0)
-            ->unique()
-            ->values();
-
-        return MataPelajaran::query()
-            ->whereIn('id', $subjectIds)
-            ->orderBy('nama_mapel')
-            ->get();
-    }
-
     private function selectedSubject(): MataPelajaran
     {
-        $subject = $this->taughtSubjects()->firstWhere('id', $this->mataPelajaranId);
+        $subject = MataPelajaran::query()->find($this->mataPelajaranId);
         abort_if($subject === null, 404);
 
         return $subject;
     }
 
-    private function assertTeachesSubject(): void
+    private function selectedClass(): Kelas
+    {
+        $class = Kelas::query()->find($this->kelasId);
+        abort_if($class === null, 404);
+
+        return $class;
+    }
+
+    private function assertTeachesClassSubject(): void
     {
         abort_unless(static::canAccess(), 403);
-        $this->selectedSubject();
+        $guruId = Filament::auth()->user()?->guru()->value('id');
+        $period = JadwalPelajaran::activePeriod();
+        $teaches = JadwalPelajaran::query()
+            ->where('guru_id', $guruId)
+            ->forPeriod($period['semester'], $period['tahun_ajaran'])
+            ->where('kelas_id', $this->kelasId)
+            ->where('mata_pelajaran', $this->mataPelajaranId)
+            ->exists();
+        abort_if(! $teaches, 404);
     }
 
     private function loadLingkup(): void
@@ -268,6 +267,7 @@ class IsiLingkupMateri extends Page
         $period = JadwalPelajaran::activePeriod();
         $saved = LingkupMateri::query()
             ->where('guru_id', $guruId)
+            ->where('kelas_id', $this->kelasId)
             ->where('mata_pelajaran_id', $this->mataPelajaranId)
             ->where('semester', $period['semester'])
             ->where('tahun_ajaran', $period['tahun_ajaran'])

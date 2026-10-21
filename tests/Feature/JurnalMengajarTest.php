@@ -58,10 +58,19 @@ function jurnalSchedule(Guru $teacher, MataPelajaran $subject, array $attributes
 /** @param list<string> $goals */
 function jurnalMaterial(Guru $teacher, MataPelajaran $subject, string $material, int $order = 1, array $goals = ['siswa memahami materi']): LingkupMateri
 {
-    $lingkup = LingkupMateriFactory::new()->forTeacher($teacher)->forSubject($subject)->create([
-        'materi' => $material,
-        'urutan' => $order,
-    ]);
+    $classId = JadwalPelajaran::query()
+        ->where('guru_id', $teacher->id)
+        ->where('mata_pelajaran', $subject->id)
+        ->where('semester', 'Ganjil')
+        ->where('tahun_ajaran', '2026/2027')
+        ->value('kelas_id');
+
+    $lingkup = LingkupMateriFactory::new()->forTeacher($teacher)->forSubject($subject)
+        ->state(['kelas_id' => $classId])
+        ->create([
+            'materi' => $material,
+            'urutan' => $order,
+        ]);
 
     foreach ($goals as $index => $goal) {
         TujuanPembelajaranFactory::new()->create([

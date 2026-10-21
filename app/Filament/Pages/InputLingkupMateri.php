@@ -4,7 +4,6 @@ namespace App\Filament\Pages;
 
 use App\Models\JadwalPelajaran;
 use App\Models\LingkupMateri;
-use App\Models\MataPelajaran;
 use BackedEnum;
 use Filament\Facades\Filament;
 use Filament\Pages\Page;
@@ -42,39 +41,41 @@ class InputLingkupMateri extends Page
             ->where('guru_id', $guruId)
             ->forPeriod($period['semester'], $period['tahun_ajaran'])
             ->with(['mataPelajaran', 'kelas'])
-            ->get();
+            ->get()
+            ->unique(fn (JadwalPelajaran $schedule): string => $schedule->kelas_id.'-'.$schedule->mata_pelajaran)
+            ->sortBy(fn (JadwalPelajaran $schedule): string => ($schedule->kelas?->nama_kelas ?? '').' '.($schedule->mataPelajaran?->nama_mapel ?? ''))
+            ->values();
         $subjectIds = $schedules->pluck('mata_pelajaran')
             ->map(fn (mixed $id): int => (int) $id)
             ->filter(fn (int $id): bool => $id > 0)
             ->unique()
             ->values();
-        $subjects = MataPelajaran::query()
-            ->whereIn('id', $subjectIds)
-            ->orderBy('nama_mapel')
-            ->get();
+        $classIds = $schedules->pluck('kelas_id')->unique()->values();
         $materials = LingkupMateri::query()
             ->where('guru_id', $guruId)
             ->where('semester', $period['semester'])
             ->where('tahun_ajaran', $period['tahun_ajaran'])
+            ->whereIn('kelas_id', $classIds)
             ->whereIn('mata_pelajaran_id', $subjectIds)
             ->withCount('tujuanPembelajarans')
             ->get()
-            ->groupBy('mata_pelajaran_id');
-        $classes = $schedules->groupBy('mata_pelajaran')->map(
-            fn ($group) => $group->pluck('kelas.nama_kelas')->filter()->unique()->sort()->values(),
-        );
+            ->groupBy(fn (LingkupMateri $material): string => $material->kelas_id.'-'.$material->mata_pelajaran_id);
 
-        $rows = $subjects->map(function (MataPelajaran $subject) use ($materials, $classes): array {
-            $subjectMaterials = $materials->get($subject->id, collect());
+        $rows = $schedules->map(function (JadwalPelajaran $schedule) use ($materials): array {
+            $subjectId = (int) $schedule->mata_pelajaran;
+            $subjectMaterials = $materials->get($schedule->kelas_id.'-'.$subjectId, collect());
 
             return [
-                'subject' => $subject,
-                'classes' => $classes->get($subject->id, collect()),
+                'kelas' => $schedule->kelas,
+                'subject' => $schedule->mataPelajaran,
                 'lingkup_count' => $subjectMaterials->count(),
                 'tujuan_count' => $subjectMaterials->sum('tujuan_pembelajarans_count'),
-                'url' => IsiLingkupMateri::getUrl(['mapel' => $subject->id]),
+                'url' => IsiLingkupMateri::getUrl([
+                    'kelas' => $schedule->kelas_id,
+                    'mapel' => $subjectId,
+                ]),
             ];
-        })->values();
+        });
 
         return [
             'rows' => $rows,

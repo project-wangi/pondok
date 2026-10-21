@@ -6,6 +6,7 @@ use App\Filament\Pages\IsiLingkupMateri;
 use App\Models\AsesmenFormatif;
 use App\Models\Guru;
 use App\Models\JadwalPelajaran;
+use App\Models\Kelas;
 use App\Models\MataPelajaran;
 use App\Models\User;
 use Carbon\CarbonImmutable;
@@ -53,9 +54,9 @@ function asesmenOverviewSchedule(Guru $teacher, MataPelajaran $subject, int $cla
 }
 
 /** @param list<string> $goals */
-function asesmenOverviewMaterial(Guru $teacher, MataPelajaran $subject, int $order, array $goals): void
+function asesmenOverviewMaterial(Guru $teacher, MataPelajaran $subject, Kelas $class, int $order, array $goals): void
 {
-    $material = LingkupMateriFactory::new()->forTeacher($teacher)->forSubject($subject)->create([
+    $material = LingkupMateriFactory::new()->forTeacher($teacher)->forSubject($subject)->forClass($class)->create([
         'materi' => 'materi '.$order,
         'urutan' => $order,
     ]);
@@ -107,8 +108,9 @@ test('lists class and subject rows with real counts status and links', function 
     asesmenOverviewSchedule(asesmenOverviewTeacher(), MataPelajaranFactory::new()->create(['nama_mapel' => 'Mapel Guru Lain']), $classA->id);
     MuridFactory::new()->count(2)->create(['kelas_id' => $classA->id]);
     MuridFactory::new()->create(['kelas_id' => $classB->id]);
-    asesmenOverviewMaterial($teacher, $subject, 1, ['tujuan satu', 'tujuan dua']);
-    asesmenOverviewMaterial($teacher, $subject, 2, ['tujuan tiga']);
+    asesmenOverviewMaterial($teacher, $subject, $classA, 1, ['tujuan satu', 'tujuan dua']);
+    asesmenOverviewMaterial($teacher, $subject, $classA, 2, ['tujuan tiga']);
+    asesmenOverviewMaterial($teacher, $subject, $classB, 1, ['tujuan satu', 'tujuan dua']);
     $assessment = AsesmenFormatifFactory::new()->create([
         'guru_id' => $teacher->id,
         'kelas_id' => $classA->id,
@@ -122,7 +124,7 @@ test('lists class and subject rows with real counts status and links', function 
         ->assertDontSee('Mapel Semester Lama')->assertDontSee('Mapel Guru Lain')
         ->assertSee('Sebagian')->assertSee('Belum dinilai')
         ->assertSeeHtml('href="'.e(IsiAsesmenFormatif::getUrl(['kelas' => $classA->id, 'mapel' => $subject->id])).'"')
-        ->assertSeeHtml('href="'.e(IsiLingkupMateri::getUrl(['mapel' => $emptySubject->id])).'"')
+        ->assertSeeHtml('href="'.e(IsiLingkupMateri::getUrl(['kelas' => $classA->id, 'mapel' => $emptySubject->id])).'"')
         ->assertDontSeeHtml(IsiAsesmenFormatif::getUrl(['kelas' => $classA->id, 'mapel' => $emptySubject->id]))
         ->assertDontSeeHtml('wire:submit="simpan"');
 
@@ -135,7 +137,7 @@ test('shows the score completion status from stored assessments', function () {
     $class = KelasFactory::new()->create();
     asesmenOverviewSchedule($teacher, $subject, $class->id);
     MuridFactory::new()->create(['kelas_id' => $class->id]);
-    asesmenOverviewMaterial($teacher, $subject, 1, ['tujuan satu']);
+    asesmenOverviewMaterial($teacher, $subject, $class, 1, ['tujuan satu']);
     $assessment = AsesmenFormatifFactory::new()->create([
         'guru_id' => $teacher->id, 'kelas_id' => $class->id, 'mata_pelajaran_id' => $subject->id,
     ]);

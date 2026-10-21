@@ -188,7 +188,7 @@ class IsiAsesmenFormatif extends Page
             'guruName' => Filament::auth()->user()?->name,
             'period' => $period,
             'backUrl' => InputAsesmenFormatif::getUrl(),
-            'lingkupUrl' => IsiLingkupMateri::getUrl(['mapel' => $this->mataPelajaranId]),
+            'lingkupUrl' => IsiLingkupMateri::getUrl(['kelas' => $this->kelasId, 'mapel' => $this->mataPelajaranId]),
         ];
     }
 
@@ -206,6 +206,7 @@ class IsiAsesmenFormatif extends Page
 
         return LingkupMateri::query()
             ->where('guru_id', Filament::auth()->user()?->guru()->value('id'))
+            ->where('kelas_id', $this->kelasId)
             ->where('mata_pelajaran_id', $this->mataPelajaranId)
             ->where('semester', $period['semester'])
             ->where('tahun_ajaran', $period['tahun_ajaran'])

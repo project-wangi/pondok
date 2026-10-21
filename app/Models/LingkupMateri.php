@@ -10,6 +10,7 @@ class LingkupMateri extends Model
 {
     protected $fillable = [
         'guru_id',
+        'kelas_id',
         'mata_pelajaran_id',
         'semester',
         'tahun_ajaran',
@@ -27,6 +28,12 @@ class LingkupMateri extends Model
     public function guru(): BelongsTo
     {
         return $this->belongsTo(Guru::class);
+    }
+
+    /** @return BelongsTo<Kelas, $this> */
+    public function kelas(): BelongsTo
+    {
+        return $this->belongsTo(Kelas::class);
     }
 
     /** @return BelongsTo<MataPelajaran, $this> */

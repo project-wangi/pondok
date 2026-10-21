@@ -4,6 +4,7 @@ namespace Database\Factories;
 
 use App\Models\Guru;
 use App\Models\JadwalPelajaran;
+use App\Models\Kelas;
 use App\Models\LingkupMateri;
 use App\Models\MataPelajaran;
 use Illuminate\Database\Eloquent\Factories\Factory;
@@ -19,6 +20,7 @@ class LingkupMateriFactory extends Factory
 
         return [
             'guru_id' => GuruFactory::new(),
+            'kelas_id' => KelasFactory::new(),
             'mata_pelajaran_id' => MataPelajaranFactory::new(),
             'semester' => $period['semester'],
             'tahun_ajaran' => $period['tahun_ajaran'],
@@ -35,5 +37,10 @@ class LingkupMateriFactory extends Factory
     public function forSubject(MataPelajaran $subject): static
     {
         return $this->state(['mata_pelajaran_id' => $subject->id]);
+    }
+
+    public function forClass(Kelas $class): static
+    {
+        return $this->state(['kelas_id' => $class->id]);
     }
 }

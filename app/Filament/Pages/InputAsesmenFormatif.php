@@ -57,10 +57,11 @@ class InputAsesmenFormatif extends Page
             ->where('guru_id', $guruId)
             ->where('semester', $period['semester'])
             ->where('tahun_ajaran', $period['tahun_ajaran'])
+            ->whereIn('kelas_id', $classIds)
             ->whereIn('mata_pelajaran_id', $subjectIds)
             ->withCount('tujuanPembelajarans')
             ->get()
-            ->groupBy('mata_pelajaran_id');
+            ->groupBy(fn (LingkupMateri $material): string => $material->kelas_id.'-'.$material->mata_pelajaran_id);
         $studentCounts = Murid::query()
             ->whereIn('kelas_id', $classIds)
             ->selectRaw('kelas_id, count(*) as total')
@@ -76,7 +77,7 @@ class InputAsesmenFormatif extends Page
 
         $rows = $schedules->map(function (JadwalPelajaran $schedule) use ($materials, $studentCounts, $assessments): array {
             $subjectId = (int) $schedule->mata_pelajaran;
-            $materialGroup = $materials->get($subjectId, collect());
+            $materialGroup = $materials->get($schedule->kelas_id.'-'.$subjectId, collect());
             $tpCount = (int) $materialGroup->sum('tujuan_pembelajarans_count');
             $studentCount = (int) ($studentCounts->get($schedule->kelas_id) ?? 0);
             $assessment = $assessments->get($schedule->kelas_id.'-'.$subjectId);
@@ -91,7 +92,7 @@ class InputAsesmenFormatif extends Page
                 'filled_count' => $filled,
                 'possible_count' => $possible,
                 'url' => IsiAsesmenFormatif::getUrl(['kelas' => $schedule->kelas_id, 'mapel' => $subjectId]),
-                'lingkup_url' => IsiLingkupMateri::getUrl(['mapel' => $subjectId]),
+                'lingkup_url' => IsiLingkupMateri::getUrl(['kelas' => $schedule->kelas_id, 'mapel' => $subjectId]),
             ];
         });
 

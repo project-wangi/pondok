@@ -61,10 +61,19 @@ function asesmenSchedule(Guru $teacher, MataPelajaran $subject, int $classId, ar
 /** @param list<string> $goals */
 function asesmenMaterial(Guru $teacher, MataPelajaran $subject, array $goals = ['tujuan satu', 'tujuan dua']): LingkupMateri
 {
-    $material = LingkupMateriFactory::new()->forTeacher($teacher)->forSubject($subject)->create([
-        'materi' => 'kontrak pembelajaran',
-        'urutan' => 1,
-    ]);
+    $classId = JadwalPelajaran::query()
+        ->where('guru_id', $teacher->id)
+        ->where('mata_pelajaran', $subject->id)
+        ->where('semester', 'Ganjil')
+        ->where('tahun_ajaran', '2026/2027')
+        ->value('kelas_id');
+
+    $material = LingkupMateriFactory::new()->forTeacher($teacher)->forSubject($subject)
+        ->state(['kelas_id' => $classId])
+        ->create([
+            'materi' => 'kontrak pembelajaran',
+            'urutan' => 1,
+        ]);
 
     foreach ($goals as $index => $goal) {
         TujuanPembelajaranFactory::new()->create([
@@ -276,7 +285,7 @@ test('shows a link to fill purposes when the subject has no material', function 
 
     asesmenPage($class->id, $subject->id)
         ->assertSee('Belum ada tujuan pembelajaran')
-        ->assertSeeHtml('href="'.e(IsiLingkupMateri::getUrl(['mapel' => $subject->id])).'"')
+        ->assertSeeHtml('href="'.e(IsiLingkupMateri::getUrl(['kelas' => $class->id, 'mapel' => $subject->id])).'"')
         ->assertDontSeeHtml('wire:submit="simpan"');
 });
 

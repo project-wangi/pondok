@@ -140,7 +140,7 @@ class JurnalMengajar extends Page
                 throw ValidationException::withMessages(['baris' => 'Jurnal telah diperbarui dari halaman lain. Pilih ulang jadwal sebelum menyimpan.']);
             }
 
-            $materials = $this->availableMaterials((int) $schedule->mata_pelajaran);
+            $materials = $this->availableMaterials($schedule);
 
             if ($materials->isEmpty()) {
                 throw ValidationException::withMessages(['baris' => 'Belum ada lingkup materi untuk mata pelajaran ini. Isi dulu melalui menu Lingkup Materi dan Tujuan Pembelajaran.']);
@@ -278,7 +278,7 @@ class JurnalMengajar extends Page
         $schedule = $schedules->firstWhere('id', $this->jadwalId);
         $journal = $journals->firstWhere('id', $this->jurnalId);
         $canEdit = $schedule !== null && ($journal === null || $journal->pencatat_id === Filament::auth()->id());
-        $materials = $canEdit ? $this->availableMaterials((int) $schedule->mata_pelajaran) : collect();
+        $materials = $canEdit ? $this->availableMaterials($schedule) : collect();
 
         return [
             'today' => now()->toDateString(),
@@ -342,14 +342,15 @@ class JurnalMengajar extends Page
             ->with('baris')->first();
     }
 
-    private function availableMaterials(int $subjectId): Collection
+    private function availableMaterials(JadwalPelajaran $schedule): Collection
     {
         $guruId = Filament::auth()->user()?->guru()->value('id');
         $period = JadwalPelajaran::activePeriod();
 
         return LingkupMateri::query()
             ->where('guru_id', $guruId)
-            ->where('mata_pelajaran_id', $subjectId)
+            ->where('kelas_id', $schedule->kelas_id)
+            ->where('mata_pelajaran_id', (int) $schedule->mata_pelajaran)
             ->where('semester', $period['semester'])
             ->where('tahun_ajaran', $period['tahun_ajaran'])
             ->whereHas('tujuanPembelajarans')

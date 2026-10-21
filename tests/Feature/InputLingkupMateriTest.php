@@ -4,6 +4,7 @@ use App\Filament\Pages\InputLingkupMateri;
 use App\Filament\Pages\IsiLingkupMateri;
 use App\Models\Guru;
 use App\Models\JadwalPelajaran;
+use App\Models\Kelas;
 use App\Models\LingkupMateri;
 use App\Models\MataPelajaran;
 use App\Models\User;
@@ -50,9 +51,9 @@ function inputOverviewSchedule(Guru $teacher, MataPelajaran $subject, array $att
 }
 
 /** @param list<string> $goals */
-function inputOverviewMaterial(Guru $teacher, MataPelajaran $subject, string $material, int $order, array $goals): LingkupMateri
+function inputOverviewMaterial(Guru $teacher, MataPelajaran $subject, Kelas $class, string $material, int $order, array $goals): LingkupMateri
 {
-    $lingkup = LingkupMateriFactory::new()->forTeacher($teacher)->forSubject($subject)->create([
+    $lingkup = LingkupMateriFactory::new()->forTeacher($teacher)->forSubject($subject)->forClass($class)->create([
         'materi' => $material,
         'urutan' => $order,
     ]);
@@ -89,11 +90,11 @@ test('shows an honest empty state when the running period has no teaching schedu
 
     Livewire::test(InputLingkupMateri::class)
         ->assertOk()
-        ->assertSee('Tidak ada mata pelajaran yang diajar pada semester Ganjil tahun ajaran 2026/2027.')
+        ->assertSee('Tidak ada kelas atau mata pelajaran yang diajar pada semester Ganjil tahun ajaran 2026/2027.')
         ->assertSeeHtml('Lingkup Materi dan Tujuan Pembelajaran');
 });
 
-test('lists subjects from the running period with real counts class names and fill links', function () {
+test('lists one row per class and subject with real counts and fill links', function () {
     $teacher = inputOverviewTeacher();
     $subject = MataPelajaranFactory::new()->create(['nama_mapel' => 'Tahfidz Al-Qur\'an']);
     $emptySubject = MataPelajaranFactory::new()->create(['nama_mapel' => 'Bahasa Arab']);
@@ -102,35 +103,56 @@ test('lists subjects from the running period with real counts class names and fi
     $classA = KelasFactory::new()->create(['nama_kelas' => 'Kelas A']);
     $classB = KelasFactory::new()->create(['nama_kelas' => 'Kelas B']);
     inputOverviewSchedule($teacher, $subject, ['kelas_id' => $classA->id]);
+    inputOverviewSchedule($teacher, $subject, ['kelas_id' => $classA->id]);
     inputOverviewSchedule($teacher, $subject, ['kelas_id' => $classB->id]);
-    inputOverviewSchedule($teacher, $emptySubject);
-    inputOverviewSchedule($teacher, $oldSubject, ['semester' => 'Genap', 'tahun_ajaran' => '2025/2026']);
-    inputOverviewSchedule(inputOverviewTeacher(), $foreignSubject);
-    inputOverviewMaterial($teacher, $subject, 'kontrak pembelajaran', 1, ['tujuan satu', 'tujuan dua']);
-    inputOverviewMaterial($teacher, $subject, 'makharijul huruf', 2, ['tujuan tiga']);
+    inputOverviewSchedule($teacher, $emptySubject, ['kelas_id' => $classA->id]);
+    inputOverviewSchedule($teacher, $oldSubject, ['kelas_id' => $classA->id, 'semester' => 'Genap', 'tahun_ajaran' => '2025/2026']);
+    inputOverviewSchedule(inputOverviewTeacher(), $foreignSubject, ['kelas_id' => $classA->id]);
+    inputOverviewMaterial($teacher, $subject, $classA, 'kontrak pembelajaran', 1, ['tujuan satu', 'tujuan dua']);
+    inputOverviewMaterial($teacher, $subject, $classA, 'makharijul huruf', 2, ['tujuan tiga']);
     $this->actingAs($teacher->user);
 
-    Livewire::test(InputLingkupMateri::class)
+    $component = Livewire::test(InputLingkupMateri::class)
         ->assertSee('Tahfidz Al-Qur\'an')
         ->assertSee('Bahasa Arab')
-        ->assertSee('Kelas A, Kelas B')
-        ->assertSeeInOrder(['Tahfidz Al-Qur\'an', 'Kelas A, Kelas B', '2', '3', 'Sudah diisi'])
-        ->assertSee('Belum diisi')
+        ->assertSee('Kelas A')->assertSee('Kelas B')
+        ->assertDontSee('Kelas A, Kelas B')
+        ->assertSeeInOrder(['Kelas A', 'Bahasa Arab', '0', '0', 'Belum diisi'])
+        ->assertSeeInOrder(['Kelas A', 'Tahfidz Al-Qur\'an', '2', '3', 'Sudah diisi'])
+        ->assertSeeInOrder(['Kelas B', 'Tahfidz Al-Qur\'an', '0', '0', 'Belum diisi'])
         ->assertDontSee('Mapel Semester Lama')
         ->assertDontSee('Mapel Guru Lain')
-        ->assertSeeHtml('href="'.e(IsiLingkupMateri::getUrl(['mapel' => $subject->id])).'"')
-        ->assertSeeHtml('href="'.e(IsiLingkupMateri::getUrl(['mapel' => $emptySubject->id])).'"')
-        ->assertDontSeeHtml(IsiLingkupMateri::getUrl(['mapel' => $oldSubject->id]))
+        ->assertSeeHtml('href="'.e(IsiLingkupMateri::getUrl(['kelas' => $classA->id, 'mapel' => $subject->id])).'"')
+        ->assertSeeHtml('href="'.e(IsiLingkupMateri::getUrl(['kelas' => $classA->id, 'mapel' => $emptySubject->id])).'"')
+        ->assertDontSeeHtml(IsiLingkupMateri::getUrl(['kelas' => $classA->id, 'mapel' => $oldSubject->id]))
         ->assertDontSeeHtml('wire:submit="simpan"');
+
+    expect(substr_count($component->html(), 'Isi lingkup materi'))->toBe(3);
 });
 
-test('shows zero counts for a subject without material', function () {
+test('shows zero counts for a class without material', function () {
     $teacher = inputOverviewTeacher();
     $subject = MataPelajaranFactory::new()->create(['nama_mapel' => 'Mapel Kosong']);
-    inputOverviewSchedule($teacher, $subject);
+    $class = KelasFactory::new()->create(['nama_kelas' => 'Kelas X']);
+    inputOverviewSchedule($teacher, $subject, ['kelas_id' => $class->id]);
     $this->actingAs($teacher->user);
 
     Livewire::test(InputLingkupMateri::class)
         ->assertSee('Mapel Kosong')
-        ->assertSeeInOrder(['Mapel Kosong', 'Kelas', '0', '0', 'Belum diisi']);
+        ->assertSeeInOrder(['Kelas X', 'Mapel Kosong', '0', '0', 'Belum diisi']);
+});
+
+test('keeps the material status separate for each class of the same subject', function () {
+    $teacher = inputOverviewTeacher();
+    $subject = MataPelajaranFactory::new()->create(['nama_mapel' => 'Tahfidz']);
+    $classA = KelasFactory::new()->create(['nama_kelas' => 'Kelas A']);
+    $classB = KelasFactory::new()->create(['nama_kelas' => 'Kelas B']);
+    inputOverviewSchedule($teacher, $subject, ['kelas_id' => $classA->id]);
+    inputOverviewSchedule($teacher, $subject, ['kelas_id' => $classB->id]);
+    inputOverviewMaterial($teacher, $subject, $classA, 'materi kelas a', 1, ['tujuan kelas a']);
+    $this->actingAs($teacher->user);
+
+    Livewire::test(InputLingkupMateri::class)
+        ->assertSeeInOrder(['Kelas A', 'Tahfidz', '1', '1', 'Sudah diisi'])
+        ->assertSeeInOrder(['Kelas B', 'Tahfidz', '0', '0', 'Belum diisi']);
 });

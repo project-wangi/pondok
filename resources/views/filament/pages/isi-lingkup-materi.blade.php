@@ -30,6 +30,10 @@
                     <span class="materi-label">{{ $guru?->user?->name ?? 'Nama guru belum tersedia' }}</span>
                 </div>
                 <div class="materi-identity-item">
+                    <span class="materi-help">Kelas</span>
+                    <span class="materi-label">{{ $class->nama_kelas }}</span>
+                </div>
+                <div class="materi-identity-item">
                     <span class="materi-help">Mata Pelajaran</span>
                     <span class="materi-label">{{ $subject->nama_mapel }}</span>
                 </div>
@@ -53,11 +57,11 @@
             </ol>
         </div>
 
-        <x-filament::section heading="Lingkup materi dan tujuan pembelajaran" :description="'Mata pelajaran: '.$subject->nama_mapel.'. Simpan ulang untuk memperbarui data periode ini.'">
+        <x-filament::section heading="Lingkup materi dan tujuan pembelajaran" :description="'Kelas '.$class->nama_kelas.'. Mata pelajaran: '.$subject->nama_mapel.'. Simpan ulang untuk memperbarui data periode ini.'">
             <form wire:submit="simpan" class="materi-form">
                 <div class="materi-table-scroll" role="region" aria-label="Tabel isian lingkup materi dan tujuan pembelajaran" tabindex="0">
                     <table class="materi-table">
-                        <caption class="materi-sr-only">Lingkup materi dan tujuan pembelajaran {{ $subject->nama_mapel }} semester {{ $period['semester'] }} tahun ajaran {{ $period['tahun_ajaran'] }}</caption>
+                        <caption class="materi-sr-only">Lingkup materi dan tujuan pembelajaran {{ $subject->nama_mapel }} kelas {{ $class->nama_kelas }} semester {{ $period['semester'] }} tahun ajaran {{ $period['tahun_ajaran'] }}</caption>
                         <thead>
                             <tr>
                                 <th scope="col" class="materi-number">No</th>

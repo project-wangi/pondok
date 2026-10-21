@@ -4,12 +4,14 @@ use App\Filament\Pages\InputLingkupMateri;
 use App\Filament\Pages\IsiLingkupMateri;
 use App\Models\Guru;
 use App\Models\JadwalPelajaran;
+use App\Models\Kelas;
 use App\Models\LingkupMateri;
 use App\Models\MataPelajaran;
 use App\Models\User;
 use Carbon\CarbonImmutable;
 use Database\Factories\GuruFactory;
 use Database\Factories\JadwalPelajaranFactory;
+use Database\Factories\KelasFactory;
 use Database\Factories\LingkupMateriFactory;
 use Database\Factories\MataPelajaranFactory;
 use Database\Factories\TujuanPembelajaranFactory;
@@ -38,21 +40,27 @@ function isiMateriTeacher(array $attributes = []): Guru
     return GuruFactory::new()->create($attributes);
 }
 
+function isiMateriClass(string $name = 'Kelas VII'): Kelas
+{
+    return KelasFactory::new()->create(['nama_kelas' => $name]);
+}
+
 /** @param array<string, mixed> $attributes */
-function isiMateriSchedule(Guru $teacher, MataPelajaran $subject, array $attributes = []): JadwalPelajaran
+function isiMateriSchedule(Guru $teacher, MataPelajaran $subject, Kelas $class, array $attributes = []): JadwalPelajaran
 {
     return JadwalPelajaranFactory::new()->create([
         'guru_id' => $teacher->id,
         'mata_pelajaran' => $subject->id,
+        'kelas_id' => $class->id,
         'semester' => 'Ganjil',
         'tahun_ajaran' => '2026/2027',
         ...$attributes,
     ]);
 }
 
-function isiMateriPage(MataPelajaran $subject): Testable
+function isiMateriPage(Kelas $class, MataPelajaran $subject): Testable
 {
-    return Livewire::test(IsiLingkupMateri::class, ['mapel' => $subject->id]);
+    return Livewire::test(IsiLingkupMateri::class, ['kelas' => $class->id, 'mapel' => $subject->id]);
 }
 
 function isiMateriRow(string $material, array $purposes = ['siswa memahami materi']): array
@@ -67,38 +75,49 @@ test('is hidden from navigation and rejects guests or accounts without a teacher
     expect(IsiLingkupMateri::shouldRegisterNavigation())->toBeFalse();
     $teacher = isiMateriTeacher();
     $subject = MataPelajaranFactory::new()->create();
-    isiMateriSchedule($teacher, $subject);
-    $url = IsiLingkupMateri::getUrl(['mapel' => $subject->id]);
+    $class = isiMateriClass();
+    isiMateriSchedule($teacher, $subject, $class);
+    $url = IsiLingkupMateri::getUrl(['kelas' => $class->id, 'mapel' => $subject->id]);
 
     $this->get($url)->assertRedirectToRoute('filament.admin.auth.login');
 
     $this->actingAs(User::factory()->create());
     $this->get($url)->assertForbidden();
-    Livewire::test(IsiLingkupMateri::class, ['mapel' => $subject->id])->assertForbidden();
+    Livewire::test(IsiLingkupMateri::class, ['kelas' => $class->id, 'mapel' => $subject->id])->assertForbidden();
 });
 
-test('requires a subject that the teacher teaches in the running period', function () {
+test('requires a class and subject pair that the teacher teaches in the running period', function () {
     $teacher = isiMateriTeacher();
-    $foreign = MataPelajaranFactory::new()->create();
-    isiMateriSchedule(isiMateriTeacher(), $foreign);
+    $foreignSubject = MataPelajaranFactory::new()->create();
+    $ownSubject = MataPelajaranFactory::new()->create();
+    $ownClass = isiMateriClass();
+    $foreignClass = isiMateriClass('Kelas Asing');
+    isiMateriSchedule($teacher, $ownSubject, $ownClass);
+    isiMateriSchedule(isiMateriTeacher(), $foreignSubject, $ownClass);
+    isiMateriSchedule($teacher, $ownSubject, $foreignClass, ['semester' => 'Genap', 'tahun_ajaran' => '2025/2026']);
     $this->actingAs($teacher->user);
 
     $this->get('/admin/isi-lingkup-materi')->assertNotFound();
-    $this->get(IsiLingkupMateri::getUrl(['mapel' => $foreign->id]))->assertNotFound();
-    Livewire::test(IsiLingkupMateri::class, ['mapel' => $foreign->id])->assertNotFound();
+    $this->get(IsiLingkupMateri::getUrl(['kelas' => $ownClass->id, 'mapel' => $foreignSubject->id]))->assertNotFound();
+    $this->get(IsiLingkupMateri::getUrl(['kelas' => $foreignClass->id, 'mapel' => $ownSubject->id]))->assertNotFound();
+    Livewire::test(IsiLingkupMateri::class, ['kelas' => $ownClass->id, 'mapel' => $foreignSubject->id])->assertNotFound();
+    Livewire::test(IsiLingkupMateri::class, ['kelas' => $foreignClass->id, 'mapel' => $ownSubject->id])->assertNotFound();
 });
 
-test('starts with one empty row for the selected subject', function () {
+test('starts with one empty row for the selected class and subject', function () {
     $teacher = isiMateriTeacher();
     $subject = MataPelajaranFactory::new()->create(['nama_mapel' => 'Tahfidz']);
-    isiMateriSchedule($teacher, $subject);
+    $class = isiMateriClass('Kelas IX');
+    isiMateriSchedule($teacher, $subject, $class);
     $this->actingAs($teacher->user);
 
-    isiMateriPage($subject)
+    isiMateriPage($class, $subject)
         ->assertOk()
+        ->assertSet('kelasId', $class->id)
         ->assertSet('mataPelajaranId', $subject->id)
         ->assertSet('lingkup', [['materi' => '', 'tujuan' => ['', '', '', '']]])
         ->assertSee('Tahfidz')
+        ->assertSee('Kelas IX')
         ->assertSee('Ganjil')
         ->assertSee('2026/2027')
         ->assertSee('Tujuan 4')
@@ -108,19 +127,20 @@ test('starts with one empty row for the selected subject', function () {
 test('loads saved materials and purposes in order without padding', function () {
     $teacher = isiMateriTeacher();
     $subject = MataPelajaranFactory::new()->create();
-    isiMateriSchedule($teacher, $subject);
-    $first = LingkupMateriFactory::new()->forTeacher($teacher)->forSubject($subject)->create([
+    $class = isiMateriClass();
+    isiMateriSchedule($teacher, $subject, $class);
+    $first = LingkupMateriFactory::new()->forTeacher($teacher)->forSubject($subject)->forClass($class)->create([
         'materi' => 'kontrak pembelajaran', 'urutan' => 2,
     ]);
     TujuanPembelajaranFactory::new()->create(['lingkup_materi_id' => $first->id, 'urutan' => 1, 'teks' => 'siswa mampu menaati peraturan']);
     TujuanPembelajaranFactory::new()->create(['lingkup_materi_id' => $first->id, 'urutan' => 2, 'teks' => 'siswa mampu mengikuti pembelajaran']);
-    $second = LingkupMateriFactory::new()->forTeacher($teacher)->forSubject($subject)->create([
+    $second = LingkupMateriFactory::new()->forTeacher($teacher)->forSubject($subject)->forClass($class)->create([
         'materi' => 'pengantar makharijul huruf', 'urutan' => 1,
     ]);
     TujuanPembelajaranFactory::new()->create(['lingkup_materi_id' => $second->id, 'urutan' => 1, 'teks' => 'siswa mengenal makhraj huruf']);
     $this->actingAs($teacher->user);
 
-    isiMateriPage($subject)->assertSet('lingkup', [
+    isiMateriPage($class, $subject)->assertSet('lingkup', [
         ['materi' => 'pengantar makharijul huruf', 'tujuan' => ['siswa mengenal makhraj huruf']],
         ['materi' => 'kontrak pembelajaran', 'tujuan' => [
             'siswa mampu menaati peraturan',
@@ -129,13 +149,14 @@ test('loads saved materials and purposes in order without padding', function () 
     ]);
 });
 
-test('saves ordered materials and purposes for the running period', function () {
+test('saves ordered materials and purposes for the selected class', function () {
     $teacher = isiMateriTeacher();
     $subject = MataPelajaranFactory::new()->create();
-    isiMateriSchedule($teacher, $subject);
+    $class = isiMateriClass();
+    isiMateriSchedule($teacher, $subject, $class);
     $this->actingAs($teacher->user);
 
-    isiMateriPage($subject)
+    isiMateriPage($class, $subject)
         ->set('lingkup', [
             isiMateriRow('kontrak pembelajaran', ['siswa memahami kesepakatan kelas', '', 'siswa mengikuti aturan']),
             isiMateriRow('makharijul huruf', ['siswa mengenal makhraj huruf']),
@@ -148,7 +169,7 @@ test('saves ordered materials and purposes for the running period', function () 
     $this->assertDatabaseCount('lingkup_materis', 2);
     $this->assertDatabaseCount('tujuan_pembelajarans', 3);
     $this->assertDatabaseHas('lingkup_materis', [
-        'guru_id' => $teacher->id, 'mata_pelajaran_id' => $subject->id,
+        'guru_id' => $teacher->id, 'kelas_id' => $class->id, 'mata_pelajaran_id' => $subject->id,
         'semester' => 'Ganjil', 'tahun_ajaran' => '2026/2027', 'urutan' => 1, 'materi' => 'kontrak pembelajaran',
     ]);
     $material = LingkupMateri::query()->where('urutan', 1)->sole();
@@ -158,12 +179,38 @@ test('saves ordered materials and purposes for the running period', function () 
     ]);
 });
 
+test('keeps materials of different classes separate', function () {
+    $teacher = isiMateriTeacher();
+    $subject = MataPelajaranFactory::new()->create();
+    $classA = isiMateriClass('Kelas A');
+    $classB = isiMateriClass('Kelas B');
+    isiMateriSchedule($teacher, $subject, $classA);
+    isiMateriSchedule($teacher, $subject, $classB);
+    $this->actingAs($teacher->user);
+
+    isiMateriPage($classA, $subject)
+        ->set('lingkup', [isiMateriRow('materi kelas a')])
+        ->call('simpan')->assertHasNoErrors();
+
+    isiMateriPage($classB, $subject)
+        ->assertSet('lingkup', [['materi' => '', 'tujuan' => ['', '', '', '']]])
+        ->set('lingkup', [isiMateriRow('materi kelas b')])
+        ->call('simpan')->assertHasNoErrors();
+
+    $this->assertDatabaseCount('lingkup_materis', 2);
+    $this->assertDatabaseHas('lingkup_materis', ['kelas_id' => $classA->id, 'materi' => 'materi kelas a']);
+    $this->assertDatabaseHas('lingkup_materis', ['kelas_id' => $classB->id, 'materi' => 'materi kelas b']);
+
+    isiMateriPage($classA, $subject)->assertSet('lingkup', [['materi' => 'materi kelas a', 'tujuan' => ['siswa memahami materi']]]);
+});
+
 test('replaces saved materials instead of duplicating them', function () {
     $teacher = isiMateriTeacher();
     $subject = MataPelajaranFactory::new()->create();
-    isiMateriSchedule($teacher, $subject);
+    $class = isiMateriClass();
+    isiMateriSchedule($teacher, $subject, $class);
     $this->actingAs($teacher->user);
-    $component = isiMateriPage($subject)
+    $component = isiMateriPage($class, $subject)
         ->set('lingkup', [isiMateriRow('materi awal')])
         ->call('simpan')->assertHasNoErrors();
 
@@ -178,10 +225,11 @@ test('replaces saved materials instead of duplicating them', function () {
 test('rejects invalid purposes without saving any material', function (array $row, string $field, string $message) {
     $teacher = isiMateriTeacher();
     $subject = MataPelajaranFactory::new()->create();
-    isiMateriSchedule($teacher, $subject);
+    $class = isiMateriClass();
+    isiMateriSchedule($teacher, $subject, $class);
     $this->actingAs($teacher->user);
 
-    isiMateriPage($subject)
+    isiMateriPage($class, $subject)
         ->set('lingkup', [$row])
         ->call('simpan')
         ->assertHasErrors([$field])
@@ -221,10 +269,11 @@ test('rejects invalid purposes without saving any material', function (array $ro
 test('rejects malformed rows and nested purposes without a server error', function (array $rows) {
     $teacher = isiMateriTeacher();
     $subject = MataPelajaranFactory::new()->create();
-    isiMateriSchedule($teacher, $subject);
+    $class = isiMateriClass();
+    isiMateriSchedule($teacher, $subject, $class);
     $this->actingAs($teacher->user);
 
-    isiMateriPage($subject)
+    isiMateriPage($class, $subject)
         ->set('lingkup', $rows)
         ->call('simpan')
         ->assertHasErrors()
@@ -240,13 +289,14 @@ test('rejects malformed rows and nested purposes without a server error', functi
 test('keeps saved material isolated by teacher and academic period', function () {
     $teacher = isiMateriTeacher();
     $subject = MataPelajaranFactory::new()->create();
-    isiMateriSchedule($teacher, $subject);
-    LingkupMateriFactory::new()->forTeacher($teacher)->forSubject($subject)->create([
+    $class = isiMateriClass();
+    isiMateriSchedule($teacher, $subject, $class);
+    LingkupMateriFactory::new()->forTeacher($teacher)->forSubject($subject)->forClass($class)->create([
         'semester' => 'Genap', 'tahun_ajaran' => '2025/2026', 'materi' => 'materi semester lama',
     ]);
     $this->actingAs($teacher->user);
 
-    isiMateriPage($subject)
+    isiMateriPage($class, $subject)
         ->assertSet('lingkup', [['materi' => '', 'tujuan' => ['', '', '', '']]])
         ->assertDontSee('materi semester lama')
         ->set('lingkup', [isiMateriRow('materi semester berjalan')])
@@ -263,10 +313,11 @@ test('keeps saved material isolated by teacher and academic period', function ()
 test('adds and removes material rows but keeps one editable row', function () {
     $teacher = isiMateriTeacher();
     $subject = MataPelajaranFactory::new()->create();
-    isiMateriSchedule($teacher, $subject);
+    $class = isiMateriClass();
+    isiMateriSchedule($teacher, $subject, $class);
     $this->actingAs($teacher->user);
 
-    $component = isiMateriPage($subject)
+    $component = isiMateriPage($class, $subject)
         ->call('tambahLingkup')
         ->assertCount('lingkup', 2)
         ->call('hapusLingkup', 0)
@@ -280,10 +331,11 @@ test('adds and removes material rows but keeps one editable row', function () {
 test('adds and removes purposes beyond the initial four and saves them in order', function () {
     $teacher = isiMateriTeacher();
     $subject = MataPelajaranFactory::new()->create();
-    isiMateriSchedule($teacher, $subject);
+    $class = isiMateriClass();
+    isiMateriSchedule($teacher, $subject, $class);
     $this->actingAs($teacher->user);
 
-    $component = isiMateriPage($subject)
+    $component = isiMateriPage($class, $subject)
         ->assertCount('lingkup.0.tujuan', 4)
         ->call('tambahTujuan', 0)
         ->assertCount('lingkup.0.tujuan', 5)
@@ -309,8 +361,9 @@ test('adds and removes purposes beyond the initial four and saves them in order'
 test('escapes material and purpose text rendered from stored records', function () {
     $teacher = isiMateriTeacher();
     $subject = MataPelajaranFactory::new()->create();
-    isiMateriSchedule($teacher, $subject);
-    $material = LingkupMateriFactory::new()->forTeacher($teacher)->forSubject($subject)->create([
+    $class = isiMateriClass();
+    isiMateriSchedule($teacher, $subject, $class);
+    $material = LingkupMateriFactory::new()->forTeacher($teacher)->forSubject($subject)->forClass($class)->create([
         'materi' => '<script>materi()</script>',
     ]);
     TujuanPembelajaranFactory::new()->create([
@@ -318,7 +371,7 @@ test('escapes material and purpose text rendered from stored records', function 
     ]);
     $this->actingAs($teacher->user);
 
-    isiMateriPage($subject)
+    isiMateriPage($class, $subject)
         ->assertSet('lingkup', [
             ['materi' => '<script>materi()</script>', 'tujuan' => ['<script>tujuan()</script>']],
         ])
@@ -326,15 +379,14 @@ test('escapes material and purpose text rendered from stored records', function 
         ->assertDontSeeHtml('<script>tujuan()</script>');
 });
 
-test('does not allow clients to switch the locked subject', function () {
+test('does not allow clients to switch the locked class or subject', function (string $property) {
     $teacher = isiMateriTeacher();
     $own = MataPelajaranFactory::new()->create();
-    isiMateriSchedule($teacher, $own);
-    $foreign = MataPelajaranFactory::new()->create();
-    isiMateriSchedule(isiMateriTeacher(), $foreign);
+    $class = isiMateriClass();
+    isiMateriSchedule($teacher, $own, $class);
     $this->actingAs($teacher->user);
-    $component = isiMateriPage($own);
+    $component = isiMateriPage($class, $own);
 
-    expect(fn () => $component->set('mataPelajaranId', $foreign->id))
+    expect(fn () => $component->set($property, 999999))
         ->toThrow(CannotUpdateLockedPropertyException::class);
-});
+})->with(['kelasId', 'mataPelajaranId']);
