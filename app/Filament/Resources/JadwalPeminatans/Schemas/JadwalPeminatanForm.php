@@ -2,10 +2,10 @@
 
 namespace App\Filament\Resources\JadwalPeminatans\Schemas;
 
-use Filament\Forms\Components\Select;
-use Filament\Schemas\Schema;
 use App\Models\Guru;
-
+use Filament\Forms\Components\Select;
+use Filament\Forms\Components\TimePicker;
+use Filament\Schemas\Schema;
 
 class JadwalPeminatanForm
 {
@@ -23,6 +23,16 @@ class JadwalPeminatanForm
                         'Sabtu' => 'Sabtu',
                         'Minggu' => 'Minggu',
                     ])
+                    ->required(),
+                TimePicker::make('jam_mulai')
+                    ->label('Jam Mulai')
+                    ->seconds(false)
+                    ->displayFormat('H:i')
+                    ->required(),
+                TimePicker::make('jam_selesai')
+                    ->label('Jam Selesai')
+                    ->seconds(false)
+                    ->displayFormat('H:i')
                     ->required(),
                 Select::make('guru_id')
                     ->relationship('guru', 'id')

@@ -4,8 +4,8 @@ namespace App\Filament\Resources\JadwalPeminatans\Tables;
 
 use Filament\Actions\DeleteAction;
 use Filament\Actions\EditAction;
-use Filament\Tables\Table;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Table;
 
 class JadwalPeminatansTable
 {
@@ -15,6 +15,14 @@ class JadwalPeminatansTable
             ->columns([
                 TextColumn::make('hari')
                     ->label('Hari'),
+
+                TextColumn::make('jam_mulai')
+                    ->label('Jam Mulai')
+                    ->formatStateUsing(fn (?string $state): string => filled($state) ? substr($state, 0, 5) : '-'),
+
+                TextColumn::make('jam_selesai')
+                    ->label('Jam Selesai')
+                    ->formatStateUsing(fn (?string $state): string => filled($state) ? substr($state, 0, 5) : '-'),
 
                 TextColumn::make('guru.nama')
                     ->label('Pembina'),

@@ -8,6 +8,8 @@ class JadwalPeminatan extends Model
 {
     protected $fillable = [
         'hari',
+        'jam_mulai',
+        'jam_selesai',
         'guru_id',
         'jenis_peminatan_id',
     ];
