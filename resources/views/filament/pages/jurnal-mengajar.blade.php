@@ -28,7 +28,7 @@
                             wire:target="tanggal,pilihJadwal,lihatJurnal,simpan"
                         />
                     </x-filament::input.wrapper>
-                    <p class="presensi-help" id="jurnal-tanggal-help">Pilih hari ini untuk mengisi jurnal atau tanggal sebelumnya untuk melihat riwayat.</p>
+                    <p class="presensi-help" id="jurnal-tanggal-help">Pilih hari ini atau maksimal 7 hari ke belakang untuk mengisi. Tanggal yang lebih lama hanya dapat dibaca sebagai riwayat.</p>
                     <div id="jurnal-tanggal-error">
                         @error('tanggal')
                             <p class="presensi-error">{{ $message }}</p>
@@ -36,8 +36,8 @@
                     </div>
                 </div>
 
-                @if (! $isToday)
-                    <p class="presensi-notice">Mode riwayat. Jurnal pada tanggal sebelumnya hanya dapat dibaca.</p>
+                @if (! $isEditable)
+                    <p class="presensi-notice">Mode riwayat. Jurnal pada tanggal ini hanya dapat dibaca karena di luar batas pengisian 7 hari.</p>
                 @endif
 
                 <p class="presensi-help" role="status" wire:loading wire:target="tanggal,pilihJadwal,lihatJurnal">Memuat jadwal dan jurnal...</p>
@@ -77,7 +77,7 @@
                                         @endif
                                     </td>
                                     <td class="jurnal-action-col">
-                                        @if ($row['jadwal_id'] !== null && $isToday)
+                                        @if ($row['jadwal_id'] !== null && $isEditable)
                                             <x-filament::button
                                                 type="button"
                                                 size="sm"
@@ -108,15 +108,15 @@
                             @empty
                                 <tr>
                                     <td colspan="6" class="presensi-empty">
-                                        <p class="presensi-label">{{ $isToday ? 'Belum ada jadwal atau jurnal tersimpan hari ini.' : 'Belum ada jurnal tersimpan pada tanggal ini.' }}</p>
-                                        <p class="presensi-help">{{ $isToday ? 'Jurnal mengikuti jadwal mengajar pada periode berjalan. Hubungi admin jika jadwal Anda belum tercantum.' : 'Pilih hari ini untuk mengisi jurnal atau tanggal lain untuk melihat riwayat.' }}</p>
+                                        <p class="presensi-label">{{ $isEditable ? 'Belum ada jadwal atau jurnal tersimpan pada tanggal ini.' : 'Belum ada jurnal tersimpan pada tanggal ini.' }}</p>
+                                        <p class="presensi-help">{{ $isEditable ? 'Jurnal mengikuti jadwal mengajar pada periode berjalan. Hubungi admin jika jadwal Anda belum tercantum.' : 'Pilih hari ini atau maksimal 7 hari ke belakang untuk mengisi jurnal.' }}</p>
                                     </td>
                                 </tr>
                             @endforelse
                         </tbody>
                     </table>
                 </div>
-                <p class="presensi-help">Jurnal dicatat satu kali untuk setiap jadwal per hari. Simpan ulang untuk memperbarui jurnal hari ini. Pilih lingkup materi dari data yang sudah diisi sebelumnya.</p>
+                <p class="presensi-help">Jurnal dicatat satu kali untuk setiap jadwal per hari. Simpan ulang untuk memperbarui jurnal pada tanggal yang sama. Pengisian susulan dibatasi maksimal 7 hari ke belakang. Pilih lingkup materi dari data yang sudah diisi sebelumnya.</p>
             </div>
         </x-filament::section>
 

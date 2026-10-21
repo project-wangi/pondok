@@ -7,7 +7,6 @@ use App\Models\Murid;
 use App\Models\PresensiMurid;
 use App\Models\SesiMengajar;
 use BackedEnum;
-use UnitEnum;
 use Carbon\CarbonImmutable;
 use Filament\Facades\Filament;
 use Filament\Notifications\Notification;
@@ -20,9 +19,12 @@ use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 use Livewire\Attributes\Locked;
+use UnitEnum;
 
 class PresensiSiswa extends Page
 {
+    private const EDIT_WINDOW_DAYS = 7;
+
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedClipboardDocumentCheck;
 
     protected static ?string $navigationLabel = 'Presensi Siswa';
@@ -99,8 +101,8 @@ class PresensiSiswa extends Page
 
     private function loadSchedule(int $id): void
     {
-        $this->assertToday();
-        $schedule = $this->todaySchedules()->findOrFail($id);
+        $this->assertEditableDate();
+        $schedule = $this->schedulesForDate()->findOrFail($id);
         $session = $this->sessionFor($schedule);
         $this->authorizeSession($session, $schedule);
         $this->sessionRevision = $session?->revisi;
@@ -116,8 +118,8 @@ class PresensiSiswa extends Page
 
     public function tandaiSemuaHadir(): void
     {
-        $this->assertToday();
-        $schedule = $this->todaySchedules()->findOrFail($this->jadwalId);
+        $this->assertEditableDate();
+        $schedule = $this->schedulesForDate()->findOrFail($this->jadwalId);
         $session = $this->sessionFor($schedule);
         $this->authorizeSession($session, $schedule);
 
@@ -131,12 +133,12 @@ class PresensiSiswa extends Page
 
     public function simpan(): void
     {
-        $this->assertToday();
+        $this->assertEditableDate();
         $this->validate(['jadwalId' => ['required', 'integer']], [], ['jadwalId' => 'jadwal mengajar']);
 
         DB::transaction(function (): void {
             // Serialize submissions for this schedule; the unique key also guards duplicate sessions.
-            $schedule = $this->todaySchedules()->lockForUpdate()->findOrFail($this->jadwalId);
+            $schedule = $this->schedulesForDate()->lockForUpdate()->findOrFail($this->jadwalId);
             $session = $this->sessionFor($schedule, lock: true);
             $this->authorizeSession($session, $schedule);
 
@@ -224,13 +226,15 @@ class PresensiSiswa extends Page
     {
         abort_unless(static::canAccess(), 403);
         $validDate = Validator::make(['tanggal' => $this->tanggal], $this->dateRules())->passes();
-        $isToday = $validDate && $this->tanggal === now()->toDateString();
-        $schedules = $isToday ? $this->todaySchedules()->get() : collect();
+        $isEditable = $validDate && $this->isWithinEditWindow();
+        $schedules = $isEditable ? $this->schedulesForDate()->get() : collect();
         $schedule = $schedules->firstWhere('id', $this->jadwalId);
         $session = $schedule !== null ? $this->sessionFor($schedule) : null;
         $canEditSession = $session === null || ($session->guru_id === $schedule?->guru_id && $session->pencatat_id === Filament::auth()->id());
 
-        $activePeriod = JadwalPelajaran::activePeriod();
+        $activePeriod = JadwalPelajaran::activePeriod(
+            $validDate ? CarbonImmutable::parse($this->tanggal) : null,
+        );
         $sessions = $validDate ? $this->ownSessions()->get() : collect();
         $modalSession = $sessions->firstWhere('id', $this->riwayatId);
         $tableRows = [];
@@ -251,7 +255,7 @@ class PresensiSiswa extends Page
             'modalSession' => $modalSession,
             'tableRows' => collect($tableRows)->sortBy('jam_mulai')->values(),
             'today' => now()->toDateString(),
-            'isToday' => $isToday,
+            'isEditable' => $isEditable,
             'statuses' => PresensiMurid::STATUSES,
             'jadwals' => $schedules,
             'jadwal' => $canEditSession ? $schedule : null,
@@ -290,11 +294,12 @@ class PresensiSiswa extends Page
             ->orderBy('jam_mulai')->orderBy('id');
     }
 
-    private function todaySchedules(): Builder
+    private function schedulesForDate(): Builder
     {
         abort_unless(static::canAccess(), 403);
-        $day = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'][now()->dayOfWeek];
-        $period = JadwalPelajaran::activePeriod();
+        $date = CarbonImmutable::parse($this->tanggal);
+        $day = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'][$date->dayOfWeek];
+        $period = JadwalPelajaran::activePeriod($date);
 
         return JadwalPelajaran::query()
             ->whereHas('guru', fn (Builder $query): Builder => $query->where('user_id', Filament::auth()->id()))
@@ -353,21 +358,35 @@ class PresensiSiswa extends Page
     /** @return array{tanggal: list<string>} */
     private function dateRules(): array
     {
-        return ['tanggal' => ['required', 'date_format:Y-m-d', 'before_or_equal:'.now()->toDateString()]];
+        return ['tanggal' => [
+            'required',
+            'date_format:Y-m-d',
+            'before_or_equal:'.CarbonImmutable::now()->toDateString(),
+        ]];
     }
 
     private function validateDate(): void
     {
-        $this->validate($this->dateRules(), ['tanggal.before_or_equal' => 'Tanggal presensi tidak boleh di masa depan.']);
+        $this->validate($this->dateRules(), [
+            'tanggal.before_or_equal' => 'Tanggal presensi tidak boleh di masa depan.',
+        ]);
     }
 
-    private function assertToday(): void
+    private function isWithinEditWindow(): bool
+    {
+        $now = CarbonImmutable::now();
+
+        return $this->tanggal >= $now->subDays(self::EDIT_WINDOW_DAYS)->toDateString()
+            && $this->tanggal <= $now->toDateString();
+    }
+
+    private function assertEditableDate(): void
     {
         abort_unless(static::canAccess(), 403);
         $this->validateDate();
 
-        if ($this->tanggal !== CarbonImmutable::now()->toDateString()) {
-            throw ValidationException::withMessages(['tanggal' => 'Presensi hanya dapat diisi atau diperbaiki pada hari yang sama. Riwayat tanggal sebelumnya hanya dapat dilihat.']);
+        if (! $this->isWithinEditWindow()) {
+            throw ValidationException::withMessages(['tanggal' => 'Presensi hanya dapat diisi atau diperbaiki maksimal 7 hari ke belakang. Tanggal yang lebih lama hanya dapat dilihat.']);
         }
     }
 }

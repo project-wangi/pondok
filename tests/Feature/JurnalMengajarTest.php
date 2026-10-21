@@ -114,7 +114,7 @@ test('shows an honest empty state when there is no schedule or journal today', f
 
     Livewire::test(JurnalMengajar::class)
         ->assertOk()
-        ->assertSee('Belum ada jadwal atau jurnal tersimpan hari ini.')
+        ->assertSee('Belum ada jadwal atau jurnal tersimpan pada tanggal ini.')
         ->assertSee('semester Ganjil tahun ajaran 2026/2027');
 });
 
@@ -518,11 +518,11 @@ test('blocks journal writes outside today and resets the selected journal when t
     $this->actingAs($teacher->user);
     $component = Livewire::test(JurnalMengajar::class)->call('pilihJadwal', $schedule->id)
         ->set('baris', [jurnalRow($material)]);
-    $component->instance()->tanggal = '2026-10-18';
+    $component->instance()->tanggal = '2026-10-11';
 
     expect(fn () => $component->instance()->simpan())->toThrow(ValidationException::class);
 
-    $component->set('tanggal', '2026-10-18');
+    $component->set('tanggal', '2026-10-11');
     $component->assertSet('jadwalId', null)->assertSet('baris', [])->assertSee('Mode riwayat.');
     $this->assertDatabaseCount('jurnal_mengajars', 0);
 
@@ -547,7 +547,7 @@ test('does not expose schedule and journal query helpers as Livewire actions', f
     $component = Livewire::test(JurnalMengajar::class);
 
     expect(fn () => $component->call($method, $schedule->id))->toThrow(MethodNotFoundException::class);
-})->with(['todaySchedules', 'journalFor', 'availableMaterials']);
+})->with(['schedulesForDate', 'journalFor', 'availableMaterials']);
 
 test('escapes journal snapshot text in the read-only history', function () {
     $teacher = jurnalTeacher();
@@ -576,4 +576,39 @@ test('escapes journal snapshot text in the read-only history', function () {
         ->assertDontSeeHtml('<img src=x onerror=alert(1)>')
         ->assertDontSeeHtml('<script>catatan()</script>')
         ->assertDontSeeHtml('<script>tindak()</script>');
+});
+
+test('allows filling a journal for a past date inside the seven day window', function () {
+    $teacher = jurnalTeacher();
+    $subject = MataPelajaranFactory::new()->create();
+    $class = KelasFactory::new()->create();
+    $schedule = jurnalSchedule($teacher, $subject, ['kelas_id' => $class->id, 'hari' => 'Minggu']);
+    $material = jurnalMaterial($teacher, $subject, 'kontrak pembelajaran');
+    $this->actingAs($teacher->user);
+
+    Livewire::test(JurnalMengajar::class)
+        ->set('tanggal', '2026-10-18')
+        ->call('pilihJadwal', $schedule->id)
+        ->set('baris', [jurnalRow($material)])
+        ->call('simpan')
+        ->assertHasNoErrors()
+        ->assertNotified('Jurnal tersimpan');
+
+    expect(JurnalMengajarModel::query()->sole()->tanggal->toDateString())->toBe('2026-10-18');
+});
+
+test('rejects filling a journal older than seven days', function () {
+    $teacher = jurnalTeacher();
+    $subject = MataPelajaranFactory::new()->create();
+    $schedule = jurnalSchedule($teacher, $subject, ['hari' => 'Minggu']);
+    jurnalMaterial($teacher, $subject, 'kontrak pembelajaran');
+    $this->actingAs($teacher->user);
+
+    Livewire::test(JurnalMengajar::class)
+        ->set('tanggal', '2026-10-11')
+        ->call('pilihJadwal', $schedule->id)
+        ->assertHasErrors(['tanggal'])
+        ->assertSee('maksimal 7 hari ke belakang');
+
+    $this->assertDatabaseCount('jurnal_mengajars', 0);
 });

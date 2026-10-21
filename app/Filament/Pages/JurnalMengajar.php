@@ -21,6 +21,8 @@ use UnitEnum;
 
 class JurnalMengajar extends Page
 {
+    private const EDIT_WINDOW_DAYS = 7;
+
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedClipboardDocumentList;
 
     protected static string|UnitEnum|null $navigationGroup = 'Pembelajaran';
@@ -128,11 +130,11 @@ class JurnalMengajar extends Page
 
     public function simpan(): void
     {
-        $this->assertToday();
+        $this->assertEditableDate();
         $this->validate(['jadwalId' => ['required', 'integer']], [], ['jadwalId' => 'jadwal mengajar']);
 
         DB::transaction(function (): void {
-            $schedule = $this->todaySchedules()->lockForUpdate()->findOrFail($this->jadwalId);
+            $schedule = $this->schedulesForDate()->lockForUpdate()->findOrFail($this->jadwalId);
             $journal = $this->journalFor($schedule, lock: true);
             $this->authorizeJournal($journal, $schedule);
 
@@ -257,10 +259,12 @@ class JurnalMengajar extends Page
     {
         abort_unless(static::canAccess(), 403);
         $validDate = Validator::make(['tanggal' => $this->tanggal], $this->dateRules())->passes();
-        $isToday = $validDate && $this->tanggal === now()->toDateString();
+        $isEditable = $validDate && $this->isWithinEditWindow();
         $tanggalLabel = $validDate ? CarbonImmutable::parse($this->tanggal)->format('d/m/Y') : $this->tanggal;
-        $period = JadwalPelajaran::activePeriod();
-        $schedules = $isToday ? $this->todaySchedules()->get() : collect();
+        $period = JadwalPelajaran::activePeriod(
+            $validDate ? CarbonImmutable::parse($this->tanggal) : null,
+        );
+        $schedules = $isEditable ? $this->schedulesForDate()->get() : collect();
         $journals = $validDate ? $this->ownJournals()->get() : collect();
         $journalBySchedule = $journals->keyBy('jadwal_pelajaran_id');
         $rows = [];
@@ -282,7 +286,7 @@ class JurnalMengajar extends Page
 
         return [
             'today' => now()->toDateString(),
-            'isToday' => $isToday,
+            'isEditable' => $isEditable,
             'tanggalLabel' => $tanggalLabel,
             'period' => $period,
             'tableRows' => collect($rows)->sortBy('jam_mulai')->values(),
@@ -313,11 +317,12 @@ class JurnalMengajar extends Page
         ];
     }
 
-    private function todaySchedules(): Builder
+    private function schedulesForDate(): Builder
     {
         abort_unless(static::canAccess(), 403);
-        $day = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'][now()->dayOfWeek];
-        $period = JadwalPelajaran::activePeriod();
+        $date = CarbonImmutable::parse($this->tanggal);
+        $day = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'][$date->dayOfWeek];
+        $period = JadwalPelajaran::activePeriod($date);
 
         return JadwalPelajaran::query()
             ->whereHas('guru', fn (Builder $query): Builder => $query->where('user_id', Filament::auth()->id()))
@@ -368,8 +373,8 @@ class JurnalMengajar extends Page
 
     private function loadJadwal(int $id): void
     {
-        $this->assertToday();
-        $schedule = $this->todaySchedules()->findOrFail($id);
+        $this->assertEditableDate();
+        $schedule = $this->schedulesForDate()->findOrFail($id);
         $journal = $this->journalFor($schedule);
         $this->authorizeJournal($journal, $schedule);
         $this->jadwalId = $schedule->id;
@@ -424,21 +429,35 @@ class JurnalMengajar extends Page
     /** @return array{tanggal: list<string>} */
     private function dateRules(): array
     {
-        return ['tanggal' => ['required', 'date_format:Y-m-d', 'before_or_equal:'.now()->toDateString()]];
+        return ['tanggal' => [
+            'required',
+            'date_format:Y-m-d',
+            'before_or_equal:'.CarbonImmutable::now()->toDateString(),
+        ]];
     }
 
     private function validateDate(): void
     {
-        $this->validate($this->dateRules(), ['tanggal.before_or_equal' => 'Tanggal jurnal tidak boleh di masa depan.']);
+        $this->validate($this->dateRules(), [
+            'tanggal.before_or_equal' => 'Tanggal jurnal tidak boleh di masa depan.',
+        ]);
     }
 
-    private function assertToday(): void
+    private function isWithinEditWindow(): bool
+    {
+        $now = CarbonImmutable::now();
+
+        return $this->tanggal >= $now->subDays(self::EDIT_WINDOW_DAYS)->toDateString()
+            && $this->tanggal <= $now->toDateString();
+    }
+
+    private function assertEditableDate(): void
     {
         abort_unless(static::canAccess(), 403);
         $this->validateDate();
 
-        if ($this->tanggal !== CarbonImmutable::now()->toDateString()) {
-            throw ValidationException::withMessages(['tanggal' => 'Jurnal hanya dapat diisi atau diperbaiki pada hari yang sama. Riwayat tanggal sebelumnya hanya dapat dilihat.']);
+        if (! $this->isWithinEditWindow()) {
+            throw ValidationException::withMessages(['tanggal' => 'Jurnal hanya dapat diisi atau diperbaiki maksimal 7 hari ke belakang. Tanggal yang lebih lama hanya dapat dilihat.']);
         }
     }
 }

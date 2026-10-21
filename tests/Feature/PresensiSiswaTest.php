@@ -459,7 +459,7 @@ test('does not expose schedule and session query helpers as Livewire actions', f
     $component = Livewire::test(PresensiSiswa::class);
 
     expect(fn () => $component->call($method, $schedule->id))->toThrow(MethodNotFoundException::class);
-})->with(['todaySchedules', 'sessionFor']);
+})->with(['schedulesForDate', 'sessionFor']);
 
 test('clears selection attendance and validation when the date changes', function () {
     $schedule = JadwalPelajaranFactory::new()->create();
@@ -468,7 +468,7 @@ test('clears selection attendance and validation when the date changes', functio
     $component = Livewire::test(PresensiSiswa::class)->call('pilihJadwal', $schedule->id)
         ->call('simpan')->assertHasErrors();
 
-    $component->set('tanggal', '2026-10-18')
+    $component->set('tanggal', '2026-10-11')
         ->assertHasNoErrors()->assertSet('jadwalId', null)->assertSet('kehadiran', [])
         ->assertSee('Mode riwayat.')
         ->assertDontSeeHtml('wire:submit="simpan"');
@@ -488,7 +488,7 @@ test('rejects invalid dates and clears the selected roster', function (string $d
     'empty' => ['', 'required'],
 ]);
 
-test('blocks all attendance actions outside today', function (string $date, string $action) {
+test('blocks all attendance actions outside the edit window', function (string $date, string $action) {
     $schedule = JadwalPelajaranFactory::new()->create();
     MuridFactory::new()->create(['kelas_id' => $schedule->kelas_id]);
     $this->actingAs($schedule->guru->user);
@@ -499,7 +499,7 @@ test('blocks all attendance actions outside today', function (string $date, stri
 
     $this->assertDatabaseCount('sesi_mengajars', 0);
     $this->assertDatabaseCount('presensi_murids', 0);
-})->with(['past' => ['2026-10-18'], 'future' => ['2026-10-20']])
+})->with(['past' => ['2026-10-11'], 'future' => ['2026-10-20']])
     ->with(['pilihJadwal', 'tandaiSemuaHadir', 'simpan']);
 
 test('checks the date on save even when the date update hook is bypassed', function (string $date) {
@@ -513,7 +513,7 @@ test('checks the date on save even when the date update hook is bypassed', funct
 
     $this->assertDatabaseCount('sesi_mengajars', 0);
     $this->assertDatabaseCount('presensi_murids', 0);
-})->with(['past' => ['2026-10-18'], 'future' => ['2026-10-20']]);
+})->with(['past' => ['2026-10-11'], 'future' => ['2026-10-20']]);
 
 test('shows only the teachers history for the selected date as read only', function () {
     $schedule = JadwalPelajaranFactory::new()->create();
@@ -537,11 +537,44 @@ test('shows only the teachers history for the selected date as read only', funct
         ->assertDontSee('Riwayat Guru Lain')->assertDontSee('Siswa Riwayat Rahasia')->assertDontSee('Catatan rahasia')
         ->assertDontSee('Riwayat Tanggal Lain')->assertDontSeeHtml('wire:submit="simpan"')
         ->assertDontSeeHtml('wire:click="tandaiSemuaHadir"')
-        ->call('simpan')->assertHasErrors(['tanggal']);
+        ->call('simpan')->assertHasErrors(['jadwalId']);
 
     $this->assertDatabaseCount('sesi_mengajars', 3);
     $this->assertDatabaseCount('presensi_murids', 2);
     $this->assertDatabaseHas('presensi_murids', ['sesi_mengajar_id' => $own->id, 'status' => 'Hadir', 'catatan' => 'Catatan sendiri']);
+});
+
+test('allows filling attendance for a past date inside the seven day window', function () {
+    $schedule = JadwalPelajaranFactory::new()->create(['hari' => 'Minggu']);
+    MuridFactory::new()->create(['kelas_id' => $schedule->kelas_id, 'nama' => 'Siswa Susulan']);
+    $this->actingAs($schedule->guru->user);
+
+    Livewire::test(PresensiSiswa::class)
+        ->set('tanggal', '2026-10-18')
+        ->call('pilihJadwal', $schedule->id)
+        ->call('tandaiSemuaHadir')
+        ->call('simpan')
+        ->assertHasNoErrors()
+        ->assertNotified('Presensi tersimpan');
+
+    $session = SesiMengajar::query()->sole();
+
+    expect($session->tanggal->toDateString())->toBe('2026-10-18');
+    $this->assertDatabaseHas('presensi_murids', ['sesi_mengajar_id' => $session->id, 'status' => 'Hadir']);
+});
+
+test('rejects filling attendance older than seven days', function () {
+    $schedule = JadwalPelajaranFactory::new()->create(['hari' => 'Minggu']);
+    MuridFactory::new()->create(['kelas_id' => $schedule->kelas_id]);
+    $this->actingAs($schedule->guru->user);
+
+    Livewire::test(PresensiSiswa::class)
+        ->set('tanggal', '2026-10-11')
+        ->call('pilihJadwal', $schedule->id)
+        ->assertHasErrors(['tanggal'])
+        ->assertSee('maksimal 7 hari ke belakang');
+
+    $this->assertDatabaseCount('sesi_mengajars', 0);
 });
 
 test('keeps a saved session owned by the original teacher after schedule reassignment', function () {

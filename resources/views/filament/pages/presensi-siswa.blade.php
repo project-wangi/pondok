@@ -32,7 +32,7 @@
                             wire:target="tanggal,pilihJadwal,lihatPresensi,simpan"
                         />
                     </x-filament::input.wrapper>
-                    <p class="presensi-help" id="presensi-tanggal-help">Pilih hari ini untuk mengisi atau tanggal sebelumnya untuk melihat riwayat.</p>
+                    <p class="presensi-help" id="presensi-tanggal-help">Pilih hari ini atau maksimal 7 hari ke belakang untuk mengisi. Tanggal yang lebih lama hanya dapat dibaca sebagai riwayat.</p>
                     <div id="presensi-tanggal-error">
                         @error('tanggal')
                             <p class="presensi-error">{{ $message }}</p>
@@ -40,19 +40,19 @@
                     </div>
                 </div>
 
-                @if ($isToday)
+                @if ($isEditable)
                     @if ($jadwals->isEmpty())
                         <div class="presensi-notice">
                             <p class="presensi-label">Tidak ada jadwal mengajar pada periode berjalan.</p>
                             <p class="presensi-help">Hubungi admin jika jadwal Anda belum tercantum. Sesi yang sudah tersimpan tetap ditampilkan pada tabel.</p>
                         </div>
                     @else
-                        <p class="presensi-help">Tekan Absen untuk mengisi atau memperbarui presensi pada jadwal hari ini.</p>
+                        <p class="presensi-help">Tekan Absen untuk mengisi atau memperbarui presensi pada jadwal tanggal ini.</p>
                     @endif
                 @elseif ($tanggal <= $today)
-                    <p class="presensi-notice">Mode riwayat. Presensi pada tanggal sebelumnya hanya dapat dibaca.</p>
+                    <p class="presensi-notice">Mode riwayat. Presensi yang lebih lama dari 7 hari hanya dapat dibaca.</p>
                 @else
-                    <p class="presensi-notice">Presensi untuk tanggal mendatang tidak tersedia. Pilih hari ini atau tanggal sebelumnya.</p>
+                    <p class="presensi-notice">Presensi untuk tanggal mendatang tidak tersedia. Pilih hari ini atau maksimal 7 hari ke belakang.</p>
                 @endif
 
                 <p class="presensi-help" role="status" wire:loading wire:target="tanggal,pilihJadwal,lihatPresensi">Memuat jadwal dan presensi...</p>
@@ -104,7 +104,7 @@
                                         @endif
                                     </td>
                                     <td>
-                                        @if ($row['jadwal_id'] !== null && $isToday)
+                                        @if ($row['jadwal_id'] !== null && $isEditable)
                                             <x-filament::button
                                                 type="button"
                                                 wire:click="pilihJadwal({{ $row['jadwal_id'] }})"
@@ -133,15 +133,15 @@
                             @empty
                                 <tr>
                                     <td colspan="8" class="presensi-empty">
-                                        <p class="presensi-label">{{ $isToday ? 'Belum ada jadwal atau sesi tersimpan hari ini.' : 'Belum ada sesi tersimpan pada tanggal ini.' }}</p>
-                                        <p class="presensi-help">{{ $isToday ? 'Hubungi admin untuk memeriksa jadwal mengajar Anda.' : 'Pilih hari ini untuk mengisi presensi atau tanggal lain untuk melihat riwayat.' }}</p>
+                                        <p class="presensi-label">{{ $isEditable ? 'Belum ada jadwal atau sesi tersimpan pada tanggal ini.' : 'Belum ada sesi tersimpan pada tanggal ini.' }}</p>
+                                        <p class="presensi-help">{{ $isEditable ? 'Hubungi admin untuk memeriksa jadwal mengajar Anda.' : 'Pilih hari ini atau maksimal 7 hari ke belakang untuk mengisi presensi.' }}</p>
                                     </td>
                                 </tr>
                             @endforelse
                         </tbody>
                     </table>
                 </div>
-                <p class="presensi-help">Satu sesi dicatat untuk setiap jadwal per hari. Menyimpan ulang presensi hari ini memperbarui sesi yang sama. Catatan sesi ini bukan perhitungan penggajian.</p>
+                <p class="presensi-help">Satu sesi dicatat untuk setiap jadwal per hari. Menyimpan ulang presensi pada tanggal yang sama memperbarui sesi yang sama. Pengisian susulan dibatasi maksimal 7 hari ke belakang. Catatan sesi ini bukan perhitungan penggajian.</p>
             </div>
         </x-filament::section>
 
@@ -154,9 +154,9 @@
             :close-by-escaping="true"
             :close-button="true"
         >
-            <x-slot name="heading">{{ $jadwal && $isToday ? 'Presensi siswa' : 'Riwayat presensi siswa' }}</x-slot>
+            <x-slot name="heading">{{ $jadwal && $isEditable ? 'Presensi siswa' : 'Riwayat presensi siswa' }}</x-slot>
             <x-slot name="description">
-                @if ($jadwal && $isToday)
+                @if ($jadwal && $isEditable)
                     {{ $jadwal->mataPelajaran?->nama_mapel ?? 'Mata pelajaran tidak tersedia' }} · {{ $jadwal->kelas?->nama_kelas ?? 'Kelas tidak tersedia' }} · {{ $jadwal->guru?->user?->name ?? 'Guru tidak tersedia' }} · {{ $tanggal }} · {{ substr((string) $jadwal->jam_mulai, 0, 5) }} - {{ substr((string) $jadwal->jam_selesai, 0, 5) }}
                 @elseif ($modalSession)
                     {{ $modalSession->nama_mapel }} · {{ $modalSession->nama_kelas }} · {{ $modalSession->nama_guru }} · {{ $tanggal }} · {{ substr((string) $modalSession->jam_mulai, 0, 5) }} - {{ substr((string) $modalSession->jam_selesai, 0, 5) }}
@@ -176,7 +176,7 @@
                 @endif
                 <p class="presensi-help" role="status" wire:loading wire:target="pilihJadwal,lihatPresensi">Memuat daftar siswa...</p>
 
-                @if ($jadwal && $isToday)
+                @if ($jadwal && $isEditable)
                     <form id="presensi-form" wire:submit="simpan" class="presensi-stack" wire:key="presensi-form-{{ $tanggal }}-{{ $jadwal->id }}">
                         <div class="presensi-toolbar">
                             <p class="presensi-help" id="presensi-isian-help">Pilih status setiap siswa. Catatan opsional, maksimal 500 karakter. Perubahan tersimpan setelah menekan Simpan presensi.</p>
@@ -308,7 +308,7 @@
 
             <x-slot name="footer">
                 <div class="presensi-modal-footer">
-                    <p class="presensi-help">{{ $jadwal && $isToday ? 'Presensi hari ini masih dapat diedit dan disimpan kembali.' : 'Riwayat presensi hanya dapat dibaca.' }}</p>
+                    <p class="presensi-help">{{ $jadwal && $isEditable ? 'Presensi pada tanggal ini masih dapat diedit dan disimpan kembali.' : 'Riwayat presensi hanya dapat dibaca.' }}</p>
                     <div class="presensi-actions">
                         <x-filament::button
                             type="button"
@@ -320,7 +320,7 @@
                         >
                             Tutup
                         </x-filament::button>
-                        @if ($jadwal && $isToday)
+                        @if ($jadwal && $isEditable)
                             <x-filament::button
                                 type="button"
                                 wire:click="simpan"
