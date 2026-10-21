@@ -20,6 +20,7 @@ class MuridsTable
                     ->rowIndex(),
                 ImageColumn::make('foto')
                     ->label('Foto')
+                    ->disk('r2')
                     ->circular(),
                 TextColumn::make('nama')
                     ->label('Nama Siswa')

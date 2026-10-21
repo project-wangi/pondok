@@ -19,6 +19,7 @@ class GurusTable
                     ->rowIndex(),
                 ImageColumn::make('foto')
                     ->label('Foto')
+                    ->disk('r2')
                     ->circular(),
                 TextColumn::make('user.name')
                     ->label('Nama')

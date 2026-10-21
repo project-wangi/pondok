@@ -8,6 +8,7 @@ use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Schemas\Components\Section;
+use Illuminate\Support\Facades\Storage;
 use Filament\Schemas\Schema;
 
 class MuridForm
@@ -37,7 +38,10 @@ class MuridForm
                             ->label('Foto Siswa')
                             ->image()
                             ->maxSize(2048)
-                            ->disk('local')
+                            ->disk('r2')
+                            ->deleteUploadedFileUsing(function ($file) {
+                                Storage::disk('r2')->delete($file);
+                            })
                             ->directory('murid-fotos')
                             ->columnSpanFull(),
 
@@ -132,7 +136,10 @@ class MuridForm
                     ->schema([
                         FileUpload::make('ijazah')
                             ->label('Ijazah')
-                            ->disk('local')
+                            ->disk('r2')
+                            ->deleteUploadedFileUsing(function ($file) {
+                                Storage::disk('r2')->delete($file);
+                            })
                             ->maxSize(2048)
                             ->helperText('Format: PDF / Gambar, maksimal 2MB')
                             ->acceptedFileTypes(['application/pdf', 'image/jpeg', 'image/png'])
@@ -140,7 +147,10 @@ class MuridForm
 
                         FileUpload::make('kk')
                             ->label('Kartu Keluarga (KK)')
-                            ->disk('local')
+                            ->disk('r2')
+                            ->deleteUploadedFileUsing(function ($file) {
+                                Storage::disk('r2')->delete($file);
+                            })
                             ->maxSize(2048)
                             ->helperText('Format: PDF / Gambar, maksimal 2MB')
                             ->acceptedFileTypes(['application/pdf', 'image/jpeg', 'image/png'])
@@ -148,7 +158,10 @@ class MuridForm
 
                         FileUpload::make('kip')
                             ->label('KIP (Kartu Indonesia Pintar - Opsional)')
-                            ->disk('local')
+                            ->disk('r2')
+                            ->deleteUploadedFileUsing(function ($file) {
+                                Storage::disk('r2')->delete($file);
+                            })
                             ->maxSize(2048)
                             ->helperText('Format: PDF / Gambar, maksimal 2MB')
                             ->acceptedFileTypes(['application/pdf', 'image/jpeg', 'image/png'])

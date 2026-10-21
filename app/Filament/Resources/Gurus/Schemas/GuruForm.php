@@ -8,6 +8,7 @@ use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Textarea;
 use Filament\Schemas\Components\Section;
+use Illuminate\Support\Facades\Storage;
 use Filament\Schemas\Schema;
 
 class GuruForm
@@ -19,7 +20,11 @@ class GuruForm
                 FileUpload::make('foto')
                     ->label('Foto Guru')
                     ->image()
-                    ->disk('local')
+                    ->disk('r2')
+                   ->deleteUploadedFileUsing(function ($file) {
+                        // Perintah untuk menghapus file fisik dari Cloudflare R2 secara permanen
+                        Storage::disk('r2')->delete($file);
+                    })
                     ->maxSize(1024 * 10)
                     ->directory('guru-fotos')
                     ->columnSpanFull(),
@@ -94,7 +99,10 @@ class GuruForm
                 ->schema([
                     FileUpload::make('ijazah')
                         ->label('Ijazah')
-                        ->disk('local')
+                        ->disk('r2')
+                        ->deleteUploadedFileUsing(function ($file) {
+                            Storage::disk('r2')->delete($file);
+                        })
                         ->maxSize(2048)
                         ->helperText('Format: PDF / Gambar, maksimal 2MB')
                         ->acceptedFileTypes(['application/pdf', 'image/jpeg', 'image/png'])
@@ -102,7 +110,10 @@ class GuruForm
 
                     FileUpload::make('ktp')
                         ->label('Kartu Tanda Penduduk (KTP)')
-                        ->disk('local')
+                        ->disk('r2')
+                        ->deleteUploadedFileUsing(function ($file) {
+                            Storage::disk('r2')->delete($file);
+                        })
                         ->maxSize(2048)
                         ->helperText('Format: PDF / Gambar, maksimal 2MB')
                         ->acceptedFileTypes(['application/pdf', 'image/jpeg', 'image/png'])
@@ -110,7 +121,10 @@ class GuruForm
 
                     FileUpload::make('kk')
                         ->label('Kartu Keluarga (KK)')
-                        ->disk('local')
+                        ->disk('r2')
+                        ->deleteUploadedFileUsing(function ($file) {
+                            Storage::disk('r2')->delete($file);
+                        })
                         ->maxSize(2048)
                         ->helperText('Format: PDF / Gambar, maksimal 2MB')
                         ->acceptedFileTypes(['application/pdf', 'image/jpeg', 'image/png'])
