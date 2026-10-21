@@ -152,9 +152,13 @@
                                         return;
                                     }
                                     const canvas = document.createElement('canvas');
-                                    canvas.width = video.videoWidth;
-                                    canvas.height = video.videoHeight;
-                                    canvas.getContext('2d').drawImage(video, 0, 0, canvas.width, canvas.height);
+                                    const maxSide = 1280;
+                                    const scale = Math.min(1, maxSide / Math.max(video.videoWidth, video.videoHeight));
+                                    canvas.width = Math.round(video.videoWidth * scale);
+                                    canvas.height = Math.round(video.videoHeight * scale);
+                                    const context = canvas.getContext('2d');
+                                    context.imageSmoothingQuality = 'high';
+                                    context.drawImage(video, 0, 0, canvas.width, canvas.height);
                                     canvas.toBlob((blob) => {
                                         if (! blob) {
                                             this.error = 'Gagal mengambil foto. Coba lagi.';
@@ -168,7 +172,7 @@
                                             () => { this.uploading = false; this.captured = false; this.error = 'Gagal mengunggah foto. Periksa koneksi lalu coba lagi.'; },
                                             () => {},
                                         );
-                                    }, 'image/jpeg', 0.9);
+                                    }, 'image/jpeg', 0.82);
                                 },
                                 retake() {
                                     this.captured = false;
