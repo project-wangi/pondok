@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class Murid extends Model
 {
@@ -39,6 +40,12 @@ class Murid extends Model
     public function kelas()
     {
         return $this->belongsTo(Kelas::class);
+    }
+
+    /** @return BelongsToMany<JenisPeminatan, $this> */
+    public function jenisPeminatans(): BelongsToMany
+    {
+        return $this->belongsToMany(JenisPeminatan::class, 'jenis_peminatan_murid');
     }
 
     public function jenisKelaminKode(): string
