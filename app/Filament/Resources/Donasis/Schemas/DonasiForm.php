@@ -23,7 +23,6 @@ class DonasiForm
                     ->required()
                     ->searchable()
                     ->preload()
-                    ->unique(ignoreRecord: true)
                     ->disabled(fn (): bool => ! self::canManageAll())
                     ->dehydrated(fn (): bool => self::canManageAll()),
                 DatePicker::make('tanggal')

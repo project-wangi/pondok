@@ -837,6 +837,248 @@
     justify-content: center;
 }
 
+.guru-home .guru-hero {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 1.5rem;
+    padding: 1.5rem;
+    border: 1px solid var(--pondok-border);
+    border-radius: 0.75rem;
+    background-color: var(--presensi-surface);
+}
+
+.guru-home .guru-hero-main {
+    display: grid;
+    gap: 0.25rem;
+    min-width: 0;
+}
+
+.guru-home .guru-hero-greeting {
+    color: var(--presensi-muted);
+    font-size: 0.875rem;
+    font-weight: 600;
+}
+
+.guru-home .guru-hero-name {
+    color: var(--presensi-text);
+    font-size: 1.5rem;
+    font-weight: 700;
+    line-height: 1.2;
+    overflow-wrap: anywhere;
+}
+
+.guru-home .guru-summary {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0 2rem;
+    margin: 0;
+}
+
+.guru-home .guru-summary-item {
+    display: grid;
+    gap: 0.125rem;
+    min-width: 7rem;
+}
+
+.guru-home .guru-summary-item dt {
+    color: var(--presensi-muted);
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.guru-home .guru-summary-item dd {
+    margin: 0;
+    color: var(--presensi-text);
+    font-size: 1.25rem;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+}
+
+.guru-home .guru-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+    gap: 1rem;
+}
+
+@media (max-width: 64rem) {
+    .guru-home .guru-grid {
+        grid-template-columns: minmax(0, 1fr);
+    }
+}
+
+.guru-home .guru-card {
+    display: grid;
+    align-content: start;
+    gap: 0.75rem;
+    padding: 1.25rem;
+    border: 1px solid var(--pondok-border);
+    border-radius: 0.75rem;
+    background-color: var(--presensi-surface);
+}
+
+.guru-home .guru-card-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+}
+
+.guru-home .guru-card-title {
+    color: var(--presensi-text);
+    font-size: 1rem;
+    font-weight: 700;
+}
+
+.guru-home .guru-link {
+    color: var(--pondok-accent);
+    font-size: 0.875rem;
+    font-weight: 600;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+}
+
+.guru-home .guru-empty {
+    display: grid;
+    gap: 0.25rem;
+    padding: 0.75rem;
+    border: 1px dashed var(--pondok-border);
+    border-radius: 0.5rem;
+}
+
+.guru-home .guru-schedule-list {
+    display: grid;
+    gap: 0.5rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.guru-home .guru-schedule {
+    display: grid;
+    grid-template-columns: 4.5rem minmax(0, 1fr) auto;
+    grid-template-areas:
+        'time subject status'
+        'time actions actions';
+    gap: 0.375rem 0.75rem;
+    align-items: center;
+    padding: 0.75rem;
+    border: 1px solid var(--pondok-border);
+    border-radius: 0.5rem;
+}
+
+.guru-home .guru-time {
+    grid-area: time;
+    display: grid;
+    gap: 0.125rem;
+}
+
+.guru-home .guru-time-main {
+    color: var(--presensi-text);
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+}
+
+.guru-home .guru-subject {
+    grid-area: subject;
+    display: grid;
+    gap: 0.125rem;
+    min-width: 0;
+}
+
+.guru-home .guru-subject .presensi-label {
+    overflow-wrap: anywhere;
+}
+
+.guru-home .guru-status {
+    grid-area: status;
+}
+
+.guru-home .guru-actions {
+    grid-area: actions;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.375rem;
+}
+
+.guru-home .guru-tag {
+    display: inline-flex;
+    align-items: center;
+    min-height: 1.75rem;
+    padding: 0.125rem 0.5rem;
+    border: 1px solid var(--pondok-border);
+    border-radius: 0.375rem;
+    background-color: var(--pondok-background);
+    color: var(--presensi-muted);
+    font-size: 0.75rem;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.guru-home .guru-tag-done {
+    border-color: var(--pondok-accent);
+    color: var(--pondok-accent);
+}
+
+.guru-home .guru-action {
+    display: inline-flex;
+    align-items: center;
+    min-height: 2.25rem;
+    padding: 0.25rem 0.625rem;
+    border: 1px solid var(--pondok-border);
+    border-radius: 0.375rem;
+    background-color: var(--pondok-navigation);
+    color: var(--presensi-text);
+    font-size: 0.8125rem;
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.guru-home .guru-action:hover {
+    background-color: var(--pondok-active);
+}
+
+.guru-home .guru-action-muted {
+    background-color: transparent;
+}
+
+.guru-home .guru-agenda {
+    display: grid;
+    gap: 1rem;
+}
+
+.guru-home .guru-agenda-item {
+    display: grid;
+    gap: 0.25rem;
+}
+
+.guru-home .guru-rapat {
+    display: grid;
+    gap: 0.125rem;
+    padding-block: 0.25rem;
+    border-bottom: 1px solid var(--pondok-border);
+}
+
+.guru-home .guru-donasi-value {
+    color: var(--presensi-text);
+    font-size: 1.5rem;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+}
+
+.guru-home .guru-links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.guru-home :is(a, button, [tabindex="0"]):focus-visible {
+    outline: 2px solid var(--pondok-accent);
+    outline-offset: 3px;
+}
+
 .materi-page {
     --materi-text: var(--gray-950, #030712);
     --materi-muted: var(--gray-600, #4b5563);

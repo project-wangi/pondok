@@ -48,8 +48,8 @@ function donasiTeacher(): Guru
     return GuruFactory::new()->create();
 }
 
-test('shows the donation menu in the Keuangan group', function () {
-    expect(DonasiResource::getNavigationGroup())->toBe('Keuangan')
+test('shows the donation menu', function () {
+    expect(DonasiResource::getNavigationGroup())->toBeNull()
         ->and(DonasiResource::getNavigationLabel())->toBe('Donasi')
         ->and(DonasiResource::getSlug())->toBe('donasi');
 });
@@ -59,7 +59,7 @@ test('computes the nominal as fifty thousand per child', function () {
         ->and(DonasiFactory::new()->create(['jumlah_anak' => 3])->nominal)->toBe(150000);
 });
 
-test('lets a teacher create their own donation once', function () {
+test('lets a teacher create a donation for themselves', function () {
     $guru = donasiTeacher();
     $this->actingAs($guru->user);
 
@@ -77,8 +77,8 @@ test('lets a teacher create their own donation once', function () {
         ->and($donasi->jumlah_anak)->toBe(2)
         ->and($donasi->nominal)->toBe(100000);
 
-    expect(DonasiResource::canCreate())->toBeFalse();
-    Livewire::test(CreateDonasi::class)->assertForbidden();
+    expect(DonasiResource::canCreate())->toBeTrue();
+    Livewire::test(CreateDonasi::class)->assertOk();
 });
 
 test('shows only the teachers own donation with the nominal column', function () {
@@ -88,7 +88,7 @@ test('shows only the teachers own donation with the nominal column', function ()
 
     Livewire::test(ListDonasis::class)
         ->assertOk()
-        ->assertSee('22/10/2026')
+        ->assertSee('Kamis, 22 Oktober 2026')
         ->assertSee('Rp 100.000')
         ->assertDontSee('Rp 150.000');
 });
@@ -157,15 +157,15 @@ test('lets permitted staff see every donation and create for any teacher', funct
     $this->assertDatabaseHas('donasis', ['guru_id' => $newTeacher->id, 'jumlah_anak' => 5]);
 });
 
-test('rejects a second donation for the same teacher', function () {
+test('allows another donation for the same teacher', function () {
     $this->actingAs(donasiUser('ViewAny:Donasi', 'Create:Donasi'));
     $guru = donasiTeacher();
-    DonasiFactory::new()->create(['guru_id' => $guru->id]);
+    DonasiFactory::new()->create(['guru_id' => $guru->id, 'tanggal' => '2026-09-22']);
 
     Livewire::test(CreateDonasi::class)
-        ->fillForm(['guru_id' => $guru->id, 'jumlah_anak' => 1])
+        ->fillForm(['guru_id' => $guru->id, 'tanggal' => '2026-10-22', 'jumlah_anak' => 1])
         ->call('create')
-        ->assertHasFormErrors(['guru_id']);
+        ->assertHasNoFormErrors();
 
-    $this->assertDatabaseCount('donasis', 1);
+    $this->assertDatabaseCount('donasis', 2);
 });
