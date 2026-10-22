@@ -2,14 +2,16 @@
 
 namespace App\Filament\Resources\Gurus\Schemas;
 
-use Filament\Forms\Components\Select;
-use Filament\Forms\Components\TextInput;
+use Filament\Facades\Filament;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\FileUpload;
+use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
+use Filament\Forms\Components\TextInput;
+use Filament\Resources\Pages\EditRecord;
 use Filament\Schemas\Components\Section;
-use Illuminate\Support\Facades\Storage;
 use Filament\Schemas\Schema;
+use Illuminate\Support\Facades\Storage;
 
 class GuruForm
 {
@@ -21,7 +23,7 @@ class GuruForm
                     ->label('Foto Guru')
                     ->image()
                     ->disk('r2')
-                   ->deleteUploadedFileUsing(function ($file) {
+                    ->deleteUploadedFileUsing(function ($file) {
                         // Perintah untuk menghapus file fisik dari Cloudflare R2 secara permanen
                         Storage::disk('r2')->delete($file);
                     })
@@ -33,19 +35,20 @@ class GuruForm
                     ->label('Nama')
                     ->relationship('user', 'name', function ($query, $livewire) {
                         $query->whereDoesntHave('roles', fn ($q) => $q->whereIn('name', ['super_admin', 'admin']))
-
-                        ->when($livewire instanceof \Filament\Resources\Pages\EditRecord, function ($q) use ($livewire) {
-                            $q->where(function ($subQ) use ($livewire) {
-                                $subQ->whereDoesntHave('guru')
-                                     ->orWhere('id', $livewire->record->user_id);
+                            ->when($livewire instanceof EditRecord, function ($q) use ($livewire) {
+                                $q->where(function ($subQ) use ($livewire) {
+                                    $subQ->whereDoesntHave('guru')
+                                        ->orWhere('id', $livewire->record->user_id);
+                                });
+                            }, function ($q) {
+                                $q->whereDoesntHave('guru');
                             });
-                        }, function ($q) {
-                            $q->whereDoesntHave('guru');
-                        });
                     })
                     ->required()
                     ->searchable()
-                    ->preload(),
+                    ->preload()
+                    ->disabled(fn (): bool => ! self::canManageAccount())
+                    ->dehydrated(fn (): bool => self::canManageAccount()),
 
                 Select::make('agama')
                     ->label('Agama')
@@ -73,7 +76,7 @@ class GuruForm
                     ->minValue(0)
                     ->maxValue(10)
                     ->extraInputAttributes([
-                        'oninput' => "if(this.value > 10) this.value = 10; if(this.value < 0) this.value = 0;"
+                        'oninput' => 'if(this.value > 10) this.value = 10; if(this.value < 0) this.value = 0;',
                     ])
                     ->suffix('KM'),
 
@@ -87,7 +90,8 @@ class GuruForm
                     ->multiple()
                     ->searchable()
                     ->preload()
-                    ->required(),
+                    ->disabled(fn (): bool => ! self::canManageAccount())
+                    ->dehydrated(fn (): bool => self::canManageAccount()),
                 Select::make('jenis_kelamin')
                     ->label('Jenis Kelamin')
                     ->options([
@@ -95,42 +99,47 @@ class GuruForm
                         'perempuan' => 'perempuan',
                     ])
                     ->required(),
-            Section::make('Dokumen')
-                ->schema([
-                    FileUpload::make('ijazah')
-                        ->label('Ijazah')
-                        ->disk('r2')
-                        ->deleteUploadedFileUsing(function ($file) {
-                            Storage::disk('r2')->delete($file);
-                        })
-                        ->maxSize(2048)
-                        ->helperText('Format: PDF / Gambar, maksimal 2MB')
-                        ->acceptedFileTypes(['application/pdf', 'image/jpeg', 'image/png'])
-                        ->directory('guru-dokumen/ijazah'),
+                Section::make('Dokumen')
+                    ->schema([
+                        FileUpload::make('ijazah')
+                            ->label('Ijazah')
+                            ->disk('r2')
+                            ->deleteUploadedFileUsing(function ($file) {
+                                Storage::disk('r2')->delete($file);
+                            })
+                            ->maxSize(2048)
+                            ->helperText('Format: PDF / Gambar, maksimal 2MB')
+                            ->acceptedFileTypes(['application/pdf', 'image/jpeg', 'image/png'])
+                            ->directory('guru-dokumen/ijazah'),
 
-                    FileUpload::make('ktp')
-                        ->label('Kartu Tanda Penduduk (KTP)')
-                        ->disk('r2')
-                        ->deleteUploadedFileUsing(function ($file) {
-                            Storage::disk('r2')->delete($file);
-                        })
-                        ->maxSize(2048)
-                        ->helperText('Format: PDF / Gambar, maksimal 2MB')
-                        ->acceptedFileTypes(['application/pdf', 'image/jpeg', 'image/png'])
-                        ->directory('guru-dokumen/ktp'),
+                        FileUpload::make('ktp')
+                            ->label('Kartu Tanda Penduduk (KTP)')
+                            ->disk('r2')
+                            ->deleteUploadedFileUsing(function ($file) {
+                                Storage::disk('r2')->delete($file);
+                            })
+                            ->maxSize(2048)
+                            ->helperText('Format: PDF / Gambar, maksimal 2MB')
+                            ->acceptedFileTypes(['application/pdf', 'image/jpeg', 'image/png'])
+                            ->directory('guru-dokumen/ktp'),
 
-                    FileUpload::make('kk')
-                        ->label('Kartu Keluarga (KK)')
-                        ->disk('r2')
-                        ->deleteUploadedFileUsing(function ($file) {
-                            Storage::disk('r2')->delete($file);
-                        })
-                        ->maxSize(2048)
-                        ->helperText('Format: PDF / Gambar, maksimal 2MB')
-                        ->acceptedFileTypes(['application/pdf', 'image/jpeg', 'image/png'])
-                        ->directory('guru-dokumen/kk'),
-                ])->columns(3),
+                        FileUpload::make('kk')
+                            ->label('Kartu Keluarga (KK)')
+                            ->disk('r2')
+                            ->deleteUploadedFileUsing(function ($file) {
+                                Storage::disk('r2')->delete($file);
+                            })
+                            ->maxSize(2048)
+                            ->helperText('Format: PDF / Gambar, maksimal 2MB')
+                            ->acceptedFileTypes(['application/pdf', 'image/jpeg', 'image/png'])
+                            ->directory('guru-dokumen/kk'),
+                    ])->columns(3),
             ])
             ->columns(1);
+    }
+
+    private static function canManageAccount(): bool
+    {
+        return Filament::auth()->user()?->can('Update:Guru') ?? false;
     }
 }

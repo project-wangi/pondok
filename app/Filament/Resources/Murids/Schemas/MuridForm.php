@@ -2,14 +2,15 @@
 
 namespace App\Filament\Resources\Murids\Schemas;
 
+use App\Models\Murid;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Schemas\Components\Section;
-use Illuminate\Support\Facades\Storage;
 use Filament\Schemas\Schema;
+use Illuminate\Support\Facades\Storage;
 
 class MuridForm
 {
@@ -117,6 +118,10 @@ class MuridForm
                 Section::make('Data Orang Tua / Wali')
                     ->schema([
                         TextInput::make('nama_ayah')->label('Nama Ayah'),
+                        Select::make('status_ayah')
+                            ->label('Status Ayah')
+                            ->options(Murid::STATUS_ORANG_TUA)
+                            ->default('Hidup'),
                         TextInput::make('nik_ayah')->label('NIK Ayah'),
                         TextInput::make('pekerjaan_ayah')->label('Pekerjaan Ayah'),
                         TextInput::make('penghasilan_ayah')->label('Penghasilan Ayah'),
@@ -124,6 +129,10 @@ class MuridForm
                             ->type('number')
                             ->label('No. HP Ayah'),
                         TextInput::make('nama_ibu')->label('Nama Ibu'),
+                        Select::make('status_ibu')
+                            ->label('Status Ibu')
+                            ->options(Murid::STATUS_ORANG_TUA)
+                            ->default('Hidup'),
                         TextInput::make('nik_ibu')->label('NIK Ibu'),
                         TextInput::make('pekerjaan_ibu')->label('Pekerjaan Ibu'),
                         TextInput::make('penghasilan_ibu')->label('Penghasilan Ibu'),

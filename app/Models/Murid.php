@@ -7,6 +7,12 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class Murid extends Model
 {
+    /** @var array<string, string> */
+    public const STATUS_ORANG_TUA = [
+        'Hidup' => 'Hidup',
+        'Meninggal' => 'Meninggal',
+    ];
+
     protected $fillable = [
         'kelas_id',
         'foto',
@@ -22,9 +28,11 @@ class Murid extends Model
         'agama',
         'alamat',
         'nama_ayah',
+        'status_ayah',
         'nik_ayah',
         'pekerjaan_ayah',
         'nama_ibu',
+        'status_ibu',
         'nik_ibu',
         'pekerjaan_ibu',
         'penghasilan_ayah',

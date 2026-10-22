@@ -9,10 +9,12 @@ use App\Filament\Resources\Gurus\Schemas\GuruForm;
 use App\Filament\Resources\Gurus\Tables\GurusTable;
 use App\Models\Guru;
 use BackedEnum;
+use Filament\Facades\Filament;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
 
 class GuruResource extends Resource
 {
@@ -26,11 +28,23 @@ class GuruResource extends Resource
 
     protected static ?string $navigationLabel = 'Guru';
 
-    protected static string | \UnitEnum | null $navigationGroup = 'Manajemen Sekolah';
+    protected static string|\UnitEnum|null $navigationGroup = 'Manajemen Sekolah';
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedAcademicCap;
 
     protected static ?string $recordTitleAttribute = 'user.name';
+
+    public static function getEloquentQuery(): Builder
+    {
+        $query = parent::getEloquentQuery();
+        $user = Filament::auth()->user();
+
+        if ($user === null || $user->can('ViewAny:Guru')) {
+            return $query;
+        }
+
+        return $query->whereKey($user->guru()->value('id') ?? 0);
+    }
 
     public static function form(Schema $schema): Schema
     {

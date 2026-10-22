@@ -28,10 +28,11 @@ class GurusTable
                     ->label('Jabatan')
                     ->badge()
                     ->separator(',')
+                    ->default('-')
                     ->searchable(),
                 TextColumn::make('jarak_rumah')
                     ->label('Jarak Rumah')
-                    ->formatStateUsing(fn ($state) => round($state) . ' KM')
+                    ->formatStateUsing(fn ($state) => round($state).' KM')
                     ->sortable(),
                 TextColumn::make('agama')
                     ->label('Agama')
