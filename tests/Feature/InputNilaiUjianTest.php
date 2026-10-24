@@ -50,8 +50,8 @@ function nilaiUjianOverviewSchedule(Guru $teacher, MataPelajaran $subject, int $
     ]);
 }
 
-test('shows the menu in the Pembelajaran group', function () {
-    expect(InputNilaiUjian::getNavigationGroup())->toBe('Pembelajaran')
+test('shows the menu in the Rapor group', function () {
+    expect(InputNilaiUjian::getNavigationGroup())->toBe('Rapor')
         ->and(InputNilaiUjian::getNavigationLabel())->toBe('Nilai Ujian')
         ->and(InputNilaiUjian::getSlug())->toBe('nilai-ujian');
 });

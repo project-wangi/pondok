@@ -52,8 +52,8 @@ function raporOverviewSchedule(Guru $teacher, MataPelajaran $subject, int $class
     ]);
 }
 
-test('shows the menu in the Pembelajaran group', function () {
-    expect(InputERapor::getNavigationGroup())->toBe('Pembelajaran')
+test('shows the menu in the Rapor group', function () {
+    expect(InputERapor::getNavigationGroup())->toBe('Rapor')
         ->and(InputERapor::getNavigationLabel())->toBe('e-Rapor')
         ->and(InputERapor::getSlug())->toBe('e-rapor');
 });

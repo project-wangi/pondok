@@ -948,6 +948,266 @@
     color: #86efac;
 }
 
+.rekap-page .rekap-kelas-bar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.75rem 1rem;
+    padding: 0.75rem 1rem;
+    border: 1px solid var(--pondok-border);
+    border-radius: 0.5rem;
+    background-color: var(--pondok-navigation);
+}
+
+.rekap-page .rekap-kelas-title {
+    font-weight: 700;
+    color: var(--presensi-text);
+}
+
+.rekap-page .rekap-kelas-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.rekap-page .rekap-kelas-button {
+    min-width: 3.5rem;
+    min-height: 2.75rem;
+    padding: 0.25rem 0.75rem;
+    border: 1px solid var(--pondok-border);
+    border-radius: 0.375rem;
+    background-color: var(--presensi-surface);
+    color: var(--presensi-text);
+    font: inherit;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.rekap-page .rekap-kelas-button.is-active {
+    border-color: var(--pondok-accent);
+    background-color: var(--pondok-accent);
+    color: #ffffff;
+}
+
+.rekap-page .rekap-kelas-button:focus-visible {
+    outline: 2px solid var(--pondok-accent);
+    outline-offset: 2px;
+}
+
+.rekap-page .rekap-kelas-button:disabled {
+    cursor: progress;
+    opacity: 0.8;
+}
+
+.rekap-page .rekap-identity {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 1rem 2rem;
+}
+
+.rekap-page .rekap-identity-left,
+.rekap-page .rekap-identity-right {
+    display: grid;
+    gap: 0.25rem;
+}
+
+.rekap-page .rekap-identity-right {
+    text-align: right;
+}
+
+.rekap-page .rekap-identity p {
+    margin: 0;
+    color: var(--presensi-text);
+}
+
+.rekap-page .rekap-identity-label {
+    font-weight: 600;
+    color: var(--presensi-muted);
+}
+
+.rekap-page .rekap-matrix {
+    table-layout: fixed;
+    width: max-content;
+    min-width: 100%;
+}
+
+.rekap-page .rekap-matrix .rekap-group {
+    text-align: center;
+}
+
+.rekap-page .rekap-matrix thead th.rekap-vertical {
+    writing-mode: vertical-rl;
+    transform: rotate(180deg);
+    white-space: nowrap;
+}
+
+.rekap-page .rekap-matrix .rekap-col-no {
+    width: 3.5rem;
+    min-width: 3.5rem;
+}
+
+.rekap-page .rekap-matrix .rekap-col-nis {
+    width: 7rem;
+    min-width: 7rem;
+}
+
+.rekap-page .rekap-matrix .rekap-col-nama {
+    width: 14rem;
+    min-width: 14rem;
+}
+
+.rekap-page .rekap-matrix .rekap-col-lp {
+    width: 3.5rem;
+    min-width: 3.5rem;
+}
+
+.rekap-page .rekap-matrix .rekap-name {
+    text-align: left;
+    white-space: normal;
+    overflow-wrap: anywhere;
+    font-weight: 600;
+}
+
+.rekap-page .rekap-matrix thead th.rekap-pertemuan {
+    width: 4.5rem;
+    min-width: 4.5rem;
+    padding: 0.3rem;
+    vertical-align: top;
+}
+
+.rekap-page .rekap-matrix .rekap-col-session {
+    width: 4.5rem;
+}
+
+.rekap-page .rekap-matrix .rekap-col-count {
+    width: 3.25rem;
+}
+
+.rekap-page .rekap-matrix .rekap-col-percent {
+    width: 6rem;
+}
+
+.rekap-page .rekap-session-number {
+    display: block;
+    text-align: center;
+    font-variant-numeric: tabular-nums;
+}
+
+.rekap-page .rekap-session-date {
+    display: inline-block;
+    writing-mode: vertical-rl;
+    transform: rotate(180deg);
+    white-space: nowrap;
+    font-size: 0.75rem;
+    font-weight: 400;
+}
+
+.rekap-page .rekap-matrix .rekap-count {
+    width: 3.25rem;
+    min-width: 3.25rem;
+    text-align: center;
+    font-variant-numeric: tabular-nums;
+}
+
+.rekap-page .rekap-matrix .rekap-percent {
+    width: 6rem;
+    min-width: 6rem;
+    text-align: center;
+    white-space: normal;
+}
+
+.rekap-page .rekap-matrix .rekap-percent-cell {
+    text-align: center;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+}
+
+.rekap-page .rekap-matrix .rekap-cell {
+    width: 4.5rem;
+    text-align: center;
+    font-weight: 700;
+}
+
+.rekap-page .rekap-matrix tbody td.rekap-status-h {
+    background-color: #bbf7d0;
+    color: #14532d;
+}
+
+.rekap-page .rekap-matrix tbody td.rekap-status-s,
+.rekap-page .rekap-matrix tbody td.rekap-status-i {
+    background-color: #fef08a;
+    color: #713f12;
+}
+
+.rekap-page .rekap-matrix tbody td.rekap-status-a {
+    background-color: #fecaca;
+    color: #7f1d1d;
+}
+
+.rekap-page .rekap-matrix thead th.rekap-head {
+    color: #172554;
+    font-weight: 700;
+}
+
+.rekap-page .rekap-matrix thead th.rekap-head-s,
+.rekap-page .rekap-matrix thead th.rekap-head-i {
+    background-color: #fde047;
+}
+
+.rekap-page .rekap-matrix thead th.rekap-head-a {
+    background-color: #f87171;
+}
+
+.rekap-page .rekap-matrix thead th.rekap-head-h {
+    background-color: #4ade80;
+}
+
+.rekap-page .rekap-matrix .rekap-sticky {
+    position: sticky;
+    z-index: 1;
+}
+
+.rekap-page .rekap-matrix thead th.rekap-sticky {
+    z-index: 3;
+    background-color: var(--presensi-heading);
+}
+
+.rekap-page .rekap-matrix .rekap-col-no.rekap-sticky {
+    left: 0;
+}
+
+.rekap-page .rekap-matrix .rekap-col-nis.rekap-sticky {
+    left: 3.5rem;
+}
+
+.rekap-page .rekap-matrix .rekap-col-nama.rekap-sticky {
+    left: 10.5rem;
+}
+
+.rekap-page .rekap-matrix .rekap-col-lp.rekap-sticky {
+    left: 24.5rem;
+    box-shadow: 1px 0 0 var(--pondok-border);
+}
+
+.rekap-page .rekap-matrix tbody td.rekap-sticky {
+    background-color: var(--presensi-surface);
+}
+
+.rekap-page .rekap-matrix tbody tr:nth-child(even) td.rekap-sticky {
+    background-color: var(--presensi-stripe);
+}
+
+.rekap-page .rekap-matrix tbody tr:hover td.rekap-sticky {
+    background-color: var(--pondok-navigation);
+}
+
+@media (max-width: 48rem) {
+    .rekap-page .rekap-identity-right {
+        text-align: left;
+    }
+}
+
 .sikap-page .sikap-back {
     display: flex;
 }
