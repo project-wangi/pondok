@@ -18,6 +18,7 @@ class KelasTable
                     ->rowIndex()
                     ->sortable(),
                 TextColumn::make('nama_kelas')
+                    ->sortable()
                     ->searchable(),
                 TextColumn::make('murid_count')
                     ->getStateUsing(fn ($record) => $record->murids()->count())
