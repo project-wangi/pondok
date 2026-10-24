@@ -15,7 +15,7 @@ class AbsenRapatResource extends Resource
 {
     protected static ?string $model = AbsenRapat::class;
 
-    protected static string|\UnitEnum|null $navigationGroup = 'Absensi';
+    protected static string|\UnitEnum|null $navigationGroup = 'Laporan Kehadiran';
 
     protected static ?string $navigationLabel = 'Rekap Absensi Rapat';
 

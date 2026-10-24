@@ -38,7 +38,7 @@ class RekapAbsensi extends Page
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedTableCells;
 
-    protected static string|UnitEnum|null $navigationGroup = 'Absensi';
+    protected static string|UnitEnum|null $navigationGroup = 'Laporan Kehadiran';
 
     protected static ?string $navigationLabel = 'Rekap Absensi';
 
