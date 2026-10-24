@@ -772,6 +772,182 @@
     outline-offset: 2px;
 }
 
+.rapor-list-page .materi-overview-table {
+    min-width: 70rem;
+}
+
+.rapor-list-page .materi-overview-table .rapor-class-col {
+    width: 14%;
+}
+
+.rapor-list-page .materi-overview-table .rapor-subject-col {
+    width: 22%;
+}
+
+.rapor-list-page .materi-overview-table .rapor-student-col,
+.rapor-list-page .materi-overview-table .rapor-uh-col {
+    width: 8rem;
+}
+
+.rapor-list-page .materi-overview-table .rapor-filled-col {
+    width: 11rem;
+}
+
+.rapor-list-page .materi-overview-table .rapor-status-col {
+    width: 9rem;
+}
+
+.rapor-list-page .materi-overview-table .rapor-actions-col {
+    width: 10rem;
+    text-align: center;
+}
+
+.rapor-list-page .materi-overview-table .rapor-actions-col .fi-btn {
+    white-space: nowrap;
+}
+
+.rapor-page .rapor-bobot {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(9.5rem, 1fr));
+    gap: 0.75rem 1rem;
+}
+
+.rapor-page .rapor-bobot-item {
+    display: grid;
+    gap: 0.25rem;
+    min-width: 0;
+}
+
+.rapor-page .rapor-bobot-label {
+    font-size: 0.8125rem;
+    color: var(--presensi-muted);
+}
+
+.rapor-page .rapor-input {
+    width: 100%;
+    min-width: 0;
+    min-height: 2.75rem;
+    padding: 0.5rem 0.75rem;
+    border: 1px solid var(--pondok-border);
+    border-radius: 0.5rem;
+    background-color: #ffffff;
+    color: var(--presensi-text);
+    font: inherit;
+    text-align: center;
+    appearance: textfield;
+}
+
+.rapor-page .rapor-input::-webkit-inner-spin-button,
+.rapor-page .rapor-input::-webkit-outer-spin-button {
+    margin: 0;
+    appearance: none;
+}
+
+.fi.dark .rapor-page .rapor-input {
+    background-color: var(--gray-900, #111827);
+    color: var(--gray-100, #f3f4f6);
+}
+
+.rapor-page .rapor-input:focus-visible {
+    outline: 2px solid var(--pondok-accent);
+    outline-offset: 2px;
+}
+
+.rapor-page .rapor-bobot-summary {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-block-start: 1rem;
+    padding-block-start: 0.75rem;
+    border-block-start: 1px solid var(--pondok-border);
+    font-weight: 600;
+}
+
+.rapor-page .rapor-total-invalid {
+    color: var(--presensi-error);
+}
+
+.rapor-page .rapor-matrix {
+    min-width: 98rem;
+}
+
+.rapor-page .asesmen-matrix.rapor-matrix thead tr:nth-child(2) th,
+.rapor-page .asesmen-matrix.rapor-matrix thead tr:last-child th {
+    background-color: var(--primary-600, #2563eb);
+}
+
+.rapor-page .rapor-matrix thead th.rapor-wrap {
+    min-width: 7rem;
+    white-space: normal;
+    overflow-wrap: anywhere;
+}
+
+.rapor-page .rapor-matrix thead th.rapor-vertical {
+    writing-mode: vertical-rl;
+    transform: rotate(180deg);
+    white-space: nowrap;
+    overflow-wrap: normal;
+}
+
+.rapor-page .rapor-matrix thead th.rapor-akhir-col,
+.rapor-page .rapor-matrix thead th.rapor-ket-col,
+.rapor-page .rapor-matrix thead th.rapor-rank-col {
+    white-space: nowrap;
+}
+
+.rapor-page .rapor-matrix .rapor-group {
+    text-align: center;
+}
+
+.rapor-page .rapor-matrix .rapor-nis {
+    min-width: 7rem;
+    font-variant-numeric: tabular-nums;
+}
+
+.rapor-page .rapor-matrix .rapor-gender {
+    width: 3.5rem;
+}
+
+.rapor-page .rapor-matrix .rapor-uh-col {
+    min-width: 4.25rem;
+}
+
+.rapor-page .rapor-matrix .rapor-value {
+    font-variant-numeric: tabular-nums;
+}
+
+.rapor-page .rapor-matrix .rapor-akhir-col {
+    min-width: 6rem;
+    white-space: normal;
+}
+
+.rapor-page .rapor-matrix .rapor-ket-col {
+    min-width: 5.5rem;
+}
+
+.rapor-page .rapor-matrix .rapor-rank-col {
+    min-width: 5rem;
+}
+
+.rapor-page .rapor-matrix .rapor-akhir {
+    font-weight: 700;
+}
+
+.rapor-page .rapor-matrix .rapor-tuntas {
+    color: #15803d;
+    font-weight: 600;
+}
+
+.rapor-page .rapor-matrix .rapor-belum {
+    color: var(--presensi-error);
+    font-weight: 600;
+}
+
+.fi.dark .rapor-page .rapor-matrix .rapor-tuntas {
+    color: #86efac;
+}
+
 .sikap-page .sikap-back {
     display: flex;
 }
