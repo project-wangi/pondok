@@ -1202,6 +1202,95 @@
     background-color: var(--pondok-navigation);
 }
 
+.rekap-page .rekap-matrix .piket-col-pulang {
+    width: 6rem;
+    min-width: 6rem;
+    text-align: center;
+    font-variant-numeric: tabular-nums;
+}
+
+.rekap-page .rekap-matrix .piket-cell {
+    width: 4.5rem;
+    padding: 0.25rem;
+    text-align: center;
+    vertical-align: middle;
+}
+
+.rekap-page .piket-stack {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.125rem;
+}
+
+.rekap-page .piket-code {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 1.3rem;
+    min-height: 1.3rem;
+    padding: 0 0.25rem;
+    border-radius: 0.25rem;
+    font-size: 0.75rem;
+    font-weight: 700;
+    line-height: 1;
+}
+
+.rekap-page .piket-h {
+    background-color: #bbf7d0;
+    color: #14532d;
+}
+
+.rekap-page .piket-t {
+    background-color: #fde68a;
+    color: #713f12;
+}
+
+.rekap-page .piket-i {
+    background-color: #bfdbfe;
+    color: #1e3a8a;
+}
+
+.rekap-page .piket-s {
+    background-color: #c7d2fe;
+    color: #312e81;
+}
+
+.rekap-page .piket-a {
+    background-color: #fecaca;
+    color: #7f1d1d;
+}
+
+.rekap-page .piket-p {
+    background-color: #e2e8f0;
+    color: #334155;
+}
+
+.rekap-page .rekap-matrix thead tr:last-child th.piket-head {
+    color: #172554;
+    font-weight: 700;
+}
+
+.rekap-page .rekap-matrix thead tr:last-child th.piket-head-h {
+    background-color: #4ade80;
+}
+
+.rekap-page .rekap-matrix thead tr:last-child th.piket-head-t {
+    background-color: #fbbf24;
+}
+
+.rekap-page .rekap-matrix thead tr:last-child th.piket-head-i {
+    background-color: #93c5fd;
+}
+
+.rekap-page .rekap-matrix thead tr:last-child th.piket-head-s {
+    background-color: #c7d2fe;
+}
+
+.rekap-page .rekap-matrix thead tr:last-child th.piket-head-a {
+    background-color: #f87171;
+}
+
 @media (max-width: 48rem) {
     .rekap-page .rekap-identity-right {
         text-align: left;
