@@ -450,7 +450,8 @@ test('an admin can create the singleton settings with shortcuts and stats', func
     ]);
     $settings = SiteSetting::query()->findOrFail(1);
     expect($settings->shortcuts)->toBe($data['shortcuts']);
-    expect($settings->stats)->toBe($data['stats']);
+    expect($settings->stats)->toHaveCount(1)
+        ->and($settings->stats[0])->toMatchArray($data['stats'][0]);
 });
 
 test('an admin can edit the singleton without creating a second settings row', function () {
@@ -555,6 +556,153 @@ test('the settings form rejects icons outside the shortcut allowlist', function 
 
     Livewire::test(CreateSiteSetting::class)->fillForm($data)->call('create')
         ->assertHasFormErrors(['shortcuts.0.icon' => 'in']);
+
+    $this->assertDatabaseCount('site_settings', 0);
+});
+
+test('the homepage renders programs rankings excellence and partner sections from saved data', function () {
+    SiteSetting::factory()->create([
+        'school_name' => 'Pondok Ilmu',
+        'programs' => [
+            [
+                'title' => 'Program Tahfizh',
+                'description' => 'Program hafalan Al-Qur\'an.',
+                'target' => 'Target 5 juz',
+                'button_label' => 'Info Tahfizh',
+                'url' => 'https://example.com/tahfizh',
+                'icon' => 'heroicon-o-book-open',
+            ],
+        ],
+        'rankings' => [
+            [
+                'title' => 'Peringkat Akreditasi',
+                'value' => 'Peringkat A',
+                'description' => 'Hasil akreditasi resmi.',
+                'icon' => 'heroicon-o-trophy',
+            ],
+        ],
+        'excellence_features' => [
+            [
+                'title' => 'Pembiasaan Bahasa',
+                'description' => 'Latihan bahasa setiap hari.',
+                'icon' => 'heroicon-o-language',
+            ],
+        ],
+        'partners' => [
+            ['name' => 'Mitra Contoh', 'logo' => 'website/partners/mitra.png'],
+        ],
+    ]);
+
+    $this->get(route('home'))->assertOk()
+        ->assertSee('Program pendidikan kami')
+        ->assertSee('Program Tahfizh')
+        ->assertSee('Program hafalan Al-Qur&#039;an.', false)
+        ->assertSee('Target 5 juz')
+        ->assertSee('Info Tahfizh')
+        ->assertSee('https://example.com/tahfizh')
+        ->assertSee('Peringkat Akreditasi')
+        ->assertSee('Peringkat A')
+        ->assertSee('Hasil akreditasi resmi.')
+        ->assertSee('Pembiasaan Bahasa')
+        ->assertSee('Latihan bahasa setiap hari.')
+        ->assertSee('Mitra Contoh')
+        ->assertSee('/storage/website/partners/mitra.png', false)
+        ->assertDontSee('Semua informasi sekolah dalam satu tempat');
+});
+
+test('the homepage hides the optional content sections when they have no entries', function () {
+    SiteSetting::factory()->create([
+        'programs' => [],
+        'rankings' => [],
+        'excellence_features' => [],
+        'partners' => [],
+    ]);
+
+    $this->get(route('home'))->assertOk()
+        ->assertSee('Semua informasi sekolah dalam satu tempat')
+        ->assertDontSee('Peringkat &amp; Pencapaian', false)
+        ->assertDontSee('Keunggulan program')
+        ->assertDontSee('Mitra sekolah');
+});
+
+test('the homepage escapes editable program ranking and excellence text', function () {
+    SiteSetting::factory()->create([
+        'programs' => [
+            ['title' => '<script>alert(1)</script>', 'description' => '<img src=x onerror=alert(2)>'],
+        ],
+        'rankings' => [
+            ['title' => '<b>Ranking</b>', 'value' => '<i>1</i>', 'description' => '<u>Keterangan</u>'],
+        ],
+        'excellence_features' => [
+            ['title' => '<h1>Keunggulan</h1>', 'description' => '<iframe src="/"></iframe>'],
+        ],
+    ]);
+
+    $this->get(route('home'))->assertOk()
+        ->assertDontSee('<script>alert(1)</script>', false)
+        ->assertDontSee('<img src=x onerror=alert(2)>', false)
+        ->assertDontSee('<b>Ranking</b>', false)
+        ->assertDontSee('<h1>Keunggulan</h1>', false)
+        ->assertSee('&lt;script&gt;alert(1)&lt;/script&gt;', false)
+        ->assertSee('&lt;b&gt;Ranking&lt;/b&gt;', false);
+});
+
+test('the homepage omits unsafe program button links', function () {
+    SiteSetting::factory()->create([
+        'programs' => [
+            [
+                'title' => 'Program Tanpa Tautan Aman',
+                'description' => 'Keterangan program.',
+                'button_label' => 'Tombol Berbahaya',
+                'url' => 'javascript:alert(1)',
+            ],
+        ],
+    ]);
+
+    $this->get(route('home'))->assertOk()
+        ->assertSee('Program Tanpa Tautan Aman')
+        ->assertDontSee('Tombol Berbahaya')
+        ->assertDontSee('javascript:alert(1)', false);
+});
+
+test('the settings form limits the new content section counts', function (string $field, int $count, array $item) {
+    $this->actingAs(schoolWebsiteAdmin());
+
+    Livewire::test(CreateSiteSetting::class)->fillForm([
+        ...schoolWebsiteSettingsData(),
+        $field => array_fill(0, $count, $item),
+    ])->call('create')->assertHasFormErrors([$field => 'max']);
+
+    $this->assertDatabaseCount('site_settings', 0);
+})->with([
+    'seven programs' => ['programs', 7, ['title' => 'Program', 'description' => 'Keterangan']],
+    'nine rankings' => ['rankings', 9, ['title' => 'Peringkat', 'value' => '1', 'description' => 'Keterangan']],
+    'thirteen excellence features' => ['excellence_features', 13, ['title' => 'Keunggulan', 'description' => 'Keterangan']],
+    'thirteen partners' => ['partners', 13, ['name' => 'Mitra', 'logo' => ['website/partners/mitra.png']]],
+]);
+
+test('the settings form rejects content icons outside the allowlist', function (string $field, array $item) {
+    $this->actingAs(schoolWebsiteAdmin());
+
+    Livewire::test(CreateSiteSetting::class)->fillForm([
+        ...schoolWebsiteSettingsData(),
+        $field => [[...$item, 'icon' => 'heroicon-o-command-line']],
+    ])->call('create')->assertHasFormErrors([$field.'.0.icon' => 'in']);
+
+    $this->assertDatabaseCount('site_settings', 0);
+})->with([
+    'programs' => ['programs', ['title' => 'Program', 'description' => 'Keterangan']],
+    'rankings' => ['rankings', ['title' => 'Peringkat', 'value' => '1', 'description' => 'Keterangan']],
+    'excellence' => ['excellence_features', ['title' => 'Keunggulan', 'description' => 'Keterangan']],
+]);
+
+test('the settings form rejects unsafe program button URLs', function () {
+    $this->actingAs(schoolWebsiteAdmin());
+
+    Livewire::test(CreateSiteSetting::class)->fillForm([
+        ...schoolWebsiteSettingsData(),
+        'programs' => [['title' => 'Program', 'description' => 'Keterangan', 'url' => 'javascript:alert(1)']],
+    ])->call('create')->assertHasFormErrors(['programs.0.url']);
 
     $this->assertDatabaseCount('site_settings', 0);
 });

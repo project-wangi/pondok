@@ -43,8 +43,8 @@ function rapatRecapRecord(Guru $teacher, array $attributes = []): AbsenRapat
     ]);
 }
 
-test('shows the recap menu in the Absensi group as a read only resource', function () {
-    expect(AbsenRapatResource::getNavigationGroup())->toBe('Absensi')
+test('shows the recap menu in the Laporan Kehadiran group as a read only resource', function () {
+    expect(AbsenRapatResource::getNavigationGroup())->toBe('Laporan Kehadiran')
         ->and(AbsenRapatResource::getNavigationLabel())->toBe('Rekap Absensi Rapat')
         ->and(AbsenRapatResource::getSlug())->toBe('rekap-absensi-rapat')
         ->and(AbsenRapatResource::canCreate())->toBeFalse();

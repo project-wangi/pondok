@@ -90,8 +90,8 @@ function rekapSession(JadwalPelajaran $schedule, string $date, array $statuses):
     return $session;
 }
 
-test('shows the menu in the Absensi group', function () {
-    expect(RekapAbsensi::getNavigationGroup())->toBe('Absensi')
+test('shows the menu in the Laporan Kehadiran group', function () {
+    expect(RekapAbsensi::getNavigationGroup())->toBe('Laporan Kehadiran')
         ->and(RekapAbsensi::getNavigationLabel())->toBe('Rekap Absensi')
         ->and(RekapAbsensi::getSlug())->toBe('rekap-absensi')
         ->and(RekapAbsensi::shouldRegisterNavigation())->toBeTrue();

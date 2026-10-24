@@ -93,8 +93,8 @@ function peminatanRecapStudent(string $name, JenisPeminatan $peminatan, int $cla
     return $student;
 }
 
-test('shows the menu in the Absensi group', function () {
-    expect(RekapAbsensiPeminatan::getNavigationGroup())->toBe('Absensi')
+test('shows the menu in the Laporan Kehadiran group', function () {
+    expect(RekapAbsensiPeminatan::getNavigationGroup())->toBe('Laporan Kehadiran')
         ->and(RekapAbsensiPeminatan::getNavigationLabel())->toBe('Rekap Absensi Peminatan')
         ->and(RekapAbsensiPeminatan::getSlug())->toBe('rekap-absensi-peminatan')
         ->and(RekapAbsensiPeminatan::shouldRegisterNavigation())->toBeTrue();

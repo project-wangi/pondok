@@ -69,8 +69,8 @@ function piketRecapSession(Kelas $class, string $date, array $records): AbsenPik
     return $session;
 }
 
-test('shows the menu in the Absensi group', function () {
-    expect(RekapAbsensiPiket::getNavigationGroup())->toBe('Absensi')
+test('shows the menu in the Laporan Kehadiran group', function () {
+    expect(RekapAbsensiPiket::getNavigationGroup())->toBe('Laporan Kehadiran')
         ->and(RekapAbsensiPiket::getNavigationLabel())->toBe('Rekap Absensi Piket')
         ->and(RekapAbsensiPiket::getSlug())->toBe('rekap-absensi-piket')
         ->and(RekapAbsensiPiket::shouldRegisterNavigation())->toBeTrue();

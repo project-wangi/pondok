@@ -23,12 +23,32 @@ class SiteSetting extends Model
         'heroicon-o-information-circle' => 'Informasi',
     ];
 
+    public const CONTENT_ICONS = [
+        'heroicon-o-star' => 'Unggulan',
+        'heroicon-o-academic-cap' => 'Pendidikan',
+        'heroicon-o-book-open' => 'Pembelajaran',
+        'heroicon-o-building-library' => 'Lembaga',
+        'heroicon-o-globe-alt' => 'Global',
+        'heroicon-o-language' => 'Bahasa',
+        'heroicon-o-light-bulb' => 'Riset & Inovasi',
+        'heroicon-o-rocket-launch' => 'Pengembangan',
+        'heroicon-o-shield-check' => 'Karakter',
+        'heroicon-o-sparkles' => 'Keunggulan',
+        'heroicon-o-trophy' => 'Prestasi',
+        'heroicon-o-user-group' => 'Komunitas',
+        'heroicon-o-map-pin' => 'Lokasi',
+        'heroicon-o-calendar-days' => 'Agenda',
+        'heroicon-o-megaphone' => 'Informasi',
+        'heroicon-o-information-circle' => 'Informasi Umum',
+    ];
+
     public $incrementing = false;
 
     protected $fillable = [
         'school_name', 'tagline', 'hero_title', 'hero_description', 'hero_image',
         'logo', 'about_title', 'about_body', 'address', 'email', 'phone',
         'registration_label', 'registration_url', 'shortcuts', 'stats',
+        'programs', 'rankings', 'excellence_features', 'partners',
     ];
 
     protected $attributes = [
@@ -48,6 +68,10 @@ class SiteSetting extends Model
         'registration_url' => null,
         'shortcuts' => '[]',
         'stats' => '[]',
+        'programs' => '[]',
+        'rankings' => '[]',
+        'excellence_features' => '[]',
+        'partners' => '[]',
     ];
 
     protected static function booted(): void
@@ -66,6 +90,10 @@ class SiteSetting extends Model
         return [
             'shortcuts' => 'array',
             'stats' => 'array',
+            'programs' => 'array',
+            'rankings' => 'array',
+            'excellence_features' => 'array',
+            'partners' => 'array',
         ];
     }
 
