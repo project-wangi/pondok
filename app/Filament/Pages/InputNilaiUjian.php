@@ -16,7 +16,7 @@ class InputNilaiUjian extends Page
 {
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedDocumentChartBar;
 
-    protected static string|UnitEnum|null $navigationGroup = 'Pembelajaran';
+    protected static string|UnitEnum|null $navigationGroup = 'Rapor';
 
     protected static ?string $navigationLabel = 'Nilai Ujian';
 

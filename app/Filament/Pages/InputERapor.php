@@ -17,7 +17,7 @@ class InputERapor extends Page
 {
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedDocumentText;
 
-    protected static string|UnitEnum|null $navigationGroup = 'Pembelajaran';
+    protected static string|UnitEnum|null $navigationGroup = 'Rapor';
 
     protected static ?string $navigationLabel = 'e-Rapor';
 
