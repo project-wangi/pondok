@@ -1057,6 +1057,10 @@
     min-width: 14rem;
 }
 
+.rekap-page .rekap-matrix .rekap-col-kelas {
+    width: 8rem;
+}
+
 .rekap-page .rekap-matrix .rekap-col-lp {
     width: 3.5rem;
     min-width: 3.5rem;
