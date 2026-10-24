@@ -16,7 +16,6 @@ class JadwalRapatsTable
             ->columns([
                 TextColumn::make('row_index')
                     ->label('No')
-                    ->sortable()
                     ->rowIndex(),
                 TextColumn::make('tanggal')
                     ->date('d-m-Y'),

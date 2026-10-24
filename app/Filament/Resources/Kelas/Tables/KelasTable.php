@@ -15,8 +15,7 @@ class KelasTable
             ->columns([
                 TextColumn::make('row_index')
                     ->label('No')
-                    ->rowIndex()
-                    ->sortable(),
+                    ->rowIndex(),
                 TextColumn::make('nama_kelas')
                     ->sortable()
                     ->searchable(),
