@@ -19,7 +19,11 @@ class JadwalPiketsTable
                 TextColumn::make('hari')
                     ->searchable(),
                 TextColumn::make('guru.nama')
-                    ->sortable(),
+                    ->searchable(query: function ($query, string $search) {
+                        return $query->orWhereHas('guru.user', function ($q) use ($search) {
+                            $q->where('name', 'like', "%{$search}%");
+                        });
+                    }),
                 TextColumn::make('created_at')
                     ->dateTime()
                     ->sortable()

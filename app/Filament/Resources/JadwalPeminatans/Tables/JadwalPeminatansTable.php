@@ -25,7 +25,12 @@ class JadwalPeminatansTable
                     ->formatStateUsing(fn (?string $state): string => filled($state) ? substr($state, 0, 5) : '-'),
 
                 TextColumn::make('guru.nama')
-                    ->label('Pembina'),
+                    ->label('Pembina')
+                    ->searchable(query: function ($query, string $search) {
+                        return $query->orWhereHas('guru.user', function ($q) use ($search) {
+                            $q->where('name', 'like', "%{$search}%");
+                        });
+                    }),
                 TextColumn::make('jenisPeminatan.nama_peminatan')
                     ->label('Jenis Peminatan'),
 

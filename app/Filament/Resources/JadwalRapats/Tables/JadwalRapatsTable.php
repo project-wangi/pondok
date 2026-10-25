@@ -29,7 +29,11 @@ class JadwalRapatsTable
                     ->sortable(),
                 TagsColumn::make('gurus.nama')
                     ->label('Guru')
-                    ->sortable(),
+                    ->searchable(query: function ($query, string $search) {
+                        return $query->orWhereHas('gurus.user', function ($q) use ($search) {
+                            $q->where('name', 'like', "%{$search}%");
+                        });
+                    }),
             ])
             ->filters([
                 //

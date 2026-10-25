@@ -40,7 +40,11 @@ class JadwalPelajaransTable
                     ->searchable(),
                 TextColumn::make('guru.nama')
                     ->label('Guru')
-                    ->searchable(),
+                    ->searchable(query: function ($query, string $search) {
+                        return $query->orWhereHas('guru.user', function ($q) use ($search) {
+                            $q->where('name', 'like', "%{$search}%");
+                        });
+                    }),
                 TextColumn::make('mataPelajaran.nama_mapel')
                     ->searchable(),
                 TextColumn::make('jam_mulai')
