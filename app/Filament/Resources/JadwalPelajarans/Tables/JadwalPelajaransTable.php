@@ -40,7 +40,7 @@ class JadwalPelajaransTable
                     ->searchable(),
                 TextColumn::make('guru.nama')
                     ->label('Guru')
-                    ->sortable(),
+                    ->searchable(),
                 TextColumn::make('mataPelajaran.nama_mapel')
                     ->searchable(),
                 TextColumn::make('jam_mulai')
