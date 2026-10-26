@@ -55,7 +55,7 @@ test('an admin can open the teaching recap page', function () {
     $this->get(route('filament.admin.pages.rekap-mengajar-guru'))->assertOk();
 });
 
-test('the teaching recap counts hours per teacher and class for the selected month', function () {
+test('the teaching recap counts JP per teacher and class for the selected month', function () {
     $this->actingAs(rekapMengajarAdmin());
 
     // Dibuat tidak berurutan untuk memastikan kolom tetap VII lalu VIII.
@@ -112,15 +112,15 @@ test('the teaching recap counts hours per teacher and class for the selected mon
 
     $rows = collect($rekap['rows'])->keyBy('guru_id');
 
-    expect($rows[$teacher->id]['cells'][$classSeven->id])->toBe(['scheduled' => true, 'hours' => 3.0])
-        ->and($rows[$teacher->id]['cells'][$classEight->id])->toBe(['scheduled' => true, 'hours' => 0.0])
-        ->and($rows[$teacher->id]['total'])->toBe(3.0)
-        ->and($rows[$otherTeacher->id]['cells'][$classSeven->id])->toBe(['scheduled' => false, 'hours' => 0.0])
-        ->and($rows[$otherTeacher->id]['cells'][$classEight->id])->toBe(['scheduled' => false, 'hours' => 0.0])
+    expect($rows[$teacher->id]['cells'][$classSeven->id])->toBe(['scheduled' => true, 'jp' => 4.5])
+        ->and($rows[$teacher->id]['cells'][$classEight->id])->toBe(['scheduled' => true, 'jp' => 0.0])
+        ->and($rows[$teacher->id]['total'])->toBe(4.5)
+        ->and($rows[$otherTeacher->id]['cells'][$classSeven->id])->toBe(['scheduled' => false, 'jp' => 0.0])
+        ->and($rows[$otherTeacher->id]['cells'][$classEight->id])->toBe(['scheduled' => false, 'jp' => 0.0])
         ->and($rows[$otherTeacher->id]['total'])->toBe(0.0)
-        ->and($rekap['totals']['kelas'][$classSeven->id])->toBe(3.0)
+        ->and($rekap['totals']['kelas'][$classSeven->id])->toBe(4.5)
         ->and($rekap['totals']['kelas'][$classEight->id])->toBe(0.0)
-        ->and($rekap['totals']['total'])->toBe(3.0);
+        ->and($rekap['totals']['total'])->toBe(4.5);
 
     $component->assertSee('Ust. Ahmad Fauzi')
         ->assertSee('Jumlah Kehadiran (JP)')
@@ -145,5 +145,5 @@ test('the teaching recap only uses schedules from the selected academic period',
     $rekap = $component->instance()->rekap();
     $row = collect($rekap['rows'])->firstWhere('guru_id', $teacher->id);
 
-    expect($row['cells'][$class->id])->toBe(['scheduled' => false, 'hours' => 0.0]);
+    expect($row['cells'][$class->id])->toBe(['scheduled' => false, 'jp' => 0.0]);
 });

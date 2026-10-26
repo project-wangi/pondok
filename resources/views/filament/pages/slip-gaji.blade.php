@@ -48,8 +48,8 @@
                     <dd>{{ $angka($rincian['jarak_rumah']) }} km</dd>
                 </div>
                 <div>
-                    <dt>Jam mengajar</dt>
-                    <dd>{{ $angka($rincian['jam']) }} jam</dd>
+                    <dt>JP mengajar</dt>
+                    <dd>{{ $angka($rincian['jp']) }} JP</dd>
                 </div>
                 <div>
                     <dt>Hari hadir</dt>

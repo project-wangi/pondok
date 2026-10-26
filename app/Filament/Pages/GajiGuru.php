@@ -16,7 +16,9 @@ use UnitEnum;
 
 class GajiGuru extends Page
 {
-    public const HONOR_PER_JAM = 10000;
+    public const HONOR_PER_JP = 10000;
+
+    public const MENIT_PER_JP = 40;
 
     public const TRANSPORT_PER_KM_PER_KEHADIRAN = 1000;
 
@@ -181,11 +183,11 @@ class GajiGuru extends Page
 
         foreach ($teachers as $guru) {
             $minutes = (int) ($teachingMinutes[$guru->id] ?? 0);
-            $hours = $minutes / 60;
+            $jp = $minutes / self::MENIT_PER_JP;
             $attendanceDays = (int) ($attendanceCounts[$guru->id] ?? 0);
             $distance = (float) ($guru->jarak_rumah ?? 0);
 
-            $mengajar = (int) round($hours * self::HONOR_PER_JAM);
+            $mengajar = (int) round($jp * self::HONOR_PER_JP);
             $transport = (int) round($distance * self::TRANSPORT_PER_KM_PER_KEHADIRAN * $attendanceDays);
             $jabatan = (int) ($positionTotals[$guru->id] ?? 0);
             $rapat = (int) ($meetingCounts[$guru->id] ?? 0) * self::HONOR_RAPAT;
@@ -196,7 +198,7 @@ class GajiGuru extends Page
             $rows[] = [
                 'guru_id' => $guru->id,
                 'nama' => $guru->user?->name ?? '-',
-                'jam' => round($hours, 2),
+                'jp' => round($jp, 2),
                 'hari_hadir' => $attendanceDays,
                 'mengajar' => $mengajar,
                 'transport' => $transport,
@@ -253,7 +255,7 @@ class GajiGuru extends Page
             }
         }
 
-        $hours = $minutes / 60;
+        $jp = $minutes / self::MENIT_PER_JP;
         $dayCount = count($attendanceDays);
         $distance = (float) ($guru->jarak_rumah ?? 0);
 
@@ -295,7 +297,7 @@ class GajiGuru extends Page
             ->values()
             ->all();
 
-        $mengajar = (int) round($hours * self::HONOR_PER_JAM);
+        $mengajar = (int) round($jp * self::HONOR_PER_JP);
         $transport = (int) round($distance * self::TRANSPORT_PER_KM_PER_KEHADIRAN * $dayCount);
         $jabatan = (int) $positions->sum('gaji');
         $rapat = $meetingCount * self::HONOR_RAPAT;
@@ -307,7 +309,7 @@ class GajiGuru extends Page
             'nama' => $guru->user?->name ?? '-',
             'periode' => $start->locale('id')->translatedFormat('F Y'),
             'jarak_rumah' => $distance,
-            'jam' => round($hours, 2),
+            'jp' => round($jp, 2),
             'hari_hadir' => $dayCount,
             'mengajar' => $mengajar,
             'transport' => $transport,

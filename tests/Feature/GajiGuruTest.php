@@ -170,19 +170,19 @@ test('the salary page computes each component for the selected month', function 
     $row = collect($rekap['rows'])->firstWhere('guru_id', $guru->id);
 
     expect($rekap['periode'])->toBe('Oktober 2026')
-        ->and($row['jam'])->toBe(4.5)
+        ->and($row['jp'])->toBe(6.75)
         ->and($row['hari_hadir'])->toBe(3)
-        ->and($row['mengajar'])->toBe(45000)
+        ->and($row['mengajar'])->toBe(67500)
         ->and($row['transport'])->toBe(30000)
         ->and($row['jabatan'])->toBe(750000)
         ->and($row['rapat'])->toBe(40000)
         ->and($row['peminatan'])->toBe(400000)
         ->and($row['piket'])->toBe(20000)
-        ->and($row['total'])->toBe(1285000)
-        ->and($rekap['totals']['total'])->toBe(1285000);
+        ->and($row['total'])->toBe(1307500)
+        ->and($rekap['totals']['total'])->toBe(1307500);
 
     $component->assertSee('Ust. Ahmad Fauzi')
-        ->assertSee('Rp 1.285.000')
+        ->assertSee('Rp 1.307.500')
         ->assertSee('Jabatan')
         ->assertSee('Transport');
 });
@@ -225,9 +225,9 @@ test('a day counts once for transport when at least one session has attendance',
     $component = Livewire::test(GajiGuru::class)->set('bulan', 10)->set('tahun', 2026);
     $row = collect($component->instance()->rekap()['rows'])->firstWhere('guru_id', $guru->id);
 
-    expect($row['jam'])->toBe(1.5)
+    expect($row['jp'])->toBe(2.25)
         ->and($row['hari_hadir'])->toBe(1)
-        ->and($row['mengajar'])->toBe(15000)
+        ->and($row['mengajar'])->toBe(22500)
         ->and($row['transport'])->toBe(5000);
 });
 
@@ -240,13 +240,13 @@ test('the salary page excludes records from other months', function () {
     $row = collect($rekap['rows'])->firstWhere('guru_id', $guru->id);
 
     expect($rekap['periode'])->toBe('September 2026')
-        ->and($row['jam'])->toBe(1.5)
+        ->and($row['jp'])->toBe(2.25)
         ->and($row['hari_hadir'])->toBe(1)
-        ->and($row['mengajar'])->toBe(15000)
+        ->and($row['mengajar'])->toBe(22500)
         ->and($row['transport'])->toBe(10000)
         ->and($row['rapat'])->toBe(20000)
         ->and($row['piket'])->toBe(10000)
-        ->and($row['total'])->toBe(955000);
+        ->and($row['total'])->toBe(962500);
 });
 
 test('the salary page clamps an out of range month and year', function () {

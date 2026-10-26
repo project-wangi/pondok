@@ -96,7 +96,7 @@ class RekapMengajarGuru extends Page
      * @return array{
      *     periode: string,
      *     columns: list<array{id: int, nama: string}>,
-     *     rows: list<array{guru_id: int, nama: string, cells: array<int, array{scheduled: bool, hours: float}>, total: float}>,
+     *     rows: list<array{guru_id: int, nama: string, cells: array<int, array{scheduled: bool, jp: float}>, total: float}>,
      *     totals: array{kelas: array<int, float>, total: float}
      * }
      */
@@ -161,15 +161,15 @@ class RekapMengajarGuru extends Page
 
             foreach ($classes as $class) {
                 $key = $guru->id.'-'.$class->id;
-                $hours = round(($minutes[$key] ?? 0) / 60, 2);
+                $jp = round(($minutes[$key] ?? 0) / 40, 2);
 
                 $cells[$class->id] = [
                     'scheduled' => $scheduled->has($key),
-                    'hours' => $hours,
+                    'jp' => $jp,
                 ];
 
-                $rowTotal += $hours;
-                $classTotals[$class->id] += $hours;
+                $rowTotal += $jp;
+                $classTotals[$class->id] += $jp;
             }
 
             $rowTotal = round($rowTotal, 2);
@@ -213,8 +213,8 @@ class RekapMengajarGuru extends Page
             'rekap' => $this->rekap(),
             'bulanOptions' => self::BULAN,
             'tahunOptions' => $years,
-            'formatJp' => function (float $hours): string {
-                $formatted = rtrim(rtrim(number_format($hours, 2, ',', '.'), '0'), ',');
+            'formatJp' => function (float $jp): string {
+                $formatted = rtrim(rtrim(number_format($jp, 2, ',', '.'), '0'), ',');
 
                 return $formatted === '' ? '0' : $formatted;
             },

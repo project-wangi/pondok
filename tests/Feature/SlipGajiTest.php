@@ -155,20 +155,20 @@ test('a teacher sees their own salary slip for the selected month', function () 
     $rincian = $component->instance()->rincian();
 
     expect($rincian['periode'])->toBe('Oktober 2026')
-        ->and($rincian['jam'])->toBe(3.0)
+        ->and($rincian['jp'])->toBe(4.5)
         ->and($rincian['hari_hadir'])->toBe(2)
-        ->and($rincian['mengajar'])->toBe(30000)
+        ->and($rincian['mengajar'])->toBe(45000)
         ->and($rincian['transport'])->toBe(20000)
         ->and($rincian['jabatan'])->toBe(500000)
         ->and($rincian['rapat'])->toBe(40000)
         ->and($rincian['peminatan'])->toBe(300000)
         ->and($rincian['piket'])->toBe(20000)
-        ->and($rincian['total'])->toBe(910000);
+        ->and($rincian['total'])->toBe(925000);
 
     $component->assertSee('Ust. Ahmad Fauzi')
         ->assertDontSee('Ustzh. Siti Aminah')
-        ->assertSee('Rp 910.000')
-        ->assertSee('3 jam × Rp10.000')
+        ->assertSee('Rp 925.000')
+        ->assertSee('4,5 JP × Rp10.000')
         ->assertSee('2 hari hadir')
         ->assertSee('Tahfizh Al-Qur\'an');
 });
@@ -181,15 +181,15 @@ test('the salary slip follows the selected month', function () {
     $rincian = $component->instance()->rincian();
 
     expect($rincian['periode'])->toBe('September 2026')
-        ->and($rincian['jam'])->toBe(1.5)
+        ->and($rincian['jp'])->toBe(2.25)
         ->and($rincian['hari_hadir'])->toBe(1)
-        ->and($rincian['mengajar'])->toBe(15000)
+        ->and($rincian['mengajar'])->toBe(22500)
         ->and($rincian['transport'])->toBe(10000)
         ->and($rincian['rapat'])->toBe(0)
         ->and($rincian['piket'])->toBe(0)
         ->and($rincian['jabatan'])->toBe(500000)
         ->and($rincian['peminatan'])->toBe(150000)
-        ->and($rincian['total'])->toBe(675000);
+        ->and($rincian['total'])->toBe(682500);
 
-    $component->assertSee('Rp 675.000');
+    $component->assertSee('Rp 682.500');
 });

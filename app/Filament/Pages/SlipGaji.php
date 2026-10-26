@@ -103,7 +103,7 @@ class SlipGaji extends Page
         $komponen = [
             [
                 'label' => 'Mengajar',
-                'rincian' => $angka($rincian['jam']).' jam × Rp10.000',
+                'rincian' => $angka($rincian['jp']).' JP × Rp10.000',
                 'jumlah' => $rupiah($rincian['mengajar']),
             ],
             [

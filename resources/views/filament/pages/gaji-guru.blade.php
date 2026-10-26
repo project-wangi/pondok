@@ -20,7 +20,7 @@
             </label>
 
             <p class="gaji-note">
-                Honor mengajar Rp10.000/jam · transport Rp1.000/km/hari hadir · rapat Rp20.000 ·
+                Honor mengajar Rp10.000/JP (40 menit) · transport Rp1.000/km/hari hadir · rapat Rp20.000 ·
                 piket Rp10.000. Peminatan memakai nominal jenis × jumlah absensi peminatan.
             </p>
         </div>
@@ -93,8 +93,8 @@
             </div>
 
             <p class="gaji-help">
-                Jam mengajar hanya dihitung dari sesi yang sudah memiliki presensi siswa
-                (durasi jam mulai sampai jam selesai). Transport = jarak rumah × Rp1.000 ×
+                JP mengajar hanya dihitung dari sesi yang sudah memiliki presensi siswa
+                (durasi jam mulai sampai jam selesai, 1 JP = 40 menit). Transport = jarak rumah × Rp1.000 ×
                 jumlah hari guru mengajar dan mencatat presensi siswa. Piket dihitung dari
                 jumlah hari piket yang dicatat. Peminatan = nominal jenis × jumlah absensi
                 peminatan pada bulan berjalan. Jabatan bersifat bulanan, jadi tetap muncul

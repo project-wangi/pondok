@@ -20,7 +20,7 @@
             </label>
 
             <p class="gaji-note">
-                Angka dalam JP (jam mengajar yang sudah ada presensi siswanya). Sel abu-abu berarti guru tidak
+                Angka dalam JP (1 JP = 40 menit) dari sesi yang sudah ada presensi siswanya. Sel abu-abu berarti guru tidak
                 memiliki jadwal pada kelas tersebut di semester ini.
             </p>
         </div>
@@ -74,7 +74,7 @@
                                         'presensi-numeric',
                                         'rekap-mengajar-na' => ! $cell['scheduled'],
                                     ])>
-                                        {{ $cell['scheduled'] && $cell['hours'] > 0 ? $formatJp($cell['hours']) : '' }}
+                                        {{ $cell['scheduled'] && $cell['jp'] > 0 ? $formatJp($cell['jp']) : '' }}
                                     </td>
                                 @endforeach
                                 <td class="rekap-mengajar-total presensi-numeric">{{ $formatJp($row['total']) }}</td>
@@ -95,7 +95,7 @@
 
             <p class="gaji-help">
                 JP dihitung dari durasi sesi mengajar yang sudah memiliki presensi siswa pada
-                bulan berjalan (jam mulai sampai jam selesai). Sel kosong berarti guru punya
+                bulan berjalan (jam mulai sampai jam selesai, 1 JP = 40 menit). Sel kosong berarti guru punya
                 jadwal di kelas tersebut tetapi belum ada presensi pada bulan ini. Baris Total
                 menjumlahkan JP per guru, baris paling bawah menjumlahkan JP per kelas.
             </p>
