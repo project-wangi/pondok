@@ -6,6 +6,7 @@ use App\Models\AbsenPeminatan;
 use App\Models\AbsenPiket;
 use App\Models\AsesmenFormatif;
 use App\Models\Guru;
+use App\Models\Jabatan;
 use App\Models\JadwalPelajaran;
 use App\Models\JadwalPeminatan;
 use App\Models\JadwalPiket;
@@ -140,6 +141,7 @@ class DataAkademikSeeder extends Seeder
         $this->seedAttitudes($schedules, $students, $period);
         $this->seedPicket($teachers, $classes, $students);
         $this->seedSpecializations($teachers, $students);
+        $this->seedPositions($teachers);
 
         $this->command?->info('Data akademik contoh berhasil dibuat untuk kelas VII sampai XII. Hari libur: Jumat.');
         $this->command?->info('Akun guru (kata sandi: password):');
@@ -157,12 +159,12 @@ class DataAkademikSeeder extends Seeder
         $teachers = [];
 
         $data = [
-            'ahmad' => ['nama' => 'Ust. Ahmad Fauzi', 'email' => 'ustadz.ahmad@pondok.test'],
-            'siti' => ['nama' => 'Ustzh. Siti Aminah', 'email' => 'ustadzah.siti@pondok.test'],
-            'rizki' => ['nama' => 'Ust. Muhammad Rizki', 'email' => 'ustadz.rizki@pondok.test'],
-            'fatimah' => ['nama' => 'Ustzh. Fatimah Zahra', 'email' => 'ustadzah.fatimah@pondok.test'],
-            'abdullah' => ['nama' => 'Ust. Abdullah Hakim', 'email' => 'ustadz.abdullah@pondok.test'],
-            'khadijah' => ['nama' => 'Ustzh. Khadijah Nur', 'email' => 'ustadzah.khadijah@pondok.test'],
+            'ahmad' => ['nama' => 'Ust. Ahmad Fauzi', 'email' => 'ustadz.ahmad@pondok.test', 'jarak_rumah' => 4.5],
+            'siti' => ['nama' => 'Ustzh. Siti Aminah', 'email' => 'ustadzah.siti@pondok.test', 'jarak_rumah' => 6],
+            'rizki' => ['nama' => 'Ust. Muhammad Rizki', 'email' => 'ustadz.rizki@pondok.test', 'jarak_rumah' => 3],
+            'fatimah' => ['nama' => 'Ustzh. Fatimah Zahra', 'email' => 'ustadzah.fatimah@pondok.test', 'jarak_rumah' => 8],
+            'abdullah' => ['nama' => 'Ust. Abdullah Hakim', 'email' => 'ustadz.abdullah@pondok.test', 'jarak_rumah' => 5.5],
+            'khadijah' => ['nama' => 'Ustzh. Khadijah Nur', 'email' => 'ustadzah.khadijah@pondok.test', 'jarak_rumah' => 7.25],
         ];
 
         foreach ($data as $key => $row) {
@@ -171,11 +173,12 @@ class DataAkademikSeeder extends Seeder
                 ['name' => $row['nama'], 'password' => 'password'],
             );
 
-            $guru = Guru::firstOrCreate(
+            $guru = Guru::updateOrCreate(
                 ['user_id' => $user->id],
                 [
                     'jenis_kelamin' => str_contains($row['nama'], 'Ustzh') ? 'Perempuan' : 'Laki-laki',
                     'agama' => 'Islam',
+                    'jarak_rumah' => $row['jarak_rumah'],
                 ],
             );
 
@@ -745,6 +748,49 @@ class DataAkademikSeeder extends Seeder
                 }
 
                 $this->insertChunked('absen_peminatan_murids', $rows);
+            }
+        }
+    }
+
+    /**
+     * Jabatan contoh untuk mengisi komponen tunjangan pada halaman Gaji Guru.
+     *
+     * @param  array<string, array{id: int, user_id: int, nama: string}>  $teachers
+     */
+    private function seedPositions(array $teachers): void
+    {
+        $now = now();
+
+        $positions = [
+            'Wali Kelas' => 250000,
+            'Penanggung Jawab Bahasa' => 150000,
+            'Bendahara' => 500000,
+            'Kepala Madrasah' => 1000000,
+        ];
+
+        $ids = [];
+
+        foreach ($positions as $nama => $gaji) {
+            $ids[$nama] = Jabatan::firstOrCreate(['nama_jabatan' => $nama], ['gaji' => $gaji])->id;
+        }
+
+        $assignments = [
+            'ahmad' => ['Wali Kelas', 'Kepala Madrasah'],
+            'siti' => ['Wali Kelas', 'Penanggung Jawab Bahasa'],
+            'rizki' => ['Wali Kelas', 'Bendahara'],
+            'fatimah' => ['Wali Kelas'],
+            'abdullah' => ['Wali Kelas'],
+            'khadijah' => ['Wali Kelas'],
+        ];
+
+        foreach ($assignments as $key => $names) {
+            foreach ($names as $name) {
+                DB::table('guru_jabatan')->insertOrIgnore([
+                    'guru_id' => $teachers[$key]['id'],
+                    'jabatan_id' => $ids[$name],
+                    'created_at' => $now,
+                    'updated_at' => $now,
+                ]);
             }
         }
     }
