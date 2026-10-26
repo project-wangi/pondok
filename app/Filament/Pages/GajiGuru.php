@@ -108,6 +108,7 @@ class GajiGuru extends Page
             ->where('tanggal', '>=', $from)
             ->where('tanggal', '<', $until)
             ->whereNotNull('guru_id')
+            ->whereHas('presensiMurids')
             ->get(['guru_id', 'jam_mulai', 'jam_selesai'])
             ->each(function (SesiMengajar $session) use (&$teachingMinutes): void {
                 $minutes = $this->sessionMinutes($session->jam_mulai, $session->jam_selesai);

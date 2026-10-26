@@ -131,6 +131,7 @@ class RekapMengajarGuru extends Page
             ->where('tanggal', '<', $until)
             ->whereNotNull('guru_id')
             ->whereNotNull('kelas_id')
+            ->whereHas('presensiMurids')
             ->get(['guru_id', 'kelas_id', 'jam_mulai', 'jam_selesai'])
             ->each(function (SesiMengajar $session) use (&$minutes): void {
                 $duration = $this->sessionMinutes($session->jam_mulai, $session->jam_selesai);

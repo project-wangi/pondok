@@ -66,7 +66,7 @@ function gajiGuruScenario(): Guru
         ]);
     }
 
-    // Sesi tanpa presensi menambah jam mengajar, tetapi tidak dihitung sebagai hari hadir.
+    // Sesi tanpa presensi tidak menambah jam mengajar maupun hari hadir.
     SesiMengajarFactory::new()->create([
         'jadwal_pelajaran_id' => $schedule->id,
         'tanggal' => '2026-10-08',
@@ -166,19 +166,19 @@ test('the salary page computes each component for the selected month', function 
     $row = collect($rekap['rows'])->firstWhere('guru_id', $guru->id);
 
     expect($rekap['periode'])->toBe('Oktober 2026')
-        ->and($row['jam'])->toBe(6.0)
+        ->and($row['jam'])->toBe(4.5)
         ->and($row['hari_hadir'])->toBe(3)
-        ->and($row['mengajar'])->toBe(60000)
+        ->and($row['mengajar'])->toBe(45000)
         ->and($row['transport'])->toBe(30000)
         ->and($row['jabatan'])->toBe(750000)
         ->and($row['rapat'])->toBe(40000)
         ->and($row['peminatan'])->toBe(250000)
         ->and($row['piket'])->toBe(20000)
-        ->and($row['total'])->toBe(1150000)
-        ->and($rekap['totals']['total'])->toBe(1150000);
+        ->and($row['total'])->toBe(1135000)
+        ->and($rekap['totals']['total'])->toBe(1135000);
 
     $component->assertSee('Ust. Ahmad Fauzi')
-        ->assertSee('Rp 1.150.000')
+        ->assertSee('Rp 1.135.000')
         ->assertSee('Jabatan')
         ->assertSee('Transport');
 });
@@ -221,9 +221,9 @@ test('a day counts once for transport when at least one session has attendance',
     $component = Livewire::test(GajiGuru::class)->set('bulan', 10)->set('tahun', 2026);
     $row = collect($component->instance()->rekap()['rows'])->firstWhere('guru_id', $guru->id);
 
-    expect($row['jam'])->toBe(3.0)
+    expect($row['jam'])->toBe(1.5)
         ->and($row['hari_hadir'])->toBe(1)
-        ->and($row['mengajar'])->toBe(30000)
+        ->and($row['mengajar'])->toBe(15000)
         ->and($row['transport'])->toBe(5000);
 });
 

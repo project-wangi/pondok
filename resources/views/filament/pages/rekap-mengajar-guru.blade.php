@@ -20,7 +20,7 @@
             </label>
 
             <p class="gaji-note">
-                Angka dalam JP (jam mengajar yang tercatat). Sel abu-abu berarti guru tidak
+                Angka dalam JP (jam mengajar yang sudah ada presensi siswanya). Sel abu-abu berarti guru tidak
                 memiliki jadwal pada kelas tersebut di semester ini.
             </p>
         </div>
@@ -94,10 +94,10 @@
             </div>
 
             <p class="gaji-help">
-                JP dihitung dari durasi setiap sesi mengajar yang tercatat pada bulan berjalan
-                (jam mulai sampai jam selesai). Sel kosong berarti guru punya jadwal di kelas
-                tersebut tetapi belum ada sesi tercatat pada bulan ini. Baris Total menjumlahkan
-                JP per guru, baris paling bawah menjumlahkan JP per kelas.
+                JP dihitung dari durasi sesi mengajar yang sudah memiliki presensi siswa pada
+                bulan berjalan (jam mulai sampai jam selesai). Sel kosong berarti guru punya
+                jadwal di kelas tersebut tetapi belum ada presensi pada bulan ini. Baris Total
+                menjumlahkan JP per guru, baris paling bawah menjumlahkan JP per kelas.
             </p>
         @endif
     </div>

@@ -93,12 +93,12 @@
             </div>
 
             <p class="gaji-help">
-                Jam mengajar dihitung dari durasi setiap sesi yang tercatat pada bulan berjalan
-                (jam mulai sampai jam selesai). Transport = jarak rumah × Rp1.000 × jumlah hari
-                guru mengajar dan mencatat presensi siswa. Piket dihitung dari jumlah hari piket
-                yang dicatat. Peminatan = total nominal setiap jenis peminatan yang dijadwalkan
-                untuk guru. Jabatan dan peminatan bersifat bulanan, jadi tetap muncul pada bulan
-                tanpa kegiatan.
+                Jam mengajar hanya dihitung dari sesi yang sudah memiliki presensi siswa
+                (durasi jam mulai sampai jam selesai). Transport = jarak rumah × Rp1.000 ×
+                jumlah hari guru mengajar dan mencatat presensi siswa. Piket dihitung dari
+                jumlah hari piket yang dicatat. Peminatan = total nominal setiap jenis
+                peminatan yang dijadwalkan untuk guru. Jabatan dan peminatan bersifat bulanan,
+                jadi tetap muncul pada bulan tanpa kegiatan.
             </p>
         @endif
     </div>

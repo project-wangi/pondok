@@ -5,6 +5,8 @@ use App\Models\Kelas;
 use App\Models\User;
 use Database\Factories\GuruFactory;
 use Database\Factories\JadwalPelajaranFactory;
+use Database\Factories\MuridFactory;
+use Database\Factories\PresensiMuridFactory;
 use Database\Factories\SesiMengajarFactory;
 use Filament\Facades\Filament;
 use Illuminate\Foundation\Testing\LazilyRefreshDatabase;
@@ -28,7 +30,7 @@ function rekapMengajarAdmin(): User
 }
 
 test('the teaching recap page exposes the expected navigation metadata', function () {
-    expect(RekapMengajarGuru::getNavigationGroup())->toBe('Laporan Kehadiran')
+    expect(RekapMengajarGuru::getNavigationGroup())->toBe('Keuangan')
         ->and(RekapMengajarGuru::getNavigationLabel())->toBe('Rekap Mengajar Guru')
         ->and(RekapMengajarGuru::getSlug())->toBe('rekap-mengajar-guru')
         ->and(RekapMengajarGuru::shouldRegisterNavigation())->toBeTrue();
@@ -79,12 +81,25 @@ test('the teaching recap counts hours per teacher and class for the selected mon
         'tahun_ajaran' => '2026/2027',
     ]);
 
+    $student = MuridFactory::new()->create(['kelas_id' => $classSeven->id]);
+
     foreach (['2026-10-05', '2026-10-06', '2026-09-30'] as $date) {
-        SesiMengajarFactory::new()->create([
+        $session = SesiMengajarFactory::new()->create([
             'jadwal_pelajaran_id' => $sevenSchedule->id,
             'tanggal' => $date,
         ]);
+
+        PresensiMuridFactory::new()->create([
+            'sesi_mengajar_id' => $session->id,
+            'murid_id' => $student->id,
+        ]);
     }
+
+    // Sesi tanpa presensi siswa tidak dihitung sebagai JP.
+    SesiMengajarFactory::new()->create([
+        'jadwal_pelajaran_id' => $sevenSchedule->id,
+        'tanggal' => '2026-10-07',
+    ]);
 
     $otherTeacher = GuruFactory::new()->create();
     $otherTeacher->user->update(['name' => 'Ustzh. Siti Aminah']);
