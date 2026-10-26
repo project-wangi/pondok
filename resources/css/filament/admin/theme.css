@@ -2257,3 +2257,126 @@
     color: var(--presensi-text);
     font-weight: 700;
 }
+
+/* Slip Gaji Guru --------------------------------------------- */
+
+.slip-gaji-page .slip-gaji-actions {
+    display: flex;
+    align-items: center;
+    margin-inline-start: auto;
+}
+
+.slip-gaji-page .slip-gaji-card {
+    display: grid;
+    gap: 1.25rem;
+    padding: clamp(1rem, 3vw, 1.75rem);
+    border: 1px solid var(--pondok-border);
+    border-radius: 0.5rem;
+    background-color: var(--presensi-surface);
+}
+
+.slip-gaji-page .slip-gaji-header {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: end;
+    justify-content: space-between;
+    gap: 1rem;
+    border-block-end: 2px solid var(--pondok-border);
+    padding-block-end: 1rem;
+}
+
+.slip-gaji-page .slip-gaji-school {
+    color: var(--presensi-muted);
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.slip-gaji-page .slip-gaji-title {
+    margin-block-start: 0.25rem;
+    color: var(--presensi-text);
+    font-size: 1.4rem;
+    font-weight: 700;
+    line-height: 1.2;
+}
+
+.slip-gaji-page .slip-gaji-period {
+    text-align: right;
+}
+
+.slip-gaji-page .slip-gaji-period span {
+    display: block;
+    color: var(--presensi-muted);
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+
+.slip-gaji-page .slip-gaji-period strong {
+    display: block;
+    margin-block-start: 0.2rem;
+    color: var(--presensi-text);
+    font-size: 1.05rem;
+}
+
+.slip-gaji-page .slip-gaji-identity {
+    display: grid;
+    gap: 0.75rem 2rem;
+    grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr));
+}
+
+.slip-gaji-page .slip-gaji-identity dt {
+    color: var(--presensi-muted);
+    font-size: 0.75rem;
+}
+
+.slip-gaji-page .slip-gaji-identity dd {
+    margin: 0;
+    color: var(--presensi-text);
+    font-weight: 600;
+}
+
+.slip-gaji-page .slip-gaji-table th:last-child,
+.slip-gaji-page .slip-gaji-table td:last-child {
+    text-align: right;
+    white-space: nowrap;
+    font-variant-numeric: tabular-nums;
+}
+
+.slip-gaji-page .slip-gaji-table td:nth-child(2) {
+    color: var(--presensi-muted);
+}
+
+.slip-gaji-page .slip-gaji-table tfoot th,
+.slip-gaji-page .slip-gaji-table tfoot td {
+    border-block-start: 2px solid var(--pondok-border);
+    background-color: var(--pondok-navigation);
+    color: var(--presensi-text);
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+}
+
+.slip-gaji-page .slip-gaji-note {
+    color: var(--presensi-muted);
+    font-size: 0.75rem;
+    line-height: 1.7;
+}
+
+@media print {
+    .fi-sidebar,
+    .fi-topbar,
+    .fi-page-header,
+    .slip-gaji-toolbar {
+        display: none !important;
+    }
+
+    .fi-main {
+        padding: 0 !important;
+    }
+
+    .slip-gaji-page .slip-gaji-card {
+        border: 0;
+    }
+}

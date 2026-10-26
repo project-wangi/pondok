@@ -1,10 +1,10 @@
 <?php
 
 use App\Filament\Pages\GajiGuru;
+use App\Models\AbsenPeminatan;
 use App\Models\AbsenRapat;
 use App\Models\Guru;
 use App\Models\Jabatan;
-use App\Models\JadwalPeminatan;
 use App\Models\JadwalRapat;
 use App\Models\JenisPeminatan;
 use App\Models\User;
@@ -112,21 +112,25 @@ function gajiGuruScenario(): Guru
     $tahfizh = JenisPeminatan::create(['nama_peminatan' => "Tahfizh Al-Qur'an", 'nominal' => 150000]);
     $arab = JenisPeminatan::create(['nama_peminatan' => 'Bahasa Arab', 'nominal' => 100000]);
 
-    JadwalPeminatan::create([
-        'hari' => 'Kamis',
-        'guru_id' => $guru->id,
-        'jenis_peminatan_id' => $tahfizh->id,
-        'jam_mulai' => '15:00:00',
-        'jam_selesai' => '16:30:00',
-    ]);
-
-    JadwalPeminatan::create([
-        'hari' => 'Kamis',
-        'guru_id' => $guru->id,
-        'jenis_peminatan_id' => $arab->id,
-        'jam_mulai' => '16:30:00',
-        'jam_selesai' => '18:00:00',
-    ]);
+    foreach ([
+        [$tahfizh, '2026-10-01'],
+        [$tahfizh, '2026-10-08'],
+        [$arab, '2026-10-15'],
+        [$tahfizh, '2026-09-24'],
+    ] as [$jenis, $tanggal]) {
+        AbsenPeminatan::create([
+            'jenis_peminatan_id' => $jenis->id,
+            'guru_id' => $guru->id,
+            'pencatat_id' => $guru->user_id,
+            'revisi' => 1,
+            'tanggal' => $tanggal,
+            'jam_mulai' => '15:30:00',
+            'jam_selesai' => '17:00:00',
+            'nama_guru' => 'Ust. Ahmad Fauzi',
+            'nama_peminatan' => $jenis->nama_peminatan,
+            'dicatat_pada' => now(),
+        ]);
+    }
 
     return $guru;
 }
@@ -172,13 +176,13 @@ test('the salary page computes each component for the selected month', function 
         ->and($row['transport'])->toBe(30000)
         ->and($row['jabatan'])->toBe(750000)
         ->and($row['rapat'])->toBe(40000)
-        ->and($row['peminatan'])->toBe(250000)
+        ->and($row['peminatan'])->toBe(400000)
         ->and($row['piket'])->toBe(20000)
-        ->and($row['total'])->toBe(1135000)
-        ->and($rekap['totals']['total'])->toBe(1135000);
+        ->and($row['total'])->toBe(1285000)
+        ->and($rekap['totals']['total'])->toBe(1285000);
 
     $component->assertSee('Ust. Ahmad Fauzi')
-        ->assertSee('Rp 1.135.000')
+        ->assertSee('Rp 1.285.000')
         ->assertSee('Jabatan')
         ->assertSee('Transport');
 });
@@ -242,7 +246,7 @@ test('the salary page excludes records from other months', function () {
         ->and($row['transport'])->toBe(10000)
         ->and($row['rapat'])->toBe(20000)
         ->and($row['piket'])->toBe(10000)
-        ->and($row['total'])->toBe(1055000);
+        ->and($row['total'])->toBe(955000);
 });
 
 test('the salary page clamps an out of range month and year', function () {

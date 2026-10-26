@@ -111,7 +111,7 @@ class GajiGuru extends Page
             ->whereHas('presensiMurids')
             ->get(['guru_id', 'jam_mulai', 'jam_selesai'])
             ->each(function (SesiMengajar $session) use (&$teachingMinutes): void {
-                $minutes = $this->sessionMinutes($session->jam_mulai, $session->jam_selesai);
+                $minutes = self::sessionMinutes($session->jam_mulai, $session->jam_selesai);
 
                 if ($minutes > 0) {
                     $teachingMinutes[$session->guru_id] = ($teachingMinutes[$session->guru_id] ?? 0) + $minutes;
@@ -153,13 +153,13 @@ class GajiGuru extends Page
             ->pluck('total', 'guru_id')
             ->all();
 
-        $specializationTotals = DB::table('jadwal_peminatans')
-            ->join('jenis_peminatans', 'jenis_peminatans.id', '=', 'jadwal_peminatans.jenis_peminatan_id')
-            ->select('jadwal_peminatans.guru_id', 'jenis_peminatans.id as jenis_id', 'jenis_peminatans.nominal')
-            ->distinct()
-            ->get()
-            ->groupBy('guru_id')
-            ->map(fn ($rows): int => (int) $rows->sum('nominal'))
+        $specializationTotals = DB::table('absen_peminatans')
+            ->join('jenis_peminatans', 'jenis_peminatans.id', '=', 'absen_peminatans.jenis_peminatan_id')
+            ->where('absen_peminatans.tanggal', '>=', $from)
+            ->where('absen_peminatans.tanggal', '<', $until)
+            ->selectRaw('absen_peminatans.guru_id as guru_id, sum(jenis_peminatans.nominal) as total')
+            ->groupBy('absen_peminatans.guru_id')
+            ->pluck('total', 'guru_id')
             ->all();
 
         $teachers = Guru::query()
@@ -224,9 +224,113 @@ class GajiGuru extends Page
     }
 
     /**
+     * Rincian gaji satu guru untuk bulan tertentu.
+     *
+     * @return array<string, mixed>
+     */
+    public static function rincianGuru(Guru $guru, int $bulan, int $tahun): array
+    {
+        $start = CarbonImmutable::create($tahun, $bulan, 1)->startOfMonth();
+        $from = $start->toDateString();
+        $until = $start->addMonth()->toDateString();
+
+        $sessions = SesiMengajar::query()
+            ->where('tanggal', '>=', $from)
+            ->where('tanggal', '<', $until)
+            ->where('guru_id', $guru->id)
+            ->whereHas('presensiMurids')
+            ->get(['tanggal', 'jam_mulai', 'jam_selesai']);
+
+        $minutes = 0;
+        $attendanceDays = [];
+
+        foreach ($sessions as $session) {
+            $duration = self::sessionMinutes($session->jam_mulai, $session->jam_selesai);
+
+            if ($duration > 0) {
+                $minutes += $duration;
+                $attendanceDays[$session->tanggal->toDateString()] = true;
+            }
+        }
+
+        $hours = $minutes / 60;
+        $dayCount = count($attendanceDays);
+        $distance = (float) ($guru->jarak_rumah ?? 0);
+
+        $meetingCount = AbsenRapat::query()
+            ->where('tanggal', '>=', $from)
+            ->where('tanggal', '<', $until)
+            ->where('guru_id', $guru->id)
+            ->count();
+
+        $picketCount = AbsenPiket::query()
+            ->where('tanggal', '>=', $from)
+            ->where('tanggal', '<', $until)
+            ->where('guru_id', $guru->id)
+            ->distinct()
+            ->count('tanggal');
+
+        $positions = DB::table('guru_jabatan')
+            ->join('jabatans', 'jabatans.id', '=', 'guru_jabatan.jabatan_id')
+            ->where('guru_jabatan.guru_id', $guru->id)
+            ->orderBy('jabatans.nama_jabatan')
+            ->get(['jabatans.nama_jabatan', 'jabatans.gaji']);
+
+        $specializationMeetings = DB::table('absen_peminatans')
+            ->join('jenis_peminatans', 'jenis_peminatans.id', '=', 'absen_peminatans.jenis_peminatan_id')
+            ->where('absen_peminatans.guru_id', $guru->id)
+            ->where('absen_peminatans.tanggal', '>=', $from)
+            ->where('absen_peminatans.tanggal', '<', $until)
+            ->orderBy('jenis_peminatans.nama_peminatan')
+            ->get(['jenis_peminatans.nama_peminatan', 'jenis_peminatans.nominal']);
+
+        $specializationItems = $specializationMeetings
+            ->groupBy('nama_peminatan')
+            ->map(fn ($rows, string $nama): array => [
+                'nama' => $nama,
+                'nominal' => (int) $rows->first()->nominal,
+                'jumlah' => $rows->count(),
+                'total' => $rows->count() * (int) $rows->first()->nominal,
+            ])
+            ->values()
+            ->all();
+
+        $mengajar = (int) round($hours * self::HONOR_PER_JAM);
+        $transport = (int) round($distance * self::TRANSPORT_PER_KM_PER_KEHADIRAN * $dayCount);
+        $jabatan = (int) $positions->sum('gaji');
+        $rapat = $meetingCount * self::HONOR_RAPAT;
+        $peminatan = array_sum(array_column($specializationItems, 'total'));
+        $piket = $picketCount * self::HONOR_PIKET;
+
+        return [
+            'guru_id' => $guru->id,
+            'nama' => $guru->user?->name ?? '-',
+            'periode' => $start->locale('id')->translatedFormat('F Y'),
+            'jarak_rumah' => $distance,
+            'jam' => round($hours, 2),
+            'hari_hadir' => $dayCount,
+            'mengajar' => $mengajar,
+            'transport' => $transport,
+            'jabatan' => $jabatan,
+            'jabatan_items' => $positions->map(fn ($position): array => [
+                'nama' => $position->nama_jabatan,
+                'gaji' => (int) $position->gaji,
+            ])->all(),
+            'rapat_count' => $meetingCount,
+            'rapat' => $rapat,
+            'peminatan' => $peminatan,
+            'peminatan_items' => $specializationItems,
+            'peminatan_count' => $specializationMeetings->count(),
+            'piket_count' => $picketCount,
+            'piket' => $piket,
+            'total' => $mengajar + $transport + $jabatan + $rapat + $peminatan + $piket,
+        ];
+    }
+
+    /**
      * Durasi satu sesi mengajar dalam menit. Sesi tanpa jam yang lengkap diabaikan.
      */
-    private function sessionMinutes(?string $mulai, ?string $selesai): int
+    private static function sessionMinutes(?string $mulai, ?string $selesai): int
     {
         if (blank($mulai) || blank($selesai)) {
             return 0;
