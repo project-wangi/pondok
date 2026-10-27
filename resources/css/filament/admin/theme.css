@@ -2905,6 +2905,54 @@
     justify-content: flex-start;
 }
 
+.rapor-admin-page .rapor-period {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: end;
+    gap: 0.75rem;
+    padding: 0.75rem 1rem;
+    border: 1px solid var(--pondok-border);
+    border-radius: 0.5rem;
+    background-color: var(--presensi-surface);
+}
+
+.rapor-admin-page .rapor-period-field {
+    display: grid;
+    gap: 0.25rem;
+    font-size: 0.8125rem;
+}
+
+.rapor-admin-page .rapor-period-field span {
+    color: var(--presensi-muted);
+    font-weight: 600;
+}
+
+.rapor-admin-page .rapor-period-field select {
+    padding: 0.4rem 0.6rem;
+    border: 1px solid var(--pondok-border);
+    border-radius: 0.375rem;
+    background-color: var(--presensi-surface);
+    color: inherit;
+    font-size: 0.875rem;
+}
+
+.rapor-admin-page .rapor-period-field select:focus-visible {
+    outline: 2px solid var(--pondok-accent);
+    outline-offset: 1px;
+}
+
+.rapor-admin-page .rapor-period-help {
+    margin-inline-start: auto;
+    color: var(--presensi-muted);
+    font-size: 0.8125rem;
+}
+
+@media (max-width: 48rem) {
+    .rapor-admin-page .rapor-period-help {
+        margin-inline-start: 0;
+    }
+}
+
 .rapor-admin-page .rapor-class-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(14rem, 1fr));

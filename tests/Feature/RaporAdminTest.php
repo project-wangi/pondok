@@ -494,6 +494,88 @@ test('prevents two teachers from becoming homeroom of the same class', function 
         ->assertHasFormErrors(['kelas_id']);
 });
 
+test('filters reports by the selected semester and academic year', function () {
+    $this->actingAs(raporAdminUser());
+    $data = raporAdminScenario();
+
+    $old = ERaporFactory::new()->create([
+        'guru_id' => $data['guru']->id,
+        'kelas_id' => $data['kelas']->id,
+        'mata_pelajaran_id' => $data['mapel']['matematika']->id,
+        'semester' => 'Genap',
+        'tahun_ajaran' => '2025/2026',
+        'bobot_formatif' => 0,
+        'bobot_sumatif' => 0,
+        'bobot_asts' => 0,
+        'bobot_asas' => 100,
+        'bobot_kehadiran' => 0,
+        'bobot_sikap' => 0,
+        'bobot_keaktifan' => 0,
+        'kkm' => 75,
+    ]);
+    $old->nilais()->create([
+        'murid_id' => $data['siswa']['ahmad']->id,
+        'nama_murid' => 'Ahmad',
+        'nis' => '001',
+        'asts' => null,
+        'asas' => 50,
+    ]);
+
+    $component = Livewire::test(RaporAdmin::class)
+        ->call('pilihKelas', $data['kelas']->id)
+        ->call('pilihMurid', $data['siswa']['ahmad']->id)
+        ->assertSee('UJIAN AKHIR SEMESTER GANJIL 2026/2027');
+
+    expect(collect($component->viewData('rapor')['subjects'])->firstWhere('nama', 'Matematika')['angka'])->toBe(90)
+        ->and($component->viewData('tahunAjaranOptions'))->toContain('2025/2026')
+        ->and($component->viewData('tahunAjaranOptions'))->toContain('2026/2027');
+
+    $component->set('semester', 'Genap')
+        ->set('tahunAjaran', '2025/2026')
+        ->assertSee('UJIAN AKHIR SEMESTER GENAP 2025/2026');
+
+    $rapor = $component->viewData('rapor');
+    $matematika = collect($rapor['subjects'])->firstWhere('nama', 'Matematika');
+
+    expect($rapor['semester'])->toBe('Genap')
+        ->and($rapor['tahun_ajaran'])->toBe('2025/2026')
+        ->and($matematika['angka'])->toBe(50)
+        ->and($rapor['jumlah'])->toBe(50);
+});
+
+test('falls back to the active period when the filter is invalid', function () {
+    $this->actingAs(raporAdminUser());
+
+    Livewire::test(RaporAdmin::class)
+        ->set('semester', 'Tidak valid')
+        ->assertSet('semester', 'Ganjil')
+        ->set('tahunAjaran', '1999/2000')
+        ->assertSet('tahunAjaran', '2026/2027');
+});
+
+test('reloads personality values when the period changes', function () {
+    $this->actingAs(raporAdminUser());
+    $data = raporAdminScenario();
+
+    $component = Livewire::test(RaporAdmin::class)
+        ->call('pilihKelas', $data['kelas']->id)
+        ->call('pilihMurid', $data['siswa']['ahmad']->id)
+        ->set('kepribadian.kelakuan', '95')
+        ->set('kepribadian.kerajinan', '90')
+        ->set('kepribadian.kebersihan', '85')
+        ->set('kepribadian.kerapian', '80')
+        ->set('kepribadian.kedisiplinan', '75')
+        ->call('simpanKepribadian')
+        ->assertSet('kepribadian.kelakuan', '95');
+
+    $component->set('semester', 'Genap')
+        ->assertSet('kepribadian.kelakuan', '')
+        ->assertSet('kepribadian.kedisiplinan', '')
+        ->set('semester', 'Ganjil')
+        ->assertSet('kepribadian.kelakuan', '95')
+        ->assertSet('kepribadian.kedisiplinan', '75');
+});
+
 test('does not leak scores from other semesters', function () {
     $this->actingAs(raporAdminUser());
     $data = raporAdminScenario();

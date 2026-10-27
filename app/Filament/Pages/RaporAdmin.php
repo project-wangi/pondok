@@ -48,6 +48,10 @@ class RaporAdmin extends Page
     #[Locked]
     public ?int $muridId = null;
 
+    public string $semester = '';
+
+    public string $tahunAjaran = '';
+
     /** @var array<string, string> */
     public array $kepribadian = [
         'kelakuan' => '',
@@ -72,6 +76,34 @@ class RaporAdmin extends Page
     public function mount(): void
     {
         abort_unless(static::canAccess(), 403);
+
+        $period = JadwalPelajaran::activePeriod();
+        $this->semester = $period['semester'];
+        $this->tahunAjaran = $period['tahun_ajaran'];
+    }
+
+    public function updatedSemester(string $value): void
+    {
+        if (! array_key_exists($value, JadwalPelajaran::SEMESTERS)) {
+            $this->semester = JadwalPelajaran::activePeriod()['semester'];
+
+            return;
+        }
+
+        $this->semester = $value;
+        $this->muatKepribadian();
+    }
+
+    public function updatedTahunAjaran(string $value): void
+    {
+        if (! in_array($value, $this->availableTahunAjaran(), true)) {
+            $this->tahunAjaran = JadwalPelajaran::activePeriod()['tahun_ajaran'];
+
+            return;
+        }
+
+        $this->tahunAjaran = $value;
+        $this->muatKepribadian();
     }
 
     public function pilihKelas(int $kelasId): void
@@ -137,7 +169,7 @@ class RaporAdmin extends Page
             'kepribadian.*.between' => 'Nilai :attribute harus berada antara 0 dan 100.',
         ], $attributes);
 
-        $period = JadwalPelajaran::activePeriod();
+        $period = $this->period();
 
         RaporKepribadian::query()->updateOrCreate(
             [
@@ -170,10 +202,12 @@ class RaporAdmin extends Page
     {
         abort_unless(static::canAccess(), 403);
 
-        $period = JadwalPelajaran::activePeriod();
+        $period = $this->period();
         $view = [
             'langkah' => 'kelas',
             'period' => $period,
+            'semesterOptions' => JadwalPelajaran::SEMESTERS,
+            'tahunAjaranOptions' => $this->tahunAjaranOptions(),
             'aspekKepribadian' => RaporKepribadian::ASPEK,
             'hurufKepribadian' => $this->hurufKepribadian(),
         ];
@@ -382,7 +416,7 @@ class RaporAdmin extends Page
         ?array $matrix = null,
         ?Collection $ranked = null,
     ): ?array {
-        $period ??= JadwalPelajaran::activePeriod();
+        $period ??= $this->period();
         $kelas ??= $this->kelasId !== null ? Kelas::query()->find($this->kelasId) : null;
 
         if ($kelas === null) {
@@ -710,6 +744,43 @@ class RaporAdmin extends Page
         ];
     }
 
+    /** @return array{semester: string, tahun_ajaran: string} */
+    private function period(): array
+    {
+        return [
+            'semester' => $this->semester,
+            'tahun_ajaran' => $this->tahunAjaran,
+        ];
+    }
+
+    /** @return list<string> */
+    private function availableTahunAjaran(): array
+    {
+        return JadwalPelajaran::query()
+            ->whereNotNull('tahun_ajaran')
+            ->distinct()
+            ->pluck('tahun_ajaran')
+            ->merge(ERapor::query()->whereNotNull('tahun_ajaran')->distinct()->pluck('tahun_ajaran'))
+            ->push(JadwalPelajaran::activePeriod()['tahun_ajaran'])
+            ->filter()
+            ->unique()
+            ->sortDesc()
+            ->values()
+            ->all();
+    }
+
+    /** @return list<string> */
+    private function tahunAjaranOptions(): array
+    {
+        return collect($this->availableTahunAjaran())
+            ->push($this->tahunAjaran)
+            ->filter()
+            ->unique()
+            ->sortDesc()
+            ->values()
+            ->all();
+    }
+
     private function resetKepribadian(): void
     {
         $this->kepribadian = array_fill_keys(array_keys(RaporKepribadian::ASPEK), '');
@@ -723,7 +794,7 @@ class RaporAdmin extends Page
             return;
         }
 
-        $period = JadwalPelajaran::activePeriod();
+        $period = $this->period();
         $record = RaporKepribadian::query()
             ->where('murid_id', $this->muridId)
             ->where('semester', $period['semester'])

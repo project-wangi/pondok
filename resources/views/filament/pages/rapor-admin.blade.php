@@ -11,6 +11,30 @@
             </div>
         @endif
 
+        <div class="rapor-period">
+            <label class="rapor-period-field" for="rapor-semester">
+                <span>Semester</span>
+                <select id="rapor-semester" wire:model.live="semester">
+                    @foreach ($semesterOptions as $value => $label)
+                        <option value="{{ $value }}">{{ $label }}</option>
+                    @endforeach
+                </select>
+            </label>
+
+            <label class="rapor-period-field" for="rapor-tahun-ajaran">
+                <span>Tahun Ajaran</span>
+                <select id="rapor-tahun-ajaran" wire:model.live="tahunAjaran">
+                    @foreach ($tahunAjaranOptions as $year)
+                        <option value="{{ $year }}">{{ $year }}</option>
+                    @endforeach
+                </select>
+            </label>
+
+            <p class="rapor-period-help">
+                Menampilkan semester {{ $period['semester'] }} tahun ajaran {{ $period['tahun_ajaran'] }}.
+            </p>
+        </div>
+
         @if ($langkah === 'kelas')
             <x-filament::section
                 heading="Pilih kelas"
