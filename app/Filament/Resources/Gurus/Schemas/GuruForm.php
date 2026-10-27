@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Gurus\Schemas;
 
+use App\Models\Jabatan;
 use Filament\Facades\Filament;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\FileUpload;
@@ -10,6 +11,7 @@ use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Resources\Pages\EditRecord;
 use Filament\Schemas\Components\Section;
+use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Schema;
 use Illuminate\Support\Facades\Storage;
 
@@ -88,8 +90,23 @@ class GuruForm
                     ->label('Jabatan')
                     ->relationship('jabatans', 'nama_jabatan')
                     ->multiple()
+                    ->live()
                     ->searchable()
                     ->preload()
+                    ->disabled(fn (): bool => ! self::canManageAccount())
+                    ->dehydrated(fn (): bool => self::canManageAccount()),
+
+                Select::make('kelas_id')
+                    ->label('Kelas Wali')
+                    ->relationship('kelasWali', 'nama_kelas')
+                    ->searchable()
+                    ->preload()
+                    ->visible(fn (Get $get): bool => self::isWaliKelas($get('jabatans')))
+                    ->required(fn (Get $get): bool => self::canManageAccount() && self::isWaliKelas($get('jabatans')))
+                    ->unique(ignoreRecord: true)
+                    ->dehydratedWhenHidden()
+                    ->dehydrateStateUsing(fn (mixed $state, Get $get): mixed => self::isWaliKelas($get('jabatans')) ? $state : null)
+                    ->helperText('Satu kelas hanya boleh memiliki satu wali kelas.')
                     ->disabled(fn (): bool => ! self::canManageAccount())
                     ->dehydrated(fn (): bool => self::canManageAccount()),
                 Select::make('jenis_kelamin')
@@ -141,5 +158,21 @@ class GuruForm
     private static function canManageAccount(): bool
     {
         return Filament::auth()->user()?->can('Update:Guru') ?? false;
+    }
+
+    private static function isWaliKelas(mixed $jabatans): bool
+    {
+        if (! is_array($jabatans) || $jabatans === []) {
+            return false;
+        }
+
+        $waliKelasJabatanIds = Jabatan::query()
+            ->where('nama_jabatan', 'Wali Kelas')
+            ->pluck('id')
+            ->map(fn (mixed $id): int => (int) $id)
+            ->all();
+
+        return $waliKelasJabatanIds !== []
+            && array_intersect($waliKelasJabatanIds, array_map('intval', $jabatans)) !== [];
     }
 }

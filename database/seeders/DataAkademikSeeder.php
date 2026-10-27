@@ -130,6 +130,7 @@ class DataAkademikSeeder extends Seeder
 
         $teachers = $this->seedTeachers();
         $classes = $this->seedClasses();
+        $this->seedHomerooms($teachers, $classes);
         $subjects = $this->seedSubjects();
         $students = $this->seedStudents($classes);
         $schedules = $this->seedSchedules($teachers, $classes, $subjects, $period);
@@ -216,6 +217,22 @@ class DataAkademikSeeder extends Seeder
         }
 
         return $subjects;
+    }
+
+    /**
+     * Tetapkan guru pengampu sebagai wali kelas untuk kelas yang diajarnya.
+     *
+     * @param  array<string, array{id: int, user_id: int, nama: string}>  $teachers
+     * @param  array<string, array{id: int, nama: string}>  $classes
+     */
+    private function seedHomerooms(array $teachers, array $classes): void
+    {
+        foreach (self::KELAS as $namaKelas => $info) {
+            Guru::query()
+                ->whereKey($teachers[$info['guru']]['id'])
+                ->whereNull('kelas_id')
+                ->update(['kelas_id' => $classes[$namaKelas]['id']]);
+        }
     }
 
     /**
@@ -765,7 +782,7 @@ class DataAkademikSeeder extends Seeder
             'Wali Kelas' => 250000,
             'Penanggung Jawab Bahasa' => 150000,
             'Bendahara' => 500000,
-            'Kepala Madrasah' => 1000000,
+            'Kepala Tim Manajemen' => 1000000,
         ];
 
         $ids = [];
@@ -775,7 +792,7 @@ class DataAkademikSeeder extends Seeder
         }
 
         $assignments = [
-            'ahmad' => ['Wali Kelas', 'Kepala Madrasah'],
+            'ahmad' => ['Wali Kelas', 'Kepala Tim Manajemen'],
             'siti' => ['Wali Kelas', 'Penanggung Jawab Bahasa'],
             'rizki' => ['Wali Kelas', 'Bendahara'],
             'fatimah' => ['Wali Kelas'],
