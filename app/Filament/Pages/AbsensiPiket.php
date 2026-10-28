@@ -167,7 +167,7 @@ class AbsensiPiket extends Page
             if ($session === null) {
                 $session = AbsenPiket::query()->create([
                     'kelas_id' => $class->id,
-                    'guru_id' => Filament::auth()->user()?->guru()->value('id'),
+                    'guru_id' => $this->guruId(),
                     'pencatat_id' => Filament::auth()->id(),
                     'revisi' => 1,
                     'tanggal' => $this->tanggal,
@@ -230,6 +230,7 @@ class AbsensiPiket extends Page
         if ($hasPiket) {
             $sessions = AbsenPiket::query()
                 ->whereDate('tanggal', $this->tanggal)
+                ->where('guru_id', $this->guruId())
                 ->with('murids')
                 ->get()
                 ->keyBy('kelas_id');
@@ -331,13 +332,16 @@ class AbsensiPiket extends Page
 
     private function sessionQuery(): Builder
     {
-        return AbsenPiket::query()->whereDate('tanggal', $this->tanggal);
+        return AbsenPiket::query()
+            ->whereDate('tanggal', $this->tanggal)
+            ->where('guru_id', $this->guruId());
     }
 
     private function sessionFor(Kelas $class, bool $lock = false): ?AbsenPiket
     {
         return AbsenPiket::query()
             ->where('kelas_id', $class->id)
+            ->where('guru_id', $this->guruId())
             ->whereDate('tanggal', $this->tanggal)
             ->when($lock, fn (Builder $query): Builder => $query->lockForUpdate())
             ->with(['murids' => function (HasMany $relation) use ($lock): void {
@@ -405,7 +409,7 @@ class AbsensiPiket extends Page
 
     private function hasPiketOnDate(): bool
     {
-        $guruId = Filament::auth()->user()?->guru()->value('id');
+        $guruId = $this->guruId();
 
         if ($guruId === null) {
             return false;
@@ -414,6 +418,11 @@ class AbsensiPiket extends Page
         $day = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'][CarbonImmutable::parse($this->tanggal)->dayOfWeek];
 
         return JadwalPiket::query()->where('guru_id', $guruId)->where('hari', $day)->exists();
+    }
+
+    private function guruId(): ?int
+    {
+        return Filament::auth()->user()?->guru()->value('id');
     }
 
     private function assertCanFill(): void

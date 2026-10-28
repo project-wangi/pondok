@@ -96,12 +96,23 @@ class RekapAbsensiPiket extends Page
         }
 
         $columns = [];
+        $sessionsPerDate = $sessions->countBy(
+            fn (AbsenPiket $session): string => (string) $session->tanggal?->toDateString(),
+        );
 
         foreach ($sessions as $index => $session) {
+            $date = (string) $session->tanggal?->toDateString();
+            $label = $this->sessionLabel($session);
+
+            // Bedakan kolom bila beberapa guru piket mencatat kelas dan tanggal yang sama.
+            if (($sessionsPerDate[$date] ?? 0) > 1 && filled($session->nama_guru)) {
+                $label .= ' — '.$session->nama_guru;
+            }
+
             $columns[] = [
                 'id' => $session->id,
                 'nomor' => $index + 1,
-                'label' => $this->sessionLabel($session),
+                'label' => $label,
                 'tanggal' => $session->tanggal,
             ];
         }

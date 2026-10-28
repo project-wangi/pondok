@@ -133,6 +133,32 @@ test('selects the first class and renders masuk and pulang codes with counts', f
         ->and($page->viewData('columns')[1]['label'])->toBe('Senin, 12 Oktober 2026');
 });
 
+test('labels duplicate dates with the recording teacher', function () {
+    $class = KelasFactory::new()->create(['nama_kelas' => 'Kelas X']);
+    $first = GuruFactory::new()->create(['user_id' => User::factory()->create(['name' => 'Guru Pagi'])->id]);
+    $second = GuruFactory::new()->create(['user_id' => User::factory()->create(['name' => 'Guru Siang'])->id]);
+
+    foreach ([$first, $second] as $teacher) {
+        AbsenPiket::query()->create([
+            'kelas_id' => $class->id,
+            'guru_id' => $teacher->id,
+            'pencatat_id' => $teacher->user_id,
+            'revisi' => 1,
+            'tanggal' => '2026-10-05',
+            'nama_guru' => $teacher->nama,
+            'nama_kelas' => 'Kelas X',
+            'dicatat_pada' => now(),
+        ]);
+    }
+
+    $this->actingAs(piketRecapTeacher()->user);
+
+    expect(collect(piketRecapPage()->viewData('columns'))->pluck('label')->all())->toBe([
+        'Senin, 5 Oktober 2026 — Guru Pagi',
+        'Senin, 5 Oktober 2026 — Guru Siang',
+    ]);
+});
+
 test('percentages use only recorded masuk statuses', function () {
     $class = KelasFactory::new()->create(['nama_kelas' => 'Kelas X']);
     $student = MuridFactory::new()->create(['kelas_id' => $class->id]);

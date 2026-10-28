@@ -6,6 +6,7 @@ use App\Models\JadwalPiket;
 use App\Models\JadwalRapat;
 use App\Models\User;
 use Carbon\CarbonImmutable;
+use Database\Factories\AbsenPiketFactory;
 use Database\Factories\DonasiFactory;
 use Database\Factories\GuruFactory;
 use Database\Factories\JadwalPelajaranFactory;
@@ -181,6 +182,28 @@ test('shows the admin dashboard with real operational data', function () {
         ->assertSee('Kelas Aktif')
         ->assertSee('Persentase Kehadiran')
         ->assertDontSee('Jadwal mengajar hari ini');
+});
+
+test('marks each piket teacher who recorded today as done', function () {
+    Role::create(['name' => 'admin', 'guard_name' => 'web']);
+    $admin = User::factory()->create()->assignRole('admin');
+    $first = dashboardTeacher(['user_id' => User::factory()->create(['name' => 'Petugas Satu'])->id]);
+    $second = dashboardTeacher(['user_id' => User::factory()->create(['name' => 'Petugas Dua'])->id]);
+    $class = KelasFactory::new()->create(['nama_kelas' => 'Kelas Piket']);
+
+    JadwalPiket::query()->create(['hari' => 'Senin', 'guru_id' => $first->id, 'ket' => null]);
+    JadwalPiket::query()->create(['hari' => 'Senin', 'guru_id' => $second->id, 'ket' => null]);
+    AbsenPiketFactory::new()->create(['guru_id' => $first->id, 'kelas_id' => $class->id]);
+    AbsenPiketFactory::new()->create(['guru_id' => $second->id, 'kelas_id' => $class->id]);
+
+    $this->actingAs($admin);
+
+    $response = $this->get('/admin')->assertOk();
+
+    expect(substr_count($response->getContent(), 'Sudah mencatat'))->toBe(2)
+        ->and(substr_count($response->getContent(), 'Belum mencatat'))->toBe(0);
+
+    $response->assertSee('Petugas Satu')->assertSee('Petugas Dua');
 });
 
 test('shows honest empty states on the admin dashboard', function () {

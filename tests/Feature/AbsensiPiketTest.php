@@ -122,6 +122,35 @@ test('saves masuk and pulang snapshots for every student', function () {
     ]);
 });
 
+test('keeps separate piket records for two teachers on the same class and date', function () {
+    $first = piketTeacher(['user_id' => User::factory()->create(['name' => 'Guru Pertama'])->id]);
+    $second = piketTeacher(['user_id' => User::factory()->create(['name' => 'Guru Kedua'])->id]);
+    piketSchedule($first);
+    piketSchedule($second);
+    $class = KelasFactory::new()->create(['nama_kelas' => 'Kelas Bersama']);
+    $student = MuridFactory::new()->create(['kelas_id' => $class->id]);
+
+    $this->actingAs($first->user);
+    Livewire::test(AbsensiPiket::class)
+        ->call('pilihKelas', $class->id)
+        ->set('kehadiran.m'.$student->id, ['masuk' => 'Hadir', 'pulang' => 'Pulang'])
+        ->call('simpan')->assertHasNoErrors();
+
+    $this->actingAs($second->user);
+    Livewire::test(AbsensiPiket::class)
+        ->call('pilihKelas', $class->id)
+        ->set('kehadiran.m'.$student->id, ['masuk' => 'Terlambat', 'pulang' => 'Pulang'])
+        ->call('simpan')->assertHasNoErrors();
+
+    $sessions = AbsenPiket::query()->with('murids')->orderBy('guru_id')->get();
+
+    expect($sessions)->toHaveCount(2)
+        ->and($sessions->pluck('guru_id')->all())->toBe([$first->id, $second->id])
+        ->and($sessions[0]->murids->first()->masuk)->toBe('Hadir')
+        ->and($sessions[1]->murids->first()->masuk)->toBe('Terlambat')
+        ->and($sessions[0]->murids->first()->absen_piket_id)->not->toBe($sessions[1]->murids->first()->absen_piket_id);
+});
+
 test('updates the same class record and keeps the first recorded time', function () {
     $teacher = piketTeacher();
     piketSchedule($teacher);
