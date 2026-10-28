@@ -170,7 +170,8 @@ test('a teacher sees their own salary slip for the selected month', function () 
         ->assertSee('Rp 925.000')
         ->assertSee('4,5 JP × Rp10.000')
         ->assertSee('2 hari hadir')
-        ->assertSee('Tahfizh Al-Qur\'an');
+        ->assertSee('Tahfizh Al-Qur\'an')
+        ->assertSeeHtml('href="'.e(route('slip-gaji.print', ['bulan' => 10, 'tahun' => 2026])).'"');
 });
 
 test('the salary slip follows the selected month', function () {
@@ -192,4 +193,25 @@ test('the salary slip follows the selected month', function () {
         ->and($rincian['total'])->toBe(682500);
 
     $component->assertSee('Rp 682.500');
+});
+
+test('renders a standalone printable slip that uses the browser print dialog', function () {
+    $guru = slipGajiScenario();
+    $this->actingAs($guru->user);
+
+    $this->get(route('slip-gaji.print', ['bulan' => 10, 'tahun' => 2026]))
+        ->assertOk()
+        ->assertSee('Slip Gaji Guru')
+        ->assertSee('Ust. Ahmad Fauzi')
+        ->assertSee('Rp 925.000')
+        ->assertSee('window.print()', false)
+        ->assertSee('color-scheme: light', false)
+        ->assertDontSee('fi-sidebar');
+});
+
+test('protects the printable slip from guests and non-teachers', function () {
+    $this->get(route('slip-gaji.print'))->assertForbidden();
+
+    $this->actingAs(slipGajiAdmin());
+    $this->get(route('slip-gaji.print'))->assertForbidden();
 });

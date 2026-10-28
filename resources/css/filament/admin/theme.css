@@ -2364,7 +2364,52 @@
     line-height: 1.7;
 }
 
+/* Slip selalu tampil sebagai lembar putih, termasuk saat dark mode. */
+.slip-gaji-page,
+.fi.dark .slip-gaji-page {
+    --presensi-text: #111827;
+    --presensi-muted: #374151;
+    --presensi-surface: #ffffff;
+    --presensi-stripe: #f3f4f6;
+    --presensi-heading: #1e40af;
+    --pondok-border: #d1d5db;
+    --pondok-navigation: #f3f4f6;
+    --pondok-background: #ffffff;
+    background-color: #ffffff !important;
+    color: #111827 !important;
+}
+
+body:has(.slip-gaji-page),
+.fi-main:has(.slip-gaji-page) {
+    background-color: #f3f4f6 !important;
+}
+
 @media print {
+    html,
+    body,
+    body:has(.slip-gaji-page),
+    .fi,
+    .fi-body,
+    .filament-body,
+    .fi-layout,
+    .fi-main-ctn,
+    .fi-main,
+    .fi-main:has(.slip-gaji-page),
+    .slip-gaji-page,
+    .slip-gaji-card,
+    .slip-gaji-container {
+        color-scheme: light !important;
+        background: #ffffff !important;
+        background-color: #ffffff !important;
+        background-image: none !important;
+        color: #000000 !important;
+        box-shadow: none !important;
+    }
+
+    :root {
+        color-scheme: light !important;
+    }
+
     .fi-sidebar,
     .fi-topbar,
     .fi-page-header,
@@ -2376,8 +2421,59 @@
         padding: 0 !important;
     }
 
-    .slip-gaji-page .slip-gaji-card {
-        border: 0;
+    .slip-gaji-page,
+    .fi.dark .slip-gaji-page {
+        --presensi-text: #111827;
+        --presensi-muted: #374151;
+        --presensi-surface: #ffffff;
+        --presensi-stripe: #f3f4f6;
+        --presensi-heading: #1e40af;
+        --pondok-border: #d1d5db;
+        --pondok-navigation: #f3f4f6;
+        --pondok-background: #ffffff;
+    }
+
+    .slip-gaji-page .slip-gaji-card,
+    .slip-gaji-page .slip-gaji-container {
+        width: 100% !important;
+        border: 1px solid #d1d5db !important;
+        background-color: #ffffff !important;
+        color: #000000 !important;
+        box-shadow: none !important;
+    }
+
+    .slip-gaji-page :is(h1, h2, h3, p, span, dt, dd, th, td, strong) {
+        color: #000000 !important;
+    }
+
+    .slip-gaji-page .presensi-table-scroll {
+        overflow: visible !important;
+        border-color: #d1d5db !important;
+        background-color: #ffffff !important;
+    }
+
+    .slip-gaji-page .presensi-table thead th {
+        background-color: #f3f4f6 !important;
+        color: #000000 !important;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+    }
+
+    .slip-gaji-page .presensi-table tbody tr:nth-child(even) {
+        background-color: #ffffff !important;
+    }
+
+    .slip-gaji-page .slip-gaji-table tfoot th,
+    .slip-gaji-page .slip-gaji-table tfoot td {
+        background-color: #f3f4f6 !important;
+        color: #000000 !important;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+    }
+
+    @page {
+        size: portrait;
+        margin: 12mm;
     }
 }
 

@@ -6,6 +6,7 @@ use App\Models\Guru;
 use App\Models\SiteSetting;
 use BackedEnum;
 use Carbon\CarbonImmutable;
+use Closure;
 use Filament\Facades\Filament;
 use Filament\Pages\Page;
 use Filament\Support\Icons\Heroicon;
@@ -74,6 +75,7 @@ class SlipGaji extends Page
     protected function getViewData(): array
     {
         $rincian = $this->rincian();
+        $tampilan = self::komponenRincian($rincian);
         $currentYear = (int) CarbonImmutable::now()->year;
         $years = range($currentYear - 3, $currentYear + 1);
 
@@ -82,6 +84,25 @@ class SlipGaji extends Page
             sort($years);
         }
 
+        return [
+            'rincian' => $rincian,
+            'sekolah' => SiteSetting::current()->school_name,
+            'bulanOptions' => GajiGuru::BULAN,
+            'tahunOptions' => $years,
+            'komponen' => $tampilan['komponen'],
+            'angka' => $tampilan['angka'],
+            'rupiah' => $tampilan['rupiah'],
+        ];
+    }
+
+    /**
+     * Data komponen slip yang dipakai halaman admin dan halaman cetak.
+     *
+     * @param  array<string, mixed>  $rincian
+     * @return array{komponen: list<array{label: string, rincian: string, jumlah: string}>, angka: Closure, rupiah: Closure}
+     */
+    public static function komponenRincian(array $rincian): array
+    {
         $rupiah = fn (int $value): string => 'Rp '.number_format($value, 0, ',', '.');
         $angka = function (float $value): string {
             $formatted = rtrim(rtrim(number_format($value, 2, ',', '.'), '0'), ',');
@@ -133,14 +154,6 @@ class SlipGaji extends Page
             ],
         ];
 
-        return [
-            'rincian' => $rincian,
-            'sekolah' => SiteSetting::current()->school_name,
-            'bulanOptions' => GajiGuru::BULAN,
-            'tahunOptions' => $years,
-            'komponen' => $komponen,
-            'angka' => $angka,
-            'rupiah' => $rupiah,
-        ];
+        return compact('komponen', 'angka', 'rupiah');
     }
 }

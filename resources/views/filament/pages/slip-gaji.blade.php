@@ -20,13 +20,20 @@
             </label>
 
             <div class="slip-gaji-actions">
-                <x-filament::button type="button" color="gray" icon="heroicon-o-printer" onclick="window.print()">
+                <x-filament::button
+                    tag="a"
+                    :href="route('slip-gaji.print', ['bulan' => $bulan, 'tahun' => $tahun])"
+                    target="_blank"
+                    rel="noopener"
+                    color="gray"
+                    icon="heroicon-o-printer"
+                >
                     Cetak slip
                 </x-filament::button>
             </div>
         </div>
 
-        <section class="slip-gaji-card" aria-labelledby="slip-gaji-title">
+        <section class="slip-gaji-card slip-gaji-container" aria-labelledby="slip-gaji-title">
             <header class="slip-gaji-header">
                 <div>
                     <p class="slip-gaji-school">{{ $sekolah }}</p>
