@@ -379,6 +379,7 @@ class AbsensiPeminatan extends Page
         }
 
         return Murid::query()
+            ->aktif()
             ->whereHas('jenisPeminatans', fn (Builder $query): Builder => $query->where('jenis_peminatans.id', $peminatanId))
             ->with('kelas')
             ->orderBy('nama')->orderBy('id')

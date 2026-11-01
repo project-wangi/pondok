@@ -251,6 +251,7 @@ class RaporAdmin extends Page
     private function kelasList(array $period): Collection
     {
         $muridCounts = Murid::query()
+            ->aktif()
             ->whereNotNull('kelas_id')
             ->selectRaw('kelas_id, count(*) as total')
             ->groupBy('kelas_id')
@@ -286,6 +287,7 @@ class RaporAdmin extends Page
     private function rankedStudents(int $kelasId, array $matrix): Collection
     {
         $rows = Murid::query()
+            ->aktif()
             ->where('kelas_id', $kelasId)
             ->orderBy('nama')
             ->orderBy('id')
@@ -473,6 +475,7 @@ class RaporAdmin extends Page
             ->first();
         $school = SiteSetting::current();
         $noAbsen = Murid::query()
+            ->aktif()
             ->where('kelas_id', $kelas->id)
             ->orderBy('nama')
             ->orderBy('id')

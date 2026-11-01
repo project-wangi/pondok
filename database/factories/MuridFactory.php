@@ -10,7 +10,7 @@ class MuridFactory extends Factory
 {
     protected $model = Murid::class;
 
-    /** @return array{kelas_id: KelasFactory, nama: string, email: string, jenis_kelamin: string} */
+    /** @return array{kelas_id: KelasFactory, nama: string, email: string, jenis_kelamin: string, status: string} */
     public function definition(): array
     {
         return [
@@ -18,6 +18,7 @@ class MuridFactory extends Factory
             'nama' => fake()->name(),
             'email' => fake()->unique()->safeEmail(),
             'jenis_kelamin' => fake()->randomElement(['laki-laki', 'perempuan']),
+            'status' => Murid::STATUS_AKTIF,
         ];
     }
 }

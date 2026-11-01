@@ -473,6 +473,18 @@ test('embeds the school logo on the report sheet and in the excel export', funct
         ->and($types)->toContain('/xl/drawings/drawing1.xml');
 });
 
+test('excludes non active students from the class ranking', function () {
+    $this->actingAs(raporAdminUser());
+    $data = raporAdminScenario();
+
+    $data['siswa']['ahmad']->update(['status' => Murid::STATUS_LULUS]);
+
+    Livewire::test(RaporAdmin::class)
+        ->call('pilihKelas', $data['kelas']->id)
+        ->assertDontSee('Ahmad')
+        ->assertSee('Bilal');
+});
+
 test('shows the homeroom class field only when Wali Kelas is selected', function () {
     $admin = User::factory()->create();
     $guru = raporGuruWithPermission($admin);

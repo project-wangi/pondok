@@ -5,16 +5,12 @@ namespace App\Filament\Resources\CalonSiswas\Schemas;
 use App\Models\CalonSiswa;
 use App\Models\Murid;
 use Filament\Forms\Components\DatePicker;
+use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
-use Filament\Infolists\Components\TextEntry;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
-use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\HtmlString;
-use Filament\Forms\Components\FileUpload;
-use Throwable;
 
 class CalonSiswaForm
 {
@@ -23,6 +19,30 @@ class CalonSiswaForm
         return $schema
             ->columns(1)
             ->components([
+                Section::make('Hasil Seleksi')
+                    ->description('Hanya bagian ini yang dapat diisi admin. Data calon siswa hanya dapat dilihat.')
+                    ->schema([
+                        TextInput::make('nilai_tes')
+                            ->label('Nilai Tes Masuk')
+                            ->numeric()
+                            ->minValue(0)
+                            ->maxValue(100)
+                            ->helperText('Skala 0–100. Nilai akan tampil di akun calon siswa.'),
+                        Select::make('status')
+                            ->label('Status')
+                            ->options(CalonSiswa::STATUS)
+                            ->disableOptionWhen(fn (string $value): bool => $value === CalonSiswa::STATUS_DITERIMA)
+                            ->required()
+                            ->default(CalonSiswa::STATUS_MENUNGGU)
+                            ->disabled(fn (?CalonSiswa $record): bool => $record?->murid_id !== null)
+                            ->dehydrated(fn (?CalonSiswa $record): bool => $record?->murid_id === null)
+                            ->helperText('Status Lulus/Tidak Lulus langsung terlihat oleh calon siswa. Status Diterima diatur otomatis saat siswa dibuat.'),
+                        Textarea::make('catatan')
+                            ->label('Catatan Internal Admin')
+                            ->maxLength(2000)
+                            ->columnSpanFull(),
+                    ])->columns(2),
+
                 Section::make('Data Pendaftar')
                     ->description('Diisi calon siswa saat membuat akun. Admin tidak dapat mengubah data ini.')
                     ->schema([
@@ -115,126 +135,49 @@ class CalonSiswaForm
                     ])->columns(2),
 
                 Section::make('Dokumen Pendaftaran')
-                    ->description('Diunggah calon siswa. Dokumen dapat dipratinjau langsung di halaman ini.')
+                    ->description('Diunggah calon siswa. Gunakan ikon lihat atau unduh pada berkas; admin tidak dapat mengubah dokumen.')
                     ->schema([
                         FileUpload::make('foto')
-                            ->label('Foto Calon Siswa')
+                            ->label('Foto Calon Murid')
                             ->disk('r2')
-                            ->deleteUploadedFileUsing(function ($file) {
-                                Storage::disk('r2')->delete($file);
-                            })
                             ->openable()
                             ->downloadable()
                             ->deletable(false)
+                            ->disabled()
                             ->maxSize(2048)
-                            ->helperText('Format: PDF / Gambar, maksimal 2MB')
                             ->acceptedFileTypes(['application/pdf', 'image/jpeg', 'image/png'])
-                            ->directory('calon-dokumen/ijazah'),
-
-                        FileUpload::make('ijazah')
-                            ->label('Ijazah')
-                            ->disk('r2')
-                            ->deleteUploadedFileUsing(function ($file) {
-                                Storage::disk('r2')->delete($file);
-                            })
-                            ->openable()
-                            ->downloadable()
-                            ->deletable(false)
-                            ->maxSize(2048)
-                            ->helperText('Format: PDF / Gambar, maksimal 2MB')
-                            ->acceptedFileTypes(['application/pdf', 'image/jpeg', 'image/png'])
-                            ->directory('calon-dokumen/ijazah'),
-
+                            ->directory('calon-dokumen/foto'),
                         FileUpload::make('kk')
                             ->label('Kartu Keluarga (KK)')
                             ->disk('r2')
-                            ->deleteUploadedFileUsing(function ($file) {
-                                Storage::disk('r2')->delete($file);
-                            })
                             ->openable()
                             ->downloadable()
                             ->deletable(false)
+                            ->disabled()
                             ->maxSize(2048)
-                            ->helperText('Format: PDF / Gambar, maksimal 2MB')
                             ->acceptedFileTypes(['application/pdf', 'image/jpeg', 'image/png'])
                             ->directory('calon-dokumen/kk'),
-
-                        FileUpload::make('kip')
-                            ->label('KIP (Kartu Indonesia Pintar - Opsional)')
+                        FileUpload::make('ijazah')
+                            ->label('Ijazah')
                             ->disk('r2')
-                            ->deleteUploadedFileUsing(function ($file) {
-                                Storage::disk('r2')->delete($file);
-                            })
-                            ->deletable(false)
                             ->openable()
                             ->downloadable()
+                            ->deletable(false)
+                            ->disabled()
                             ->maxSize(2048)
-                            ->helperText('Format: PDF / Gambar, maksimal 2MB')
+                            ->acceptedFileTypes(['application/pdf', 'image/jpeg', 'image/png'])
+                            ->directory('calon-dokumen/ijazah'),
+                        FileUpload::make('kip')
+                            ->label('KIP (opsional)')
+                            ->disk('r2')
+                            ->openable()
+                            ->downloadable()
+                            ->deletable(false)
+                            ->disabled()
+                            ->maxSize(2048)
                             ->acceptedFileTypes(['application/pdf', 'image/jpeg', 'image/png'])
                             ->directory('calon-dokumen/kip'),
-                    ])->columns(4),
-
-                    Section::make('Hasil Seleksi')
-                    ->description('Hanya bagian ini yang dapat diisi admin. Data calon siswa hanya dapat dilihat.')
-                    ->schema([
-                        TextInput::make('nilai_tes')
-                            ->label('Nilai Tes Masuk')
-                            ->numeric()
-                            ->minValue(0)
-                            ->maxValue(100)
-                            ->helperText('Skala 0–100. Nilai akan tampil di akun calon siswa.'),
-                        Select::make('status')
-                            ->label('Status')
-                            ->options(CalonSiswa::STATUS)
-                            ->disableOptionWhen(fn (string $value): bool => $value === CalonSiswa::STATUS_DITERIMA)
-                            ->required()
-                            ->default(CalonSiswa::STATUS_MENUNGGU)
-                            ->disabled(fn (?CalonSiswa $record): bool => $record?->murid_id !== null)
-                            ->dehydrated(fn (?CalonSiswa $record): bool => $record?->murid_id === null)
-                            ->helperText('Status Lulus/Tidak Lulus langsung terlihat oleh calon siswa. Status Diterima diatur otomatis saat siswa dibuat.'),
-                        Textarea::make('catatan')
-                            ->label('Catatan Internal Admin')
-                            ->maxLength(2000)
-                            ->columnSpanFull(),
                     ])->columns(2),
             ]);
-    }
-
-    private static function dokumen(?CalonSiswa $record, string $field): HtmlString
-    {
-        $path = $record?->{$field};
-
-        if (blank($path)) {
-            return new HtmlString('<span style="color:#9ca3af">Belum diunggah</span>');
-        }
-
-        try {
-            $url = Storage::disk('r2')->temporaryUrl($path, now()->addMinutes(15));
-        } catch (Throwable) {
-            return new HtmlString('Sudah diunggah (pratinjau tidak tersedia)');
-        }
-
-        $aman = e($url);
-        $label = e(CalonSiswa::DOKUMEN[$field] ?? $field);
-        $tautan = '<a href="'.$aman.'" target="_blank" rel="noopener" style="font-size:.75rem;color:#2563eb;text-decoration:underline">Buka di tab baru</a>';
-
-        if (in_array(strtolower(pathinfo($path, PATHINFO_EXTENSION)), ['jpg', 'jpeg', 'png'], true)) {
-            return new HtmlString(
-                '<figure style="margin:0;display:grid;gap:.4rem">'
-                .'<a href="'.$aman.'" target="_blank" rel="noopener">'
-                .'<img src="'.$aman.'" alt="'.$label.'" loading="lazy" style="max-height:14rem;width:auto;max-width:100%;border:1px solid #e5e7eb;border-radius:.5rem">'
-                .'</a>'
-                .$tautan
-                .'</figure>'
-            );
-        }
-
-        return new HtmlString(
-            '<details style="display:grid;gap:.4rem">'
-            .'<summary style="cursor:pointer;font-size:.8125rem;font-weight:600">Lihat pratinjau dokumen</summary>'
-            .'<iframe src="'.$aman.'" title="'.$label.'" style="margin-top:.5rem;width:100%;height:22rem;border:1px solid #e5e7eb;border-radius:.5rem;background:#fff"></iframe>'
-            .$tautan
-            .'</details>'
-        );
     }
 }

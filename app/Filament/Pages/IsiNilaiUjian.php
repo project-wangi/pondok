@@ -119,7 +119,7 @@ class IsiNilaiUjian extends Page
 
         DB::transaction(function (): void {
             $schedule = $this->scheduleQuery()->lockForUpdate()->firstOrFail();
-            $students = Murid::query()->where('kelas_id', $this->kelasId)
+            $students = Murid::query()->aktif()->where('kelas_id', $this->kelasId)
                 ->orderBy('nama')->orderBy('id')->lockForUpdate()->get();
 
             if ($students->isEmpty()) {
@@ -251,7 +251,7 @@ class IsiNilaiUjian extends Page
     /** @return Collection<int, Murid> */
     private function students(): Collection
     {
-        return Murid::query()->where('kelas_id', $this->kelasId)
+        return Murid::query()->aktif()->where('kelas_id', $this->kelasId)
             ->orderBy('nama')->orderBy('id')->get();
     }
 

@@ -50,6 +50,7 @@ class InputERapor extends Page
             ->values();
         $classIds = $schedules->pluck('kelas_id')->unique()->values();
         $studentCounts = Murid::query()
+            ->aktif()
             ->whereIn('kelas_id', $classIds)
             ->selectRaw('kelas_id, count(*) as total')
             ->groupBy('kelas_id')

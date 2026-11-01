@@ -238,6 +238,7 @@ class AbsensiPiket extends Page
             if ($isEditable) {
                 $classes = Kelas::query()->orderBy('nama_kelas')->get();
                 $studentCounts = Murid::query()
+                    ->aktif()
                     ->whereIn('kelas_id', $classes->pluck('id'))
                     ->selectRaw('kelas_id, count(*) as total')
                     ->groupBy('kelas_id')
@@ -368,7 +369,7 @@ class AbsensiPiket extends Page
             ])->all();
         }
 
-        return Murid::query()->where('kelas_id', $class->id)->orderBy('nama')->orderBy('id')
+        return Murid::query()->aktif()->where('kelas_id', $class->id)->orderBy('nama')->orderBy('id')
             ->when($lock, fn (Builder $query): Builder => $query->lockForUpdate())
             ->get(['id', 'nama', 'nis'])->mapWithKeys(fn (Murid $student): array => [
                 'm'.$student->id => [

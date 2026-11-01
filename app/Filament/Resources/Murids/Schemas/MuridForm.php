@@ -9,6 +9,7 @@ use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Schemas\Components\Section;
+use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Schema;
 use Illuminate\Support\Facades\Storage;
 
@@ -34,6 +35,23 @@ class MuridForm
                             ->searchable()
                             ->preload()
                             ->helperText('Boleh memilih lebih dari satu peminatan.'),
+
+                        Select::make('status')
+                            ->label('Status Siswa')
+                            ->options(Murid::STATUS)
+                            ->default(Murid::STATUS_AKTIF)
+                            ->required()
+                            ->helperText('Daftar siswa secara bawaan hanya menampilkan status Aktif.'),
+
+                        DatePicker::make('tanggal_lulus')
+                            ->label('Tanggal Lulus')
+                            ->helperText('Terisi otomatis saat status Lulus. Boleh disesuaikan.')
+                            ->visible(fn (Get $get): bool => $get('status') === Murid::STATUS_LULUS),
+
+                        DatePicker::make('tanggal_keluar')
+                            ->label('Tanggal Keluar')
+                            ->helperText('Terisi otomatis saat status Keluar. Boleh disesuaikan.')
+                            ->visible(fn (Get $get): bool => $get('status') === Murid::STATUS_KELUAR),
 
                         FileUpload::make('foto')
                             ->label('Foto Siswa')

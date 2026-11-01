@@ -440,7 +440,11 @@ test('keeps the candidate administration data read only for admins', function ()
         ->assertFormFieldDisabled('nama_ibu', 'form')
         ->assertFormFieldEnabled('nilai_tes', 'form')
         ->assertFormFieldEnabled('status', 'form')
-        ->assertFormFieldEnabled('catatan', 'form');
+        ->assertFormFieldEnabled('catatan', 'form')
+        ->assertFormFieldDisabled('foto', 'form')
+        ->assertFormFieldDisabled('kk', 'form')
+        ->assertFormFieldDisabled('ijazah', 'form')
+        ->assertFormFieldDisabled('kip', 'form');
 
     Livewire::test(EditCalonSiswa::class, ['record' => $calon->getRouteKey()])
         ->fillForm(['nilai_tes' => 90, 'status' => CalonSiswa::STATUS_TIDAK_LULUS])
@@ -458,7 +462,7 @@ test('keeps the candidate administration data read only for admins', function ()
         ->and($calon->dataLengkap())->toBeTrue();
 });
 
-test('previews candidate documents inline for admins', function () {
+test('shows candidate documents with open and download actions', function () {
     Storage::disk('r2')->buildTemporaryUrlsUsing(
         fn (string $path, mixed $expiration): string => 'https://example.test/'.$path,
     );
@@ -474,9 +478,12 @@ test('previews candidate documents inline for admins', function () {
 
     $this->get(CalonSiswaResource::getUrl('edit', ['record' => $calon]))
         ->assertOk()
-        ->assertSee('Lihat pratinjau dokumen')
-        ->assertSee('<iframe', false)
-        ->assertSee('<img', false);
+        ->assertSee('Dokumen Pendaftaran')
+        ->assertSee('Kartu Keluarga (KK)');
+
+    Livewire::test(EditCalonSiswa::class, ['record' => $calon->getRouteKey()])
+        ->assertFormFieldDisabled('kk', 'form')
+        ->assertFormFieldDisabled('foto', 'form');
 });
 
 test('denies the candidate resource to teachers', function () {

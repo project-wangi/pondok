@@ -63,6 +63,7 @@ class InputAsesmenFormatif extends Page
             ->get()
             ->groupBy(fn (LingkupMateri $material): string => $material->kelas_id.'-'.$material->mata_pelajaran_id);
         $studentCounts = Murid::query()
+            ->aktif()
             ->whereIn('kelas_id', $classIds)
             ->selectRaw('kelas_id, count(*) as total')
             ->groupBy('kelas_id')

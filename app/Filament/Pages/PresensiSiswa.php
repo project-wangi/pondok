@@ -347,7 +347,7 @@ class PresensiSiswa extends Page
             ])->all();
         }
 
-        return Murid::query()->where('kelas_id', $schedule->kelas_id)->orderBy('nama')->orderBy('id')
+        return Murid::query()->aktif()->where('kelas_id', $schedule->kelas_id)->orderBy('nama')->orderBy('id')
             ->when($lock, fn (Builder $query): Builder => $query->lockForUpdate())
             ->get(['id', 'nama', 'nis'])->mapWithKeys(fn (Murid $student): array => [
                 'm'.$student->id => [

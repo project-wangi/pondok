@@ -47,8 +47,27 @@ class MuridsTable
                     ->label('Kelas')
                     ->badge()
                     ->sortable(),
+                TextColumn::make('status')
+                    ->label('Status')
+                    ->badge()
+                    ->color(fn (?string $state): string => Murid::statusColors()[$state] ?? 'gray')
+                    ->sortable(),
+                TextColumn::make('tanggal_lulus')
+                    ->label('Tanggal Lulus')
+                    ->date('d M Y')
+                    ->placeholder('-')
+                    ->toggleable(),
+                TextColumn::make('tanggal_keluar')
+                    ->label('Tanggal Keluar')
+                    ->date('d M Y')
+                    ->placeholder('-')
+                    ->toggleable(),
             ])
             ->filters([
+                SelectFilter::make('status')
+                    ->label('Status Siswa')
+                    ->options(Murid::STATUS)
+                    ->default(Murid::STATUS_AKTIF),
                 SelectFilter::make('kelas_id')
                     ->label('Kelas')
                     ->options(fn (): array => Kelas::query()->orderBy('nama_kelas')->pluck('nama_kelas', 'id')->all())
@@ -89,6 +108,33 @@ class MuridsTable
                                 ->success()
                                 ->title('Kelas siswa diperbarui')
                                 ->body($count.' siswa dipindahkan ke kelas '.($kelas?->nama_kelas ?? '-').'.')
+                                ->send();
+                        })
+                        ->deselectRecordsAfterCompletion(),
+                    BulkAction::make('ubahStatus')
+                        ->label('Ubah status')
+                        ->icon('heroicon-o-arrow-path-rounded-square')
+                        ->color('warning')
+                        ->modalHeading('Ubah status siswa')
+                        ->modalDescription('Tandai siswa sebagai Aktif, Lulus, atau Keluar. Daftar siswa bawaan hanya menampilkan status Aktif.')
+                        ->modalSubmitActionLabel('Simpan status')
+                        ->schema([
+                            Select::make('status')
+                                ->label('Status baru')
+                                ->options(Murid::STATUS)
+                                ->required()
+                                ->rules(['in:'.implode(',', array_keys(Murid::STATUS))]),
+                        ])
+                        ->authorize(fn (): bool => Filament::auth()->user()?->can('Update:Murid') ?? false)
+                        ->action(function (Collection $records, array $data): void {
+                            $records->each(fn (Murid $murid) => $murid->update(['status' => $data['status']]));
+
+                            $count = $records->count();
+
+                            Notification::make()
+                                ->success()
+                                ->title('Status siswa diperbarui')
+                                ->body($count.' siswa diubah menjadi '.$data['status'].'.')
                                 ->send();
                         })
                         ->deselectRecordsAfterCompletion(),
