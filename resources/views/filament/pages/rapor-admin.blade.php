@@ -138,10 +138,21 @@
 
             <article class="rapor-sheet" aria-label="Rapor {{ $rapor['student']['nama'] }}">
                 <header class="rapor-sheet-header">
-                    <p class="rapor-school">{{ $rapor['school_name'] }}</p>
-                    @if ($rapor['school_address'] !== '')
-                        <p class="rapor-school-address">{{ $rapor['school_address'] }}</p>
-                    @endif
+                    <div class="rapor-sheet-cop">
+                        @if (filled($rapor['school_logo_url'] ?? null))
+                            <img
+                                class="rapor-sheet-logo"
+                                src="{{ $rapor['school_logo_url'] }}"
+                                alt="Logo {{ $rapor['school_name'] }}"
+                            >
+                        @endif
+                        <div class="rapor-sheet-school">
+                            <p class="rapor-school">{{ $rapor['school_name'] }}</p>
+                            @if ($rapor['school_address'] !== '')
+                                <p class="rapor-school-address">{{ $rapor['school_address'] }}</p>
+                            @endif
+                        </div>
+                    </div>
                     <h2 class="rapor-sheet-title">LAPORAN HASIL BELAJAR</h2>
                     <p class="rapor-sheet-subtitle">
                         UJIAN AKHIR SEMESTER {{ mb_strtoupper($rapor['semester']) }} {{ $rapor['tahun_ajaran'] }}

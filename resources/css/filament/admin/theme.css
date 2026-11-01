@@ -3147,6 +3147,27 @@ body:has(.slip-gaji-page),
     text-align: center;
 }
 
+.rapor-admin-page .rapor-sheet-logo {
+    width: 4.5rem;
+    height: 4.5rem;
+    flex-shrink: 0;
+    object-fit: contain;
+}
+
+.rapor-admin-page .rapor-sheet-cop {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+    margin-bottom: 0.5rem;
+}
+
+.rapor-admin-page .rapor-sheet-school {
+    display: grid;
+    gap: 0.15rem;
+    text-align: center;
+}
+
 .rapor-admin-page .rapor-school {
     font-weight: 700;
     letter-spacing: 0.02em;

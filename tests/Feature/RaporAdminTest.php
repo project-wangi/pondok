@@ -11,6 +11,7 @@ use App\Models\Kelas;
 use App\Models\MataPelajaran;
 use App\Models\Murid;
 use App\Models\RaporKepribadian;
+use App\Models\SiteSetting;
 use App\Models\User;
 use Carbon\CarbonImmutable;
 use Database\Factories\ERaporFactory;
@@ -23,10 +24,12 @@ use Database\Factories\PresensiMuridFactory;
 use Database\Factories\SesiMengajarFactory;
 use Filament\Facades\Filament;
 use Illuminate\Foundation\Testing\LazilyRefreshDatabase;
+use Illuminate\Support\Facades\Storage;
 use Livewire\Livewire;
 use OpenSpout\Reader\XLSX\Reader;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
+use ZipArchive;
 
 uses(LazilyRefreshDatabase::class);
 
@@ -423,6 +426,51 @@ test('downloads an excel report with identity, scores, and personality', functio
         ->and($kepribadian)->not->toBeNull()
         ->and((int) $kepribadian[2])->toBe(95)
         ->and($kepribadian[3])->toBe('A');
+});
+
+test('embeds the school logo on the report sheet and in the excel export', function () {
+    Storage::fake('public');
+    Storage::disk('public')->put(
+        'website/school-logo.png',
+        base64_decode('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg=='),
+    );
+
+    SiteSetting::factory()->create([
+        'school_name' => 'Pondok Ilmu',
+        'address' => 'Jl. Contoh No. 1',
+        'logo' => 'website/school-logo.png',
+    ]);
+
+    $this->actingAs(raporAdminUser());
+    $data = raporAdminScenario();
+
+    $component = Livewire::test(RaporAdmin::class)
+        ->call('pilihKelas', $data['kelas']->id)
+        ->call('pilihMurid', $data['siswa']['ahmad']->id)
+        ->assertSee('rapor-sheet-logo')
+        ->assertSee('website/school-logo.png')
+        ->call('export')
+        ->assertFileDownloaded('rapor-001-ganjil-2026-2027.xlsx');
+
+    $download = $component->effects['download'];
+    $path = tempnam(sys_get_temp_dir(), 'rapor-logo-');
+    file_put_contents($path, base64_decode($download['content']));
+
+    $zip = new ZipArchive;
+    expect($zip->open($path))->toBeTrue();
+
+    $logo = $zip->getFromName('xl/media/school-logo.png');
+    $sheet = (string) $zip->getFromName('xl/worksheets/sheet1.xml');
+    $types = (string) $zip->getFromName('[Content_Types].xml');
+
+    $zip->close();
+    unlink($path);
+
+    expect($logo)->not->toBeFalse()
+        ->and($sheet)->toContain('<drawing')
+        ->and($sheet)->toContain('B2:E2')
+        ->and($sheet)->toContain('B3:E3')
+        ->and($types)->toContain('/xl/drawings/drawing1.xml');
 });
 
 test('shows the homeroom class field only when Wali Kelas is selected', function () {
