@@ -239,7 +239,6 @@ class CalonSiswasTable
                             ->persistent()
                             ->send();
                     }),
-                DeleteAction::make(),
             ])
             ->toolbarActions([
                 BulkActionGroup::make([

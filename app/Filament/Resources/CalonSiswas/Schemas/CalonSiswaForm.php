@@ -23,30 +23,6 @@ class CalonSiswaForm
         return $schema
             ->columns(1)
             ->components([
-                Section::make('Hasil Seleksi')
-                    ->description('Hanya bagian ini yang dapat diisi admin. Data calon siswa hanya dapat dilihat.')
-                    ->schema([
-                        TextInput::make('nilai_tes')
-                            ->label('Nilai Tes Masuk')
-                            ->numeric()
-                            ->minValue(0)
-                            ->maxValue(100)
-                            ->helperText('Skala 0–100. Nilai akan tampil di akun calon siswa.'),
-                        Select::make('status')
-                            ->label('Status')
-                            ->options(CalonSiswa::STATUS)
-                            ->disableOptionWhen(fn (string $value): bool => $value === CalonSiswa::STATUS_DITERIMA)
-                            ->required()
-                            ->default(CalonSiswa::STATUS_MENUNGGU)
-                            ->disabled(fn (?CalonSiswa $record): bool => $record?->murid_id !== null)
-                            ->dehydrated(fn (?CalonSiswa $record): bool => $record?->murid_id === null)
-                            ->helperText('Status Lulus/Tidak Lulus langsung terlihat oleh calon siswa. Status Diterima diatur otomatis saat siswa dibuat.'),
-                        Textarea::make('catatan')
-                            ->label('Catatan Internal Admin')
-                            ->maxLength(2000)
-                            ->columnSpanFull(),
-                    ])->columns(2),
-
                 Section::make('Data Pendaftar')
                     ->description('Diisi calon siswa saat membuat akun. Admin tidak dapat mengubah data ini.')
                     ->schema([
@@ -197,6 +173,30 @@ class CalonSiswaForm
                             ->acceptedFileTypes(['application/pdf', 'image/jpeg', 'image/png'])
                             ->directory('calon-dokumen/kip'),
                     ])->columns(4),
+
+                    Section::make('Hasil Seleksi')
+                    ->description('Hanya bagian ini yang dapat diisi admin. Data calon siswa hanya dapat dilihat.')
+                    ->schema([
+                        TextInput::make('nilai_tes')
+                            ->label('Nilai Tes Masuk')
+                            ->numeric()
+                            ->minValue(0)
+                            ->maxValue(100)
+                            ->helperText('Skala 0–100. Nilai akan tampil di akun calon siswa.'),
+                        Select::make('status')
+                            ->label('Status')
+                            ->options(CalonSiswa::STATUS)
+                            ->disableOptionWhen(fn (string $value): bool => $value === CalonSiswa::STATUS_DITERIMA)
+                            ->required()
+                            ->default(CalonSiswa::STATUS_MENUNGGU)
+                            ->disabled(fn (?CalonSiswa $record): bool => $record?->murid_id !== null)
+                            ->dehydrated(fn (?CalonSiswa $record): bool => $record?->murid_id === null)
+                            ->helperText('Status Lulus/Tidak Lulus langsung terlihat oleh calon siswa. Status Diterima diatur otomatis saat siswa dibuat.'),
+                        Textarea::make('catatan')
+                            ->label('Catatan Internal Admin')
+                            ->maxLength(2000)
+                            ->columnSpanFull(),
+                    ])->columns(2),
             ]);
     }
 
