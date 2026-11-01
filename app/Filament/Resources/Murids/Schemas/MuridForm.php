@@ -149,6 +149,8 @@ class MuridForm
                             ->deleteUploadedFileUsing(function ($file) {
                                 Storage::disk('r2')->delete($file);
                             })
+                            ->openable()
+                            ->downloadable()
                             ->maxSize(2048)
                             ->helperText('Format: PDF / Gambar, maksimal 2MB')
                             ->acceptedFileTypes(['application/pdf', 'image/jpeg', 'image/png'])
@@ -160,6 +162,8 @@ class MuridForm
                             ->deleteUploadedFileUsing(function ($file) {
                                 Storage::disk('r2')->delete($file);
                             })
+                            ->openable()
+                            ->downloadable()
                             ->maxSize(2048)
                             ->helperText('Format: PDF / Gambar, maksimal 2MB')
                             ->acceptedFileTypes(['application/pdf', 'image/jpeg', 'image/png'])
@@ -171,6 +175,8 @@ class MuridForm
                             ->deleteUploadedFileUsing(function ($file) {
                                 Storage::disk('r2')->delete($file);
                             })
+                            ->openable()
+                            ->downloadable()
                             ->maxSize(2048)
                             ->helperText('Format: PDF / Gambar, maksimal 2MB')
                             ->acceptedFileTypes(['application/pdf', 'image/jpeg', 'image/png'])

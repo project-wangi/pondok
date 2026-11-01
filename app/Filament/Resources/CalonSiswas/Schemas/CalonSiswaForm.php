@@ -13,6 +13,7 @@ use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\HtmlString;
+use Filament\Forms\Components\FileUpload;
 use Throwable;
 
 class CalonSiswaForm
@@ -140,19 +141,62 @@ class CalonSiswaForm
                 Section::make('Dokumen Pendaftaran')
                     ->description('Diunggah calon siswa. Dokumen dapat dipratinjau langsung di halaman ini.')
                     ->schema([
-                        TextEntry::make('dokumen_foto')
-                            ->label('Foto Calon Murid')
-                            ->state(fn (?CalonSiswa $record): HtmlString => self::dokumen($record, 'foto')),
-                        TextEntry::make('dokumen_kk')
-                            ->label('Kartu Keluarga (KK)')
-                            ->state(fn (?CalonSiswa $record): HtmlString => self::dokumen($record, 'kk')),
-                        TextEntry::make('dokumen_ijazah')
+                        FileUpload::make('foto')
+                            ->label('Foto Calon Siswa')
+                            ->disk('r2')
+                            ->deleteUploadedFileUsing(function ($file) {
+                                Storage::disk('r2')->delete($file);
+                            })
+                            ->openable()
+                            ->downloadable()
+                            ->deletable(false)
+                            ->maxSize(2048)
+                            ->helperText('Format: PDF / Gambar, maksimal 2MB')
+                            ->acceptedFileTypes(['application/pdf', 'image/jpeg', 'image/png'])
+                            ->directory('calon-dokumen/ijazah'),
+
+                        FileUpload::make('ijazah')
                             ->label('Ijazah')
-                            ->state(fn (?CalonSiswa $record): HtmlString => self::dokumen($record, 'ijazah')),
-                        TextEntry::make('dokumen_kip')
-                            ->label('KIP (opsional)')
-                            ->state(fn (?CalonSiswa $record): HtmlString => self::dokumen($record, 'kip')),
-                    ])->columns(1),
+                            ->disk('r2')
+                            ->deleteUploadedFileUsing(function ($file) {
+                                Storage::disk('r2')->delete($file);
+                            })
+                            ->openable()
+                            ->downloadable()
+                            ->deletable(false)
+                            ->maxSize(2048)
+                            ->helperText('Format: PDF / Gambar, maksimal 2MB')
+                            ->acceptedFileTypes(['application/pdf', 'image/jpeg', 'image/png'])
+                            ->directory('calon-dokumen/ijazah'),
+
+                        FileUpload::make('kk')
+                            ->label('Kartu Keluarga (KK)')
+                            ->disk('r2')
+                            ->deleteUploadedFileUsing(function ($file) {
+                                Storage::disk('r2')->delete($file);
+                            })
+                            ->openable()
+                            ->downloadable()
+                            ->deletable(false)
+                            ->maxSize(2048)
+                            ->helperText('Format: PDF / Gambar, maksimal 2MB')
+                            ->acceptedFileTypes(['application/pdf', 'image/jpeg', 'image/png'])
+                            ->directory('calon-dokumen/kk'),
+
+                        FileUpload::make('kip')
+                            ->label('KIP (Kartu Indonesia Pintar - Opsional)')
+                            ->disk('r2')
+                            ->deleteUploadedFileUsing(function ($file) {
+                                Storage::disk('r2')->delete($file);
+                            })
+                            ->deletable(false)
+                            ->openable()
+                            ->downloadable()
+                            ->maxSize(2048)
+                            ->helperText('Format: PDF / Gambar, maksimal 2MB')
+                            ->acceptedFileTypes(['application/pdf', 'image/jpeg', 'image/png'])
+                            ->directory('calon-dokumen/kip'),
+                    ])->columns(4),
             ]);
     }
 
