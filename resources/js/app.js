@@ -34,6 +34,65 @@ if (mobileMenu) {
     });
 }
 
+const navGroups = document.querySelectorAll('[data-nav-group]');
+
+if (navGroups.length > 0) {
+    const hoverPointer = window.matchMedia('(hover: hover) and (pointer: fine)');
+
+    const closeNavGroups = (except = null) => {
+        for (const group of navGroups) {
+            if (group !== except) {
+                group.open = false;
+            }
+        }
+    };
+
+    for (const group of navGroups) {
+        const summary = group.querySelector('summary');
+
+        group.addEventListener('pointerenter', () => {
+            if (!hoverPointer.matches) {
+                return;
+            }
+
+            closeNavGroups(group);
+            group.open = true;
+        });
+
+        group.addEventListener('pointerleave', () => {
+            if (hoverPointer.matches) {
+                group.open = false;
+            }
+        });
+
+        group.addEventListener('keydown', (event) => {
+            if (event.key === 'Escape' && group.open) {
+                group.open = false;
+                summary.focus();
+            }
+        });
+
+        summary.addEventListener('click', (event) => {
+            if (!hoverPointer.matches || event.detail === 0) {
+                closeNavGroups(group);
+
+                return;
+            }
+
+            // Pointer users already opened the group on hover, so a click keeps it open.
+            event.preventDefault();
+            closeNavGroups(group);
+            group.open = true;
+        });
+    }
+
+    document.addEventListener('click', (event) => {
+        if (!event.target.closest('[data-nav-group]')) {
+            closeNavGroups();
+        }
+    });
+}
+
 for (const form of document.querySelectorAll('[data-school-search]')) {
     const button = form.querySelector('button[type="submit"]');
     const status = form.querySelector('[data-search-status]');

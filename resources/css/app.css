@@ -325,6 +325,7 @@
     color: var(--school-ink);
     font-size: 0.875rem;
     font-weight: 500;
+    white-space: nowrap;
 }
 
 .school-nav a:hover {
@@ -345,6 +346,77 @@
     background: var(--school-gold);
 }
 
+.school-nav-group {
+    position: relative;
+}
+
+.school-nav-group > summary {
+    display: flex;
+    min-height: 2.75rem;
+    cursor: pointer;
+    list-style: none;
+    align-items: center;
+    gap: 0.2rem;
+    color: var(--school-ink);
+    font-size: 0.875rem;
+    font-weight: 500;
+    white-space: nowrap;
+}
+
+.school-nav-group > summary::-webkit-details-marker {
+    display: none;
+}
+
+.school-nav-group > summary:hover,
+.school-nav-group[open] > summary {
+    color: var(--school-primary);
+}
+
+.school-nav-group > summary[aria-current] {
+    color: var(--school-primary);
+    font-weight: 600;
+}
+
+.school-nav-caret {
+    width: 0.9rem;
+    height: 0.9rem;
+    flex-shrink: 0;
+}
+
+.school-nav-group[open] .school-nav-caret {
+    transform: rotate(180deg);
+}
+
+.school-nav-panel {
+    position: absolute;
+    inset-block-start: calc(100% - 0.35rem);
+    inset-inline-start: 0;
+    z-index: 50;
+    display: grid;
+    min-width: 15rem;
+    padding: 0.5rem;
+    border: 1px solid var(--school-line);
+    border-radius: 0.75rem;
+    background: var(--school-white);
+    box-shadow: 0 24px 48px rgba(8, 33, 63, 0.18);
+}
+
+.school-nav-panel a {
+    min-height: 2.5rem;
+    border-radius: 0.375rem;
+    padding-inline: 0.75rem;
+}
+
+.school-nav-panel a:hover,
+.school-nav-panel a[aria-current='page'] {
+    background: var(--school-primary-soft);
+    color: var(--school-primary);
+}
+
+.school-nav-panel a[aria-current='page']::after {
+    content: none;
+}
+
 .school-header-cta {
     display: none;
 }
@@ -352,10 +424,17 @@
 @media (min-width: 1024px) {
     .school-nav {
         display: flex;
+        gap: 1.15rem;
     }
 
     .school-header-cta {
         display: inline-flex;
+    }
+}
+
+@media (min-width: 1280px) {
+    .school-nav {
+        gap: 1.5rem;
     }
 }
 
@@ -1533,5 +1612,9 @@
             color 160ms ease,
             border-color 160ms ease,
             box-shadow 160ms ease;
+    }
+
+    .school-nav-caret {
+        transition: transform 160ms ease;
     }
 }

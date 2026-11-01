@@ -29,6 +29,7 @@
                 @endif
             </div>
             <div class="school-topbar-list">
+                <a href="{{ route('filament.siswa.auth.login') }}"><x-heroicon-o-user class="inline size-3.5 align-[-2px]" /> Masuk calon murid</a>
                 <a href="{{ route('filament.admin.auth.login') }}"><x-heroicon-o-lock-closed class="inline size-3.5 align-[-2px]" /> Masuk admin</a>
             </div>
         </div>
@@ -48,11 +49,44 @@
 
             <nav aria-label="Navigasi utama" class="school-nav">
                 <a href="{{ route('home') }}" @if (request()->routeIs('home')) aria-current="page" @endif>Beranda</a>
-                <a href="{{ route('home') }}#profil">Profil</a>
-                <a href="{{ route('home') }}#program">Program</a>
-                <a href="{{ route('posts.index') }}" @if (request()->routeIs('posts.*')) aria-current="page" @endif>Artikel</a>
-                <a href="{{ route('posts.index', ['category' => 'pengumuman']) }}">Pengumuman</a>
-                <a href="{{ route('posts.index', ['category' => 'agenda']) }}">Agenda</a>
+
+                <details class="school-nav-group" data-nav-group>
+                    <summary>
+                        Profil
+                        <x-heroicon-o-chevron-down class="school-nav-caret" aria-hidden="true" />
+                    </summary>
+                    <div class="school-nav-panel">
+                        <a href="{{ route('home') }}#profil">Profil sekolah</a>
+                        <a href="{{ route('home') }}#program">Program &amp; layanan</a>
+                    </div>
+                </details>
+
+                <details class="school-nav-group" data-nav-group>
+                    <summary @if (request()->routeIs('posts.*')) aria-current="true" @endif>
+                        Informasi
+                        <x-heroicon-o-chevron-down class="school-nav-caret" aria-hidden="true" />
+                    </summary>
+                    <div class="school-nav-panel">
+                        <a href="{{ route('posts.index') }}">Artikel &amp; berita</a>
+                        <a href="{{ route('posts.index', ['category' => 'berita']) }}">Berita sekolah</a>
+                        <a href="{{ route('posts.index', ['category' => 'pengumuman']) }}">Pengumuman</a>
+                        <a href="{{ route('posts.index', ['category' => 'agenda']) }}">Agenda kegiatan</a>
+                        <a href="{{ route('posts.index', ['category' => 'prestasi']) }}">Prestasi santri</a>
+                    </div>
+                </details>
+
+                <details class="school-nav-group" data-nav-group>
+                    <summary @if (request()->routeIs('pendaftaran.*')) aria-current="true" @endif>
+                        Pendaftaran
+                        <x-heroicon-o-chevron-down class="school-nav-caret" aria-hidden="true" />
+                    </summary>
+                    <div class="school-nav-panel">
+                        <a href="{{ route('pendaftaran.create') }}">Formulir pendaftaran</a>
+                        <a href="{{ route('filament.siswa.auth.login') }}">Masuk calon murid</a>
+                        <a href="{{ \App\Filament\Siswa\Pages\StatusPendaftaran::getUrl(panel: 'siswa') }}">Cek status pendaftaran</a>
+                    </div>
+                </details>
+
                 <a href="{{ route('home') }}#kontak">Kontak</a>
             </nav>
 
@@ -60,7 +94,7 @@
                 @if ($settings->registration_url && App\Models\SiteSetting::isSafeUrl($settings->registration_url))
                     <a href="{{ $settings->registration_url }}" class="school-button school-button-gold school-header-cta">{{ $settings->registration_label }}</a>
                 @else
-                    <a href="{{ route('home') }}#kontak" class="school-button school-button-gold school-header-cta">Hubungi Kami</a>
+                    <a href="{{ route('pendaftaran.create') }}" class="school-button school-button-gold school-header-cta">{{ $settings->registration_label ?: 'Daftar Sekarang' }}</a>
                 @endif
 
                 <details class="school-mobile-menu" data-school-menu>
@@ -73,12 +107,16 @@
                         <a href="{{ route('home') }}#profil">Profil sekolah</a>
                         <a href="{{ route('home') }}#program">Program & layanan</a>
                         <a href="{{ route('posts.index') }}" @if (request()->routeIs('posts.*')) aria-current="page" @endif>Artikel & berita</a>
+                        <a href="{{ route('pendaftaran.create') }}" @if (request()->routeIs('pendaftaran.*')) aria-current="page" @endif>Pendaftaran calon murid</a>
                         <a href="{{ route('posts.index', ['category' => 'pengumuman']) }}">Pengumuman</a>
                         <a href="{{ route('posts.index', ['category' => 'agenda']) }}">Agenda</a>
                         <a href="{{ route('home') }}#kontak">Kontak</a>
                         @if ($settings->registration_url && App\Models\SiteSetting::isSafeUrl($settings->registration_url))
                             <a href="{{ $settings->registration_url }}" class="school-button school-button-gold">{{ $settings->registration_label }}</a>
+                        @else
+                            <a href="{{ route('pendaftaran.create') }}" class="school-button school-button-gold">{{ $settings->registration_label ?: 'Daftar Sekarang' }}</a>
                         @endif
+                        <a href="{{ route('filament.siswa.auth.login') }}">Masuk calon murid</a>
                         <a href="{{ route('filament.admin.auth.login') }}">Masuk admin</a>
                     </nav>
                 </details>
@@ -109,6 +147,7 @@
                 <h2 class="school-footer-title">Informasi</h2>
                 <div class="school-footer-list">
                     <a href="{{ route('posts.index', ['category' => 'berita']) }}" class="school-footer-link">Berita sekolah</a>
+                    <a href="{{ route('pendaftaran.create') }}" class="school-footer-link">Pendaftaran calon murid</a>
                     <a href="{{ route('posts.index', ['category' => 'prestasi']) }}" class="school-footer-link">Prestasi santri</a>
                     <a href="{{ route('home') }}#kontak" class="school-footer-link">Kontak</a>
                 </div>

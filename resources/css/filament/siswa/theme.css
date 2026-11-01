@@ -1,0 +1,154 @@
+/* Tema panel calon siswa ------------------------------------- */
+
+.siswa-panel {
+    display: grid;
+    gap: 1.25rem;
+    min-width: 0;
+}
+
+.siswa-panel .siswa-columns {
+    display: grid;
+    gap: 1.25rem;
+    grid-template-columns: minmax(0, 1fr);
+    align-items: start;
+}
+
+.siswa-panel .siswa-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 0.75rem 1rem;
+}
+
+.siswa-panel .siswa-label {
+    margin: 0;
+    color: var(--gray-500, #6b7280);
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+
+.siswa-panel .siswa-nomor {
+    margin: 0.2rem 0 0;
+    color: var(--gray-950, #030712);
+    font-size: 1.25rem;
+    font-weight: 700;
+    line-height: 1.3;
+    font-variant-numeric: tabular-nums;
+}
+
+.siswa-panel .siswa-text {
+    margin: 0.85rem 0 0;
+    color: var(--gray-600, #4b5563);
+    font-size: 0.875rem;
+    line-height: 1.65;
+}
+
+.siswa-panel .siswa-text strong {
+    color: var(--gray-950, #030712);
+    font-weight: 600;
+}
+
+.siswa-panel .siswa-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-block-start: 1rem;
+}
+
+.siswa-panel .siswa-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 1rem 1.5rem;
+    margin: 0;
+}
+
+.siswa-panel .siswa-item {
+    min-width: 0;
+}
+
+.siswa-panel .siswa-item dt {
+    margin: 0;
+    color: var(--gray-500, #6b7280);
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+
+.siswa-panel .siswa-item dd {
+    margin: 0.2rem 0 0;
+    color: var(--gray-950, #030712);
+    font-size: 0.875rem;
+    font-weight: 600;
+    overflow-wrap: anywhere;
+}
+
+.siswa-panel .siswa-docs {
+    display: grid;
+    gap: 0.6rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.siswa-panel .siswa-doc {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0.15rem 0.5rem;
+    padding-block-end: 0.5rem;
+    border-block-end: 1px solid var(--gray-200, #e5e7eb);
+    font-size: 0.875rem;
+}
+
+.siswa-panel .siswa-doc:last-child {
+    padding-block-end: 0;
+    border-block-end: 0;
+}
+
+.siswa-panel .siswa-doc-name {
+    color: var(--gray-950, #030712);
+    font-weight: 600;
+}
+
+.siswa-panel .siswa-doc-state {
+    color: var(--gray-500, #6b7280);
+}
+
+.siswa-panel .siswa-doc.is-done .siswa-doc-state {
+    color: var(--success-600, #16a34a);
+}
+
+@media (min-width: 40rem) {
+    .siswa-panel .siswa-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (min-width: 64rem) {
+    .siswa-panel .siswa-columns {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+/* Halaman login panel siswa ---------------------------------- */
+
+.siswa-auth-footer {
+    margin-block-start: 1.5rem;
+    text-align: center;
+    color: var(--gray-600, #4b5563);
+    font-size: 0.875rem;
+}
+
+.siswa-auth-footer a {
+    color: var(--primary-600, #2563eb);
+    font-weight: 600;
+}
+
+.siswa-auth-footer a:hover {
+    color: var(--primary-500, #3b82f6);
+    text-decoration: underline;
+}

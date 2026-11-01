@@ -36,6 +36,10 @@ class User extends Authenticatable implements FilamentUser
 
     public function canAccessPanel(Panel $panel): bool
     {
+        if ($panel->getId() === 'siswa') {
+            return $this->calonSiswa()->exists();
+        }
+
         if ($panel->getId() !== 'admin') {
             return false;
         }
@@ -52,5 +56,10 @@ class User extends Authenticatable implements FilamentUser
     public function guru(): HasOne
     {
         return $this->hasOne(Guru::class, 'user_id', 'id');
+    }
+
+    public function calonSiswa(): HasOne
+    {
+        return $this->hasOne(CalonSiswa::class, 'user_id', 'id');
     }
 }

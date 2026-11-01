@@ -17,6 +17,8 @@
             <div class="school-hero-actions">
                 @if ($settings->registration_url && App\Models\SiteSetting::isSafeUrl($settings->registration_url))
                     <a href="{{ $settings->registration_url }}" class="school-button school-button-gold">{{ $settings->registration_label }}</a>
+                @else
+                    <a href="{{ route('pendaftaran.create') }}" class="school-button school-button-gold">{{ $settings->registration_label ?: 'Daftar Sekarang' }}</a>
                 @endif
                 <a href="#profil" class="school-button school-button-outline">Profil sekolah</a>
             </div>
@@ -206,6 +208,8 @@
             <div class="school-cta-actions">
                 @if ($settings->registration_url && App\Models\SiteSetting::isSafeUrl($settings->registration_url))
                     <a href="{{ $settings->registration_url }}" class="school-button school-button-gold">{{ $settings->registration_label }}</a>
+                @else
+                    <a href="{{ route('pendaftaran.create') }}" class="school-button school-button-gold">{{ $settings->registration_label ?: 'Daftar Sekarang' }}</a>
                 @endif
                 <a href="#kontak" class="school-text-link">Tanya admin</a>
             </div>

@@ -28,7 +28,7 @@
     "src": "_instrument-sans-600-normal-B9e8oLYv.woff"
   },
   "resources/css/app.css": {
-    "file": "assets/app-D9zsw2h-.css",
+    "file": "assets/app-DA0sDSKo.css",
     "name": "app",
     "names": [
       "app.css"
@@ -45,8 +45,17 @@
     "src": "resources/css/filament/admin/theme.css",
     "isEntry": true
   },
+  "resources/css/filament/siswa/theme.css": {
+    "file": "assets/theme-DNMyyqp1.css",
+    "name": "theme",
+    "names": [
+      "theme.css"
+    ],
+    "src": "resources/css/filament/siswa/theme.css",
+    "isEntry": true
+  },
   "resources/js/app.js": {
-    "file": "assets/app-ZkGu4MM3.js",
+    "file": "assets/app-Bk6nIQRs.js",
     "name": "app",
     "src": "resources/js/app.js",
     "isEntry": true

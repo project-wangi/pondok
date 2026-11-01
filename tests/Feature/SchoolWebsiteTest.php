@@ -6,6 +6,7 @@ use App\Filament\Resources\Posts\PostResource;
 use App\Filament\Resources\SiteSettings\Pages\CreateSiteSetting;
 use App\Filament\Resources\SiteSettings\Pages\EditSiteSetting;
 use App\Filament\Resources\SiteSettings\SiteSettingResource;
+use App\Filament\Siswa\Pages\StatusPendaftaran;
 use App\Models\Post;
 use App\Models\SiteSetting;
 use App\Models\User;
@@ -87,6 +88,22 @@ test('the homepage renders the saved school identity and editable content', func
         ->assertSee('Hubungi Pendaftaran')
         ->assertSee('https://example.com/pendaftaran')
         ->assertSee('Artikel Pondok');
+});
+
+test('groups the main navigation into menus that point at real pages', function () {
+    SiteSetting::factory()->create();
+
+    $this->get(route('home'))->assertOk()
+        ->assertSee('data-nav-group', false)
+        ->assertSee('Informasi')
+        ->assertSee('Pendaftaran')
+        ->assertSee('Formulir pendaftaran')
+        ->assertSee('Cek status pendaftaran')
+        ->assertSee(route('posts.index', ['category' => 'pengumuman']), false)
+        ->assertSee(route('posts.index', ['category' => 'agenda']), false)
+        ->assertSee(route('pendaftaran.create'), false)
+        ->assertSee(route('filament.siswa.auth.login'), false)
+        ->assertSee(StatusPendaftaran::getUrl(panel: 'siswa'), false);
 });
 
 test('the homepage clearly labels missing photography without inventing a school image', function () {
