@@ -58,6 +58,14 @@ class User extends Authenticatable implements FilamentUser
         return $this->hasOne(Guru::class, 'user_id', 'id');
     }
 
+    public function isAdministrator(): bool
+    {
+        return $this->hasAnyRole([
+            'admin',
+            config('filament-shield.super_admin.name', 'super_admin'),
+        ]);
+    }
+
     public function calonSiswa(): HasOne
     {
         return $this->hasOne(CalonSiswa::class, 'user_id', 'id');

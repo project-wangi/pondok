@@ -31,7 +31,7 @@ class RaporAdmin extends Page
 {
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedAcademicCap;
 
-    protected static string|UnitEnum|null $navigationGroup = 'Rapor';
+    protected static string|UnitEnum|null $navigationGroup = 'Manajemen Sekolah';
 
     protected static ?string $navigationLabel = 'Rapor Siswa';
 

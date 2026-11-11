@@ -31,7 +31,9 @@ class AbsenRapatResource extends Resource
 
     public static function canAccess(): bool
     {
-        return Filament::auth()->user()?->guru()->exists() ?? false;
+        $user = Filament::auth()->user();
+
+        return $user !== null && ($user->guru()->exists() || $user->isAdministrator());
     }
 
     public static function canCreate(): bool

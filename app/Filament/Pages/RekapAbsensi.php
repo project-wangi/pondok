@@ -58,7 +58,9 @@ class RekapAbsensi extends Page
 
     public static function canAccess(): bool
     {
-        return Filament::auth()->user()?->guru()->exists() ?? false;
+        $user = Filament::auth()->user();
+
+        return $user !== null && ($user->guru()->exists() || $user->isAdministrator());
     }
 
     public function mount(): void
@@ -187,9 +189,10 @@ class RekapAbsensi extends Page
     private function scheduleOptions(): Collection
     {
         $period = JadwalPelajaran::activePeriod();
+        $guruId = $this->guruId();
 
         return JadwalPelajaran::query()
-            ->where('guru_id', $this->guruId())
+            ->when($guruId !== null, fn (Builder $query): Builder => $query->where('guru_id', $guruId))
             ->forPeriod($period['semester'], $period['tahun_ajaran'])
             ->with(['kelas', 'mataPelajaran'])
             ->get()

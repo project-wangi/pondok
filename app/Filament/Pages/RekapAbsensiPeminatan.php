@@ -54,7 +54,9 @@ class RekapAbsensiPeminatan extends Page
 
     public static function canAccess(): bool
     {
-        return Filament::auth()->user()?->guru()->exists() ?? false;
+        $user = Filament::auth()->user();
+
+        return $user !== null && ($user->guru()->exists() || $user->isAdministrator());
     }
 
     public function mount(): void
