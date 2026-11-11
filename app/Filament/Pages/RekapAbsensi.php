@@ -58,9 +58,7 @@ class RekapAbsensi extends Page
 
     public static function canAccess(): bool
     {
-        $user = Filament::auth()->user();
-
-        return $user !== null && ($user->guru()->exists() || $user->can('View:RekapAbsensi'));
+        return Filament::auth()->user()?->can('View:RekapAbsensi') ?? false;
     }
 
     public function mount(): void

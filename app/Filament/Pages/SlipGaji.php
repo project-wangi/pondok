@@ -34,7 +34,9 @@ class SlipGaji extends Page
 
     public static function canAccess(): bool
     {
-        return Filament::auth()->user()?->guru()->exists() ?? false;
+        $user = Filament::auth()->user();
+
+        return $user !== null && $user->guru()->exists() && $user->can('View:SlipGaji');
     }
 
     public function mount(): void

@@ -1,6 +1,11 @@
 <?php
 
 declare(strict_types=1);
+use App\Filament\Pages\IsiAsesmenFormatif;
+use App\Filament\Pages\IsiERapor;
+use App\Filament\Pages\IsiLingkupMateri;
+use App\Filament\Pages\IsiNilaiUjian;
+use App\Filament\Pages\IsiSikapKeaktifan;
 use BezhanSalleh\FilamentShield\Resources\Roles\RoleResource;
 use Filament\Pages\Dashboard;
 use Filament\Widgets\AccountWidget;
@@ -215,6 +220,13 @@ return [
         'prefix' => 'view',
         'exclude' => [
             Dashboard::class,
+            // Halaman detail (dibuka dari halaman Input*) memakai izin halaman Input-nya,
+            // jadi tidak perlu izin sendiri dan tidak ditampilkan di menu Shield.
+            IsiAsesmenFormatif::class,
+            IsiERapor::class,
+            IsiLingkupMateri::class,
+            IsiNilaiUjian::class,
+            IsiSikapKeaktifan::class,
         ],
     ],
 

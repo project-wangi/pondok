@@ -45,7 +45,9 @@ class IsiLingkupMateri extends Page
 
     public static function canAccess(): bool
     {
-        return Filament::auth()->user()?->guru()->exists() ?? false;
+        $user = Filament::auth()->user();
+
+        return $user !== null && $user->guru()->exists() && $user->can('View:InputLingkupMateri');
     }
 
     public function mount(int $kelas, int $mapel): void

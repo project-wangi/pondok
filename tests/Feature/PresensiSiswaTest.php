@@ -20,6 +20,7 @@ use Livewire\Features\SupportLockedProperties\CannotUpdateLockedPropertyExceptio
 use Livewire\Livewire;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
+use Spatie\Permission\PermissionRegistrar;
 
 uses(LazilyRefreshDatabase::class);
 
@@ -79,9 +80,11 @@ test('forbids authenticated users without a linked teacher', function () {
     Livewire::test(PresensiSiswa::class)->assertForbidden();
 });
 
-test('renders for a linked teacher without roles or permissions', function () {
+test('renders for a linked teacher who holds the teacher page permission', function () {
     $teacher = GuruFactory::new()->create();
     $this->actingAs($teacher->user);
+
+    expect($teacher->user->hasRole('guru'))->toBeTrue();
 
     $this->get(route('filament.admin.pages.presensi-siswa'))
         ->assertOk()
@@ -89,7 +92,20 @@ test('renders for a linked teacher without roles or permissions', function () {
         ->assertSee('Tidak ada jadwal mengajar pada periode berjalan.');
 });
 
-test('initializes the Livewire page for a linked teacher without roles or permissions', function () {
+test('forbids the page when the teacher page permission is revoked from the guru role', function () {
+    $teacher = GuruFactory::new()->create();
+
+    Role::query()->where('name', 'guru')->firstOrFail()->revokePermissionTo('View:PresensiSiswa');
+    app(PermissionRegistrar::class)->forgetCachedPermissions();
+
+    $user = $teacher->user->fresh();
+    $user?->unsetRelation('roles')->unsetRelation('permissions');
+    $this->actingAs($user);
+
+    $this->get(route('filament.admin.pages.presensi-siswa'))->assertForbidden();
+});
+
+test('initializes the Livewire page for a teacher with the guru role', function () {
     $this->actingAs(GuruFactory::new()->create()->user);
 
     Livewire::test(PresensiSiswa::class)
