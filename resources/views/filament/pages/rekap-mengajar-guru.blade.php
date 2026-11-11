@@ -23,6 +23,12 @@
                 Angka dalam JP (1 JP = 40 menit) dari sesi yang sudah ada presensi siswanya. Sel abu-abu berarti guru tidak
                 memiliki jadwal pada kelas tersebut di semester ini.
             </p>
+
+            <div class="gaji-export">
+                <x-filament::button wire:click="ekspor" color="success" icon="heroicon-o-arrow-down-tray">
+                    Ekspor Excel
+                </x-filament::button>
+            </div>
         </div>
 
         <div class="gaji-summary">

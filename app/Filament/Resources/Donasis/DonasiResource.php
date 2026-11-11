@@ -37,24 +37,35 @@ class DonasiResource extends Resource
     public static function getEloquentQuery(): Builder
     {
         $query = parent::getEloquentQuery();
-        $user = Filament::auth()->user();
 
-        if ($user === null || $user->can('ViewAny:Donasi')) {
+        if (static::canManageAll()) {
             return $query;
         }
 
-        return $query->where('guru_id', $user->guru()->value('id') ?? 0);
+        return $query->where('guru_id', Filament::auth()->user()?->guru()->value('id') ?? 0);
+    }
+
+    /**
+     * Admin dan staf berizin boleh melihat serta mengelola donasi semua guru.
+     * Guru biasa hanya melihat donasinya sendiri.
+     */
+    public static function canManageAll(): bool
+    {
+        $user = Filament::auth()->user();
+
+        return ($user?->isAdministrator() ?? false)
+            || ($user?->can('ViewAny:Donasi') ?? false);
     }
 
     public static function canCreate(): bool
     {
         $user = Filament::auth()->user();
 
-        if ($user?->can('Create:Donasi')) {
+        if ($user?->isAdministrator() || $user?->can('Create:Donasi')) {
             return true;
         }
 
-       return $user?->guru()->exists();
+        return $user?->guru()->exists() ?? false;
     }
 
     public static function form(Schema $schema): Schema

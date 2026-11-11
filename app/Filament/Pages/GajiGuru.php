@@ -2,6 +2,7 @@
 
 namespace App\Filament\Pages;
 
+use App\Filament\Exports\GajiGuruWorkbook;
 use App\Models\AbsenPiket;
 use App\Models\AbsenRapat;
 use App\Models\Guru;
@@ -12,6 +13,7 @@ use Filament\Facades\Filament;
 use Filament\Pages\Page;
 use Filament\Support\Icons\Heroicon;
 use Illuminate\Support\Facades\DB;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 use UnitEnum;
 
 class GajiGuru extends Page
@@ -89,6 +91,13 @@ class GajiGuru extends Page
     public function updatedTahun(mixed $value): void
     {
         $this->tahun = min(2100, max(2000, (int) $value));
+    }
+
+    public function ekspor(): StreamedResponse
+    {
+        abort_unless(static::canAccess(), 403);
+
+        return app(GajiGuruWorkbook::class)->download($this->rekap());
     }
 
     /**

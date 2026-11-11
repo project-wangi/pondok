@@ -14,7 +14,7 @@ class CreateDonasi extends CreateRecord
     {
         $user = Filament::auth()->user();
 
-        if (! ($user?->can('Create:Donasi') ?? false)) {
+        if (! DonasiResource::canManageAll()) {
             $data['guru_id'] = $user?->guru()->value('id');
         }
 

@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Donasis\Schemas;
 
+use App\Filament\Resources\Donasis\DonasiResource;
 use App\Models\Guru;
 use Filament\Facades\Filament;
 use Filament\Forms\Components\DatePicker;
@@ -23,8 +24,8 @@ class DonasiForm
                     ->required()
                     ->searchable()
                     ->preload()
-                    ->disabled(fn (): bool => ! self::canManageAll())
-                    ->dehydrated(fn (): bool => self::canManageAll()),
+                    ->disabled(fn (): bool => ! DonasiResource::canManageAll())
+                    ->dehydrated(fn (): bool => DonasiResource::canManageAll()),
                 DatePicker::make('tanggal')
                     ->label('Tanggal Donasi')
                     ->default(fn (): string => now()->toDateString())
@@ -38,10 +39,5 @@ class DonasiForm
                     ->required()
                     ->helperText('Nominal donasi dihitung otomatis: jumlah anak × Rp 50.000.'),
             ]);
-    }
-
-    private static function canManageAll(): bool
-    {
-        return Filament::auth()->user()?->can('Create:Donasi') ?? false;
     }
 }

@@ -14,6 +14,7 @@ use Filament\Facades\Filament;
 use Illuminate\Foundation\Testing\LazilyRefreshDatabase;
 use Livewire\Livewire;
 use Spatie\Permission\Models\Permission;
+use Spatie\Permission\Models\Role;
 
 uses(LazilyRefreshDatabase::class);
 
@@ -168,4 +169,32 @@ test('allows another donation for the same teacher', function () {
         ->assertHasNoFormErrors();
 
     $this->assertDatabaseCount('donasis', 2);
+});
+
+test('lets an admin see and record donations for every teacher', function () {
+    Role::create(['name' => 'admin', 'guard_name' => 'web']);
+    $admin = User::factory()->create()->assignRole('admin');
+
+    DonasiFactory::new()->create(['jumlah_anak' => 1]);
+    DonasiFactory::new()->create(['jumlah_anak' => 2]);
+    $newTeacher = donasiTeacher();
+    $this->actingAs($admin);
+
+    expect(DonasiResource::canViewAny())->toBeTrue()
+        ->and(DonasiResource::canCreate())->toBeTrue()
+        ->and(DonasiResource::canManageAll())->toBeTrue();
+
+    Livewire::test(ListDonasis::class)
+        ->assertOk()
+        ->assertSee('Rp 50.000')
+        ->assertSee('Rp 100.000');
+
+    Livewire::test(CreateDonasi::class)
+        ->fillForm(['guru_id' => $newTeacher->id, 'tanggal' => '2026-10-22', 'jumlah_anak' => 3])
+        ->call('create')
+        ->assertHasNoFormErrors();
+
+    $donasi = Donasi::query()->where('guru_id', $newTeacher->id)->sole();
+
+    expect($donasi->nominal)->toBe(150000);
 });

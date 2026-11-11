@@ -2132,6 +2132,10 @@
     outline-offset: 2px;
 }
 
+.gaji-page .gaji-export {
+    margin-inline-start: auto;
+}
+
 .gaji-page .gaji-note {
     margin-inline-start: auto;
     max-width: 40rem;

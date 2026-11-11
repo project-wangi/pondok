@@ -23,6 +23,12 @@
                 Honor mengajar Rp10.000/JP (40 menit) · transport Rp1.000/km/hari hadir · rapat Rp20.000 ·
                 piket Rp10.000. Peminatan memakai nominal jenis × jumlah absensi peminatan.
             </p>
+
+            <div class="gaji-export">
+                <x-filament::button wire:click="ekspor" color="success" icon="heroicon-o-arrow-down-tray">
+                    Ekspor Excel
+                </x-filament::button>
+            </div>
         </div>
 
         <div class="gaji-summary">

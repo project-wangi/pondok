@@ -15,62 +15,75 @@ class DonasiPolicy
 
     public function viewAny(AuthUser $authUser): bool
     {
-        return $authUser->can('ViewAny:Donasi') || $this->isTeacher($authUser);
+        return $this->isAdmin($authUser)
+            || $authUser->can('ViewAny:Donasi')
+            || $this->isTeacher($authUser);
     }
 
     public function view(AuthUser $authUser, Donasi $donasi): bool
     {
-        return $authUser->can('View:Donasi') || $this->ownsRecord($authUser, $donasi);
+        return $this->isAdmin($authUser)
+            || $authUser->can('View:Donasi')
+            || $this->ownsRecord($authUser, $donasi);
     }
 
     public function create(AuthUser $authUser): bool
     {
-        return $authUser->can('Create:Donasi') || $this->isTeacher($authUser);
+        return $this->isAdmin($authUser)
+            || $authUser->can('Create:Donasi')
+            || $this->isTeacher($authUser);
     }
 
     public function update(AuthUser $authUser, Donasi $donasi): bool
     {
-        return $authUser->can('Update:Donasi') || $this->ownsRecord($authUser, $donasi);
+        return $this->isAdmin($authUser)
+            || $authUser->can('Update:Donasi')
+            || $this->ownsRecord($authUser, $donasi);
     }
 
     public function delete(AuthUser $authUser, Donasi $donasi): bool
     {
-        return $authUser->can('Delete:Donasi');
+        return $this->isAdmin($authUser) || $authUser->can('Delete:Donasi');
     }
 
     public function deleteAny(AuthUser $authUser): bool
     {
-        return $authUser->can('DeleteAny:Donasi');
+        return $this->isAdmin($authUser) || $authUser->can('DeleteAny:Donasi');
     }
 
     public function restore(AuthUser $authUser, Donasi $donasi): bool
     {
-        return $authUser->can('Restore:Donasi');
+        return $this->isAdmin($authUser) || $authUser->can('Restore:Donasi');
     }
 
     public function forceDelete(AuthUser $authUser, Donasi $donasi): bool
     {
-        return $authUser->can('ForceDelete:Donasi');
+        return $this->isAdmin($authUser) || $authUser->can('ForceDelete:Donasi');
     }
 
     public function forceDeleteAny(AuthUser $authUser): bool
     {
-        return $authUser->can('ForceDeleteAny:Donasi');
+        return $this->isAdmin($authUser) || $authUser->can('ForceDeleteAny:Donasi');
     }
 
     public function restoreAny(AuthUser $authUser): bool
     {
-        return $authUser->can('RestoreAny:Donasi');
+        return $this->isAdmin($authUser) || $authUser->can('RestoreAny:Donasi');
     }
 
     public function replicate(AuthUser $authUser, Donasi $donasi): bool
     {
-        return $authUser->can('Replicate:Donasi');
+        return $this->isAdmin($authUser) || $authUser->can('Replicate:Donasi');
     }
 
     public function reorder(AuthUser $authUser): bool
     {
-        return $authUser->can('Reorder:Donasi');
+        return $this->isAdmin($authUser) || $authUser->can('Reorder:Donasi');
+    }
+
+    private function isAdmin(AuthUser $authUser): bool
+    {
+        return $authUser instanceof User && $authUser->isAdministrator();
     }
 
     private function isTeacher(AuthUser $authUser): bool

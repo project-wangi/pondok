@@ -2,6 +2,7 @@
 
 namespace App\Filament\Pages;
 
+use App\Filament\Exports\RekapMengajarWorkbook;
 use App\Models\Guru;
 use App\Models\JadwalPelajaran;
 use App\Models\Kelas;
@@ -11,6 +12,7 @@ use Carbon\CarbonImmutable;
 use Filament\Facades\Filament;
 use Filament\Pages\Page;
 use Filament\Support\Icons\Heroicon;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 use UnitEnum;
 
 class RekapMengajarGuru extends Page
@@ -88,6 +90,13 @@ class RekapMengajarGuru extends Page
     public function updatedTahun(mixed $value): void
     {
         $this->tahun = min(2100, max(2000, (int) $value));
+    }
+
+    public function ekspor(): StreamedResponse
+    {
+        abort_unless(static::canAccess(), 403);
+
+        return app(RekapMengajarWorkbook::class)->download($this->rekap());
     }
 
     /**
