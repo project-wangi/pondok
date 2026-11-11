@@ -15,6 +15,7 @@ use Illuminate\Foundation\Testing\LazilyRefreshDatabase;
 use Livewire\Livewire;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
+use Spatie\Permission\PermissionRegistrar;
 
 uses(LazilyRefreshDatabase::class);
 
@@ -171,14 +172,20 @@ test('allows another donation for the same teacher', function () {
     $this->assertDatabaseCount('donasis', 2);
 });
 
-test('lets an admin see and record donations for every teacher', function () {
-    Role::create(['name' => 'admin', 'guard_name' => 'web']);
-    $admin = User::factory()->create()->assignRole('admin');
+test('grants donation access through the shield role settings', function () {
+    $permissions = collect(['ViewAny:Donasi', 'View:Donasi', 'Create:Donasi', 'Update:Donasi', 'Delete:Donasi', 'DeleteAny:Donasi'])
+        ->map(fn (string $name): Permission => Permission::findOrCreate($name, 'web'));
+
+    $role = Role::create(['name' => 'petugas donasi', 'guard_name' => 'web']);
+    $role->givePermissionTo($permissions);
+
+    $staff = User::factory()->create();
+    $staff->assignRole($role);
 
     DonasiFactory::new()->create(['jumlah_anak' => 1]);
     DonasiFactory::new()->create(['jumlah_anak' => 2]);
     $newTeacher = donasiTeacher();
-    $this->actingAs($admin);
+    $this->actingAs($staff);
 
     expect(DonasiResource::canViewAny())->toBeTrue()
         ->and(DonasiResource::canCreate())->toBeTrue()
@@ -194,7 +201,12 @@ test('lets an admin see and record donations for every teacher', function () {
         ->call('create')
         ->assertHasNoFormErrors();
 
-    $donasi = Donasi::query()->where('guru_id', $newTeacher->id)->sole();
+    expect(Donasi::query()->where('guru_id', $newTeacher->id)->sole()->nominal)->toBe(150000);
 
-    expect($donasi->nominal)->toBe(150000);
+    // Mencabut izin lewat pengaturan role langsung memengaruhi akses.
+    $role->revokePermissionTo($permissions);
+    app(PermissionRegistrar::class)->forgetCachedPermissions();
+    $staff->unsetRelation('roles')->unsetRelation('permissions');
+
+    expect(DonasiResource::canViewAny())->toBeFalse();
 });

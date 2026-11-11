@@ -25,6 +25,7 @@ use Illuminate\Foundation\Testing\LazilyRefreshDatabase;
 use Livewire\Livewire;
 use OpenSpout\Reader\XLSX\Options;
 use OpenSpout\Reader\XLSX\Reader;
+use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 
 uses(LazilyRefreshDatabase::class);
@@ -45,6 +46,13 @@ function keuanganAdmin(): User
     Role::create(['name' => 'admin', 'guard_name' => 'web']);
 
     return User::factory()->create()->assignRole('admin');
+}
+
+function keuanganDonasiStaff(): User
+{
+    Permission::findOrCreate('ViewAny:Donasi', 'web');
+
+    return User::factory()->create()->givePermissionTo('ViewAny:Donasi');
 }
 
 /** @return list<array<int, mixed>> */
@@ -203,7 +211,7 @@ test('exports the teaching recap as a JP matrix per class', function () {
 });
 
 test('exports donations following the active month filter', function () {
-    $this->actingAs(keuanganAdmin());
+    $this->actingAs(keuanganDonasiStaff());
     SiteSetting::create(['school_name' => 'Pondok Uji']);
 
     $october = DonasiFactory::new()->create(['jumlah_anak' => 2, 'tanggal' => '2026-10-22']);

@@ -46,22 +46,20 @@ class DonasiResource extends Resource
     }
 
     /**
-     * Admin dan staf berizin boleh melihat serta mengelola donasi semua guru.
-     * Guru biasa hanya melihat donasinya sendiri.
+     * Pengguna dengan izin ViewAny:Donasi (diatur lewat menu Role Shield)
+     * boleh melihat serta mengelola donasi semua guru. Guru biasa hanya
+     * melihat donasinya sendiri.
      */
     public static function canManageAll(): bool
     {
-        $user = Filament::auth()->user();
-
-        return ($user?->isAdministrator() ?? false)
-            || ($user?->can('ViewAny:Donasi') ?? false);
+        return Filament::auth()->user()?->can('ViewAny:Donasi') ?? false;
     }
 
     public static function canCreate(): bool
     {
         $user = Filament::auth()->user();
 
-        if ($user?->isAdministrator() || $user?->can('Create:Donasi')) {
+        if ($user?->can('Create:Donasi')) {
             return true;
         }
 
