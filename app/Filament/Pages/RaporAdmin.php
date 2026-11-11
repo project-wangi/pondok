@@ -64,14 +64,7 @@ class RaporAdmin extends Page
 
     public static function canAccess(): bool
     {
-        $user = Filament::auth()->user();
-
-        if ($user === null) {
-            return false;
-        }
-
-        return $user->hasAnyRole(['admin', config('filament-shield.super_admin.name', 'super_admin')])
-            || $user->can('ViewAny:Murid');
+        return Filament::auth()->user()?->can('View:RaporAdmin') ?? false;
     }
 
     public function mount(): void

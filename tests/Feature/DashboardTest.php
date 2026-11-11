@@ -17,7 +17,6 @@ use Database\Factories\PresensiMuridFactory;
 use Database\Factories\SesiMengajarFactory;
 use Filament\Facades\Filament;
 use Illuminate\Foundation\Testing\LazilyRefreshDatabase;
-use Spatie\Permission\Models\Role;
 
 uses(LazilyRefreshDatabase::class);
 
@@ -129,8 +128,8 @@ test('shows only the teachers own schedule for today', function () {
 });
 
 test('shows the admin dashboard with real operational data', function () {
-    Role::create(['name' => 'admin', 'guard_name' => 'web']);
-    $admin = User::factory()->create(['name' => 'Admin Pondok'])->assignRole('admin');
+    $admin = adminPanelUser('View:Dashboard');
+    $admin->update(['name' => 'Admin Pondok']);
 
     $teacher = dashboardTeacher(['user_id' => User::factory()->create(['name' => 'Ustadz Ahmad'])->id]);
     $class = KelasFactory::new()->create(['nama_kelas' => 'Kelas VII']);
@@ -185,8 +184,7 @@ test('shows the admin dashboard with real operational data', function () {
 });
 
 test('marks each piket teacher who recorded today as done', function () {
-    Role::create(['name' => 'admin', 'guard_name' => 'web']);
-    $admin = User::factory()->create()->assignRole('admin');
+    $admin = adminPanelUser('View:Dashboard');
     $first = dashboardTeacher(['user_id' => User::factory()->create(['name' => 'Petugas Satu'])->id]);
     $second = dashboardTeacher(['user_id' => User::factory()->create(['name' => 'Petugas Dua'])->id]);
     $class = KelasFactory::new()->create(['nama_kelas' => 'Kelas Piket']);
@@ -207,10 +205,7 @@ test('marks each piket teacher who recorded today as done', function () {
 });
 
 test('shows honest empty states on the admin dashboard', function () {
-    Role::create(['name' => 'admin', 'guard_name' => 'web']);
-    $admin = User::factory()->create();
-    $admin->assignRole('admin');
-    $this->actingAs($admin);
+    $this->actingAs(adminPanelUser('View:Dashboard'));
 
     $this->get('/admin')
         ->assertOk()

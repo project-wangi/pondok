@@ -26,7 +26,6 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
 use Livewire\Livewire;
-use Spatie\Permission\Models\Role;
 
 uses(LazilyRefreshDatabase::class);
 
@@ -44,9 +43,7 @@ afterEach(function () {
 
 function calonAdmin(): User
 {
-    Role::create(['name' => 'admin', 'guard_name' => 'web']);
-
-    return User::factory()->create()->assignRole('admin');
+    return adminPanelUser('ViewAny:CalonSiswa', 'View:CalonSiswa', 'Update:CalonSiswa');
 }
 
 function panelSiswa(): void

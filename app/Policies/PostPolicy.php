@@ -69,7 +69,6 @@ class PostPolicy
 
     private function allowed(User $user, string $ability): bool
     {
-        return $user->hasAnyRole(['super_admin', 'admin'])
-            || $user->checkPermissionTo($ability.':Post');
+        return $user->checkPermissionTo($ability.':Post');
     }
 }

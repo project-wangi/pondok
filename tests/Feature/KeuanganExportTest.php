@@ -26,7 +26,6 @@ use Livewire\Livewire;
 use OpenSpout\Reader\XLSX\Options;
 use OpenSpout\Reader\XLSX\Reader;
 use Spatie\Permission\Models\Permission;
-use Spatie\Permission\Models\Role;
 
 uses(LazilyRefreshDatabase::class);
 
@@ -43,9 +42,7 @@ afterEach(function () {
 
 function keuanganAdmin(): User
 {
-    Role::create(['name' => 'admin', 'guard_name' => 'web']);
-
-    return User::factory()->create()->assignRole('admin');
+    return adminPanelUser('View:GajiGuru', 'View:RekapMengajarGuru');
 }
 
 function keuanganDonasiStaff(): User

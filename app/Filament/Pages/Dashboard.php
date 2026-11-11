@@ -55,7 +55,7 @@ class Dashboard extends BaseDashboard
             return false;
         }
 
-        return ! $user->hasAnyRole(['super_admin', 'admin', 'panel_user']);
+        return ! $user->can('View:Dashboard');
     }
 
     /** @return array<string, mixed> */
@@ -140,14 +140,7 @@ class Dashboard extends BaseDashboard
 
     protected static function isAdminDashboard(): bool
     {
-        $user = Filament::auth()->user();
-
-        if (! $user instanceof User) {
-            return false;
-        }
-
-        return $user->hasAnyRole(['admin', config('filament-shield.super_admin.name', 'super_admin')])
-            || $user->can('ViewAny:Jabatan');
+        return Filament::auth()->user()?->can('View:Dashboard') ?? false;
     }
 
     /** @return array<string, mixed> */

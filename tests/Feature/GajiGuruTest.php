@@ -18,7 +18,6 @@ use Database\Factories\SesiMengajarFactory;
 use Filament\Facades\Filament;
 use Illuminate\Foundation\Testing\LazilyRefreshDatabase;
 use Livewire\Livewire;
-use Spatie\Permission\Models\Role;
 
 uses(LazilyRefreshDatabase::class);
 
@@ -31,9 +30,7 @@ beforeEach(function () {
 
 function gajiGuruAdmin(): User
 {
-    Role::create(['name' => 'admin', 'guard_name' => 'web']);
-
-    return User::factory()->create()->assignRole('admin');
+    return adminPanelUser('View:GajiGuru');
 }
 
 /**

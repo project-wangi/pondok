@@ -13,7 +13,6 @@ use Database\Factories\MataPelajaranFactory;
 use Filament\Facades\Filament;
 use Illuminate\Foundation\Testing\LazilyRefreshDatabase;
 use Livewire\Livewire;
-use Spatie\Permission\Models\Role;
 
 uses(LazilyRefreshDatabase::class);
 
@@ -30,9 +29,12 @@ afterEach(function () {
 
 function rekapAdminUser(): User
 {
-    Role::create(['name' => 'admin', 'guard_name' => 'web']);
-
-    return User::factory()->create()->assignRole('admin');
+    return adminPanelUser(
+        'View:RekapAbsensi',
+        'View:RekapAbsensiPeminatan',
+        'View:RekapAbsensiPiket',
+        'ViewAny:AbsenRapat',
+    );
 }
 
 test('lets admins open every attendance recap menu', function () {

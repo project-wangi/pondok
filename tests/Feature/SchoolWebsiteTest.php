@@ -16,7 +16,6 @@ use Illuminate\Database\Eloquent\Factories\Sequence;
 use Illuminate\Foundation\Testing\LazilyRefreshDatabase;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Livewire\Livewire;
-use Spatie\Permission\Models\Role;
 
 uses(LazilyRefreshDatabase::class);
 
@@ -29,9 +28,18 @@ beforeEach(function () {
 
 function schoolWebsiteAdmin(): User
 {
-    Role::create(['name' => 'admin', 'guard_name' => 'web']);
-
-    return User::factory()->create()->assignRole('admin');
+    return adminPanelUser(
+        'ViewAny:Post',
+        'View:Post',
+        'Create:Post',
+        'Update:Post',
+        'Delete:Post',
+        'DeleteAny:Post',
+        'ViewAny:SiteSetting',
+        'View:SiteSetting',
+        'Create:SiteSetting',
+        'Update:SiteSetting',
+    );
 }
 
 /** @return array<string, mixed> */

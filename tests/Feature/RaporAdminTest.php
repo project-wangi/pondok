@@ -28,7 +28,6 @@ use Illuminate\Support\Facades\Storage;
 use Livewire\Livewire;
 use OpenSpout\Reader\XLSX\Reader;
 use Spatie\Permission\Models\Permission;
-use Spatie\Permission\Models\Role;
 use ZipArchive;
 
 uses(LazilyRefreshDatabase::class);
@@ -46,9 +45,7 @@ afterEach(function () {
 
 function raporAdminUser(): User
 {
-    Role::create(['name' => 'admin', 'guard_name' => 'web']);
-
-    return User::factory()->create()->assignRole('admin');
+    return adminPanelUser('View:RaporAdmin');
 }
 
 /**

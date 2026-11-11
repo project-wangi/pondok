@@ -69,7 +69,6 @@ class SiteSettingPolicy
 
     private function allowed(User $user, string $ability): bool
     {
-        return $user->hasAnyRole(['super_admin', 'admin'])
-            || $user->checkPermissionTo($ability.':SiteSetting');
+        return $user->checkPermissionTo($ability.':SiteSetting');
     }
 }

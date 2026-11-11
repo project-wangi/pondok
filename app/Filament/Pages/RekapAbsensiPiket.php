@@ -55,7 +55,7 @@ class RekapAbsensiPiket extends Page
     {
         $user = Filament::auth()->user();
 
-        return $user !== null && ($user->guru()->exists() || $user->isAdministrator());
+        return $user !== null && ($user->guru()->exists() || $user->can('View:RekapAbsensiPiket'));
     }
 
     public function mount(): void
