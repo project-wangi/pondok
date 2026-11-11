@@ -80,10 +80,10 @@ class JadwalPelajaransTable
             ])
             ->headerActions([
                 Action::make('exportExcel')
-                    ->label('Export Excel')
+                    ->label('Ekspor Excel')
                     ->authorize(fn (): bool => JadwalPelajaranResource::canViewAny())
-                    ->modalHeading('Export jadwal pelajaran')
-                    ->modalDescription('Satu sheet per kelas. Data disaring berdasarkan semester dan tahun ajaran yang dipilih, serta pencarian tabel yang sedang aktif.')
+                    ->modalHeading('Ekspor jadwal pelajaran')
+                    ->modalDescription('Satu lembar Excel per kelas. Data disaring berdasarkan semester dan tahun ajaran yang dipilih, serta pencarian tabel yang sedang aktif.')
                     ->modalSubmitActionLabel('Unduh Excel')
                     ->schema([
                         Select::make('kelas_id')

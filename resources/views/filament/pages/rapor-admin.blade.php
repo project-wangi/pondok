@@ -349,7 +349,7 @@
                         Unduh rapor dalam format Excel. Simpan kepribadian terlebih dahulu agar nilainya ikut tercetak.
                     </p>
                     <x-filament::button wire:click="export" color="success" icon="heroicon-o-arrow-down-tray">
-                        Export Excel
+                        Ekspor Excel
                     </x-filament::button>
                 </div>
             </x-filament::section>
