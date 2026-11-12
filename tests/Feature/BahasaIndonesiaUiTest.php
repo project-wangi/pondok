@@ -37,6 +37,13 @@ test('admin panel chrome is written in indonesian', function () {
         ->assertSee('Dasbor');
 });
 
+test('create actions use tambah instead of buat', function () {
+    expect(__('filament-actions::create.single.label', ['label' => 'Guru']))->toBe('Tambah Guru')
+        ->and(__('filament-actions::create.single.modal.heading', ['label' => 'Guru']))->toBe('Tambah Guru')
+        ->and(__('filament-actions::create.single.modal.actions.create.label'))->toBe('Tambah')
+        ->and(__('filament-actions::create.single.modal.actions.create_another.label'))->toBe('Tambah & tambah lagi');
+});
+
 test('validation messages are written in indonesian', function () {
     expect(__('validation.required', ['attribute' => 'Nama']))->toBe('Nama wajib diisi.')
         ->and(__('validation.email', ['attribute' => 'Email']))->toBe('Email harus berupa alamat email yang valid.')
