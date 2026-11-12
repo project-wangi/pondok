@@ -10,6 +10,7 @@ use Database\Factories\GuruFactory;
 use Database\Factories\JadwalPelajaranFactory;
 use Database\Factories\KelasFactory;
 use Database\Factories\MataPelajaranFactory;
+use Database\Factories\MuridFactory;
 use Filament\Facades\Filament;
 use Illuminate\Foundation\Testing\LazilyRefreshDatabase;
 use Livewire\Livewire;
@@ -82,6 +83,27 @@ test('keeps accounts without a teacher profile out of the recaps', function () {
         ->and(RekapAbsensiPeminatan::canAccess())->toBeFalse()
         ->and(RekapAbsensiPiket::canAccess())->toBeFalse()
         ->and(AbsenRapatResource::canAccess())->toBeFalse();
+});
+
+test('hides the presensi shortcut from accounts that cannot record attendance', function () {
+    $this->actingAs(rekapAdminUser());
+
+    $kelas = KelasFactory::new()->create(['nama_kelas' => 'IX']);
+    $mapel = MataPelajaranFactory::new()->create(['nama_mapel' => "Al-Qur'an (Tahfizh)"]);
+    $guru = GuruFactory::new()->create();
+
+    JadwalPelajaranFactory::new()->create([
+        'guru_id' => $guru->id,
+        'kelas_id' => $kelas->id,
+        'mata_pelajaran' => $mapel->id,
+        'semester' => 'Ganjil',
+        'tahun_ajaran' => '2026/2027',
+    ]);
+    MuridFactory::new()->create(['kelas_id' => $kelas->id]);
+
+    Livewire::test(RekapAbsensi::class)
+        ->assertSee('Belum ada presensi tercatat')
+        ->assertDontSee('Buka Presensi Siswa');
 });
 
 test('shows the teachers of the selected class and subject instead of the admin account', function () {

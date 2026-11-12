@@ -7,6 +7,24 @@
             </div>
         @else
             <div class="rekap-kelas-bar">
+                <p class="rekap-kelas-title">Bulan</p>
+                <div class="rekap-kelas-buttons" role="group" aria-label="Pilih bulan">
+                    @foreach ($bulanOptions as $value => $label)
+                        <button
+                            type="button"
+                            @class(['rekap-kelas-button', 'is-active' => $value === $bulan])
+                            wire:click="pilihBulan({{ $value }})"
+                            wire:loading.attr="disabled"
+                            wire:target="pilihBulan,pilihKelas,pilihMapel"
+                            aria-pressed="{{ $value === $bulan ? 'true' : 'false' }}"
+                        >
+                            {{ $label }}
+                        </button>
+                    @endforeach
+                </div>
+            </div>
+
+            <div class="rekap-kelas-bar">
                 <p class="rekap-kelas-title">Klik Untuk Pilih Kelas</p>
                 <div class="rekap-kelas-buttons" role="group" aria-label="Pilih kelas">
                     @foreach ($classes as $option)
@@ -66,14 +84,16 @@
                 </div>
             @elseif ($columns === [])
                 <div class="presensi-notice">
-                    <p class="presensi-label">Belum ada presensi tercatat untuk {{ $subject?->nama_mapel ?? 'mata pelajaran ini' }} di {{ $class?->nama_kelas ?? 'kelas ini' }} pada semester {{ $period['semester'] }}.</p>
+                    <p class="presensi-label">Belum ada presensi tercatat untuk {{ $subject?->nama_mapel ?? 'mata pelajaran ini' }} di {{ $class?->nama_kelas ?? 'kelas ini' }} pada bulan {{ $bulanLabel }}.</p>
                     <p class="presensi-help">Rekap akan terisi setelah guru mencatat presensi pada menu Presensi Siswa.</p>
-                    <p><a class="asesmen-link" href="{{ $presensiUrl }}">Buka Presensi Siswa</a></p>
+                    @if ($canOpenPresensi)
+                        <p><a class="asesmen-link" href="{{ $presensiUrl }}">Buka Presensi Siswa</a></p>
+                    @endif
                 </div>
             @else
-                <div class="presensi-table-scroll" role="region" aria-label="Rekap absensi {{ $subject?->nama_mapel }} kelas {{ $class?->nama_kelas }}" tabindex="0">
+                <div class="presensi-table-scroll" role="region" aria-label="Rekap absensi {{ $subject?->nama_mapel }} kelas {{ $class?->nama_kelas }} bulan {{ $bulanLabel }}" tabindex="0">
                     <table class="asesmen-matrix rekap-matrix">
-                        <caption class="presensi-sr-only">Rekap absensi {{ $subject?->nama_mapel }} kelas {{ $class?->nama_kelas }} semester {{ $period['semester'] }} tahun ajaran {{ $period['tahun_ajaran'] }}</caption>
+                        <caption class="presensi-sr-only">Rekap absensi {{ $subject?->nama_mapel }} kelas {{ $class?->nama_kelas }} bulan {{ $bulanLabel }} semester {{ $period['semester'] }} tahun ajaran {{ $period['tahun_ajaran'] }}</caption>
                         <colgroup>
                             <col class="rekap-col-no">
                             <col class="rekap-col-nis">

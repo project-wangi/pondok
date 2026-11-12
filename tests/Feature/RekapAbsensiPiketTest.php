@@ -196,6 +196,39 @@ test('only shows piket records from the running semester', function () {
     expect($page->viewData('columns')[0]['label'])->toBe('Senin, 5 Oktober 2026');
 });
 
+test('filters piket records by the selected month', function () {
+    $class = KelasFactory::new()->create(['nama_kelas' => 'Kelas X']);
+    $student = MuridFactory::new()->create(['kelas_id' => $class->id]);
+    piketRecapSession($class, '2026-10-05', [
+        $student->id => ['masuk' => 'Hadir', 'pulang' => 'Pulang'],
+    ]);
+    piketRecapSession($class, '2026-11-02', [
+        $student->id => ['masuk' => 'Terlambat', 'pulang' => 'Pulang'],
+    ]);
+    $this->actingAs(piketRecapTeacher()->user);
+
+    $page = piketRecapPage()
+        ->assertSet('bulan', 10)
+        ->assertSee('Bulan')
+        ->assertSee('Oktober')
+        ->assertSee('November');
+
+    expect($page->viewData('columns'))->toHaveCount(1)
+        ->and($page->viewData('columns')[0]['label'])->toBe('Senin, 5 Oktober 2026');
+
+    $page->call('pilihBulan', 11)->assertSet('bulan', 11);
+
+    expect($page->viewData('columns'))->toHaveCount(1)
+        ->and($page->viewData('columns')[0]['label'])->toBe('Senin, 2 November 2026');
+});
+
+test('rejects a month outside the running semester on the piket recap', function () {
+    KelasFactory::new()->create();
+    $this->actingAs(piketRecapTeacher()->user);
+
+    piketRecapPage()->call('pilihBulan', 2)->assertNotFound();
+});
+
 test('switches the selected class and rejects unknown classes', function () {
     $classA = KelasFactory::new()->create(['nama_kelas' => 'Kelas A']);
     $classB = KelasFactory::new()->create(['nama_kelas' => 'Kelas B']);

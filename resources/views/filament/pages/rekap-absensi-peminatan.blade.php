@@ -7,6 +7,24 @@
             </div>
         @else
             <div class="rekap-kelas-bar">
+                <p class="rekap-kelas-title">Bulan</p>
+                <div class="rekap-kelas-buttons" role="group" aria-label="Pilih bulan">
+                    @foreach ($bulanOptions as $value => $label)
+                        <button
+                            type="button"
+                            @class(['rekap-kelas-button', 'is-active' => $value === $bulan])
+                            wire:click="pilihBulan({{ $value }})"
+                            wire:loading.attr="disabled"
+                            wire:target="pilihBulan,pilihPeminatan"
+                            aria-pressed="{{ $value === $bulan ? 'true' : 'false' }}"
+                        >
+                            {{ $label }}
+                        </button>
+                    @endforeach
+                </div>
+            </div>
+
+            <div class="rekap-kelas-bar">
                 <p class="rekap-kelas-title">Klik Untuk Pilih Peminatan</p>
                 <div class="rekap-kelas-buttons" role="group" aria-label="Pilih jenis peminatan">
                     @foreach ($peminatans as $option)
@@ -45,14 +63,16 @@
                 </div>
             @elseif ($columns === [])
                 <div class="presensi-notice">
-                    <p class="presensi-label">Belum ada absensi peminatan tercatat untuk {{ $peminatan?->nama_peminatan ?? 'peminatan ini' }} pada semester {{ $period['semester'] }}.</p>
+                    <p class="presensi-label">Belum ada absensi peminatan tercatat untuk {{ $peminatan?->nama_peminatan ?? 'peminatan ini' }} pada bulan {{ $bulanLabel }}.</p>
                     <p class="presensi-help">Rekap akan terisi setelah guru peminatan mencatat kehadiran.</p>
-                    <p><a class="asesmen-link" href="{{ $peminatanUrl }}">Buka Absensi Peminatan</a></p>
+                    @if ($canOpenPeminatan)
+                        <p><a class="asesmen-link" href="{{ $peminatanUrl }}">Buka Absensi Peminatan</a></p>
+                    @endif
                 </div>
             @else
-                <div class="presensi-table-scroll" role="region" aria-label="Rekap absensi peminatan {{ $peminatan?->nama_peminatan }}" tabindex="0">
+                <div class="presensi-table-scroll" role="region" aria-label="Rekap absensi peminatan {{ $peminatan?->nama_peminatan }} bulan {{ $bulanLabel }}" tabindex="0">
                     <table class="asesmen-matrix rekap-matrix">
-                        <caption class="presensi-sr-only">Rekap absensi peminatan {{ $peminatan?->nama_peminatan }} semester {{ $period['semester'] }} tahun ajaran {{ $period['tahun_ajaran'] }}</caption>
+                        <caption class="presensi-sr-only">Rekap absensi peminatan {{ $peminatan?->nama_peminatan }} bulan {{ $bulanLabel }} semester {{ $period['semester'] }} tahun ajaran {{ $period['tahun_ajaran'] }}</caption>
                         <colgroup>
                             <col class="rekap-col-no">
                             <col class="rekap-col-nis">

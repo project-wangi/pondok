@@ -214,6 +214,41 @@ test('only shows sessions from the running period and the selected class and sub
     expect($page->viewData('columns')[0]['label'])->toBe('Senin, 5 Oktober 2026');
 });
 
+test('filters sessions by the selected month', function () {
+    $teacher = rekapTeacher();
+    $subject = MataPelajaranFactory::new()->create();
+    $class = KelasFactory::new()->create(['nama_kelas' => 'Kelas A']);
+    $schedule = rekapSchedule($teacher, $subject, $class->id);
+    $student = MuridFactory::new()->create(['kelas_id' => $class->id]);
+    rekapSession($schedule, '2026-10-05', [$student->id => 'Hadir']);
+    rekapSession($schedule, '2026-11-02', [$student->id => 'Sakit']);
+    $this->actingAs($teacher->user);
+
+    $page = rekapPage()
+        ->assertSet('bulan', 10)
+        ->assertSee('Bulan')
+        ->assertSee('Oktober')
+        ->assertSee('November');
+
+    expect($page->viewData('columns'))->toHaveCount(1)
+        ->and($page->viewData('columns')[0]['label'])->toBe('Senin, 5 Oktober 2026');
+
+    $page->call('pilihBulan', 11)->assertSet('bulan', 11);
+
+    expect($page->viewData('columns'))->toHaveCount(1)
+        ->and($page->viewData('columns')[0]['label'])->toBe('Senin, 2 November 2026');
+});
+
+test('rejects a month outside the running semester', function () {
+    $teacher = rekapTeacher();
+    $subject = MataPelajaranFactory::new()->create();
+    $class = KelasFactory::new()->create();
+    rekapSchedule($teacher, $subject, $class->id);
+    $this->actingAs($teacher->user);
+
+    rekapPage()->call('pilihBulan', 2)->assertNotFound();
+});
+
 test('percentages use only recorded statuses so empty sessions do not lower the score', function () {
     $teacher = rekapTeacher();
     $subject = MataPelajaranFactory::new()->create();

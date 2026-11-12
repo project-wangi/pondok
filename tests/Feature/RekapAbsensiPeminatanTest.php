@@ -190,6 +190,36 @@ test('only shows peminatan attendance from the running semester', function () {
     expect($page->viewData('columns')[0]['label'])->toBe('Senin, 5 Oktober 2026');
 });
 
+test('filters peminatan sessions by the selected month', function () {
+    $peminatan = peminatanRecapType('Peminatan A');
+    $class = KelasFactory::new()->create();
+    $student = peminatanRecapStudent('Ahmad', $peminatan, $class->id);
+    peminatanRecapSession($peminatan, '2026-10-05', [$student->id => 'Hadir']);
+    peminatanRecapSession($peminatan, '2026-11-02', [$student->id => 'Alpa']);
+    $this->actingAs(peminatanRecapTeacher()->user);
+
+    $page = peminatanRecapPage()
+        ->assertSet('bulan', 10)
+        ->assertSee('Bulan')
+        ->assertSee('Oktober')
+        ->assertSee('November');
+
+    expect($page->viewData('columns'))->toHaveCount(1)
+        ->and($page->viewData('columns')[0]['label'])->toBe('Senin, 5 Oktober 2026');
+
+    $page->call('pilihBulan', 11)->assertSet('bulan', 11);
+
+    expect($page->viewData('columns'))->toHaveCount(1)
+        ->and($page->viewData('columns')[0]['label'])->toBe('Senin, 2 November 2026');
+});
+
+test('rejects a month outside the running semester on the peminatan recap', function () {
+    peminatanRecapType('Peminatan A');
+    $this->actingAs(peminatanRecapTeacher()->user);
+
+    peminatanRecapPage()->call('pilihBulan', 2)->assertNotFound();
+});
+
 test('filters students and sessions by the selected peminatan type', function () {
     $peminatanA = peminatanRecapType('Peminatan A');
     $peminatanB = peminatanRecapType('Peminatan B');

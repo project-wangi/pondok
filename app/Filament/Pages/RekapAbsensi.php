@@ -8,6 +8,7 @@ use App\Models\MataPelajaran;
 use App\Models\Murid;
 use App\Models\SesiMengajar;
 use BackedEnum;
+use Carbon\CarbonImmutable;
 use Filament\Facades\Filament;
 use Filament\Pages\Page;
 use Filament\Support\Icons\Heroicon;
@@ -56,6 +57,9 @@ class RekapAbsensi extends Page
     #[Locked]
     public ?int $mataPelajaranId = null;
 
+    #[Locked]
+    public int $bulan = 1;
+
     public static function canAccess(): bool
     {
         return Filament::auth()->user()?->can('View:RekapAbsensi') ?? false;
@@ -64,6 +68,7 @@ class RekapAbsensi extends Page
     public function mount(): void
     {
         abort_unless(static::canAccess(), 403);
+        $this->bulan = $this->defaultBulan(JadwalPelajaran::activePeriod());
         $first = $this->scheduleOptions()
             ->first(fn (JadwalPelajaran $schedule): bool => $schedule->kelas_id !== null && $schedule->mata_pelajaran !== null);
 
@@ -71,6 +76,13 @@ class RekapAbsensi extends Page
             $this->kelasId = (int) $first->kelas_id;
             $this->mataPelajaranId = (int) $first->mata_pelajaran;
         }
+    }
+
+    public function pilihBulan(int $bulan): void
+    {
+        abort_unless(static::canAccess(), 403);
+        abort_unless(array_key_exists($bulan, $this->monthOptions(JadwalPelajaran::activePeriod())), 404);
+        $this->bulan = $bulan;
     }
 
     public function pilihKelas(int $kelasId): void
@@ -98,6 +110,14 @@ class RekapAbsensi extends Page
     {
         abort_unless(static::canAccess(), 403);
         $period = JadwalPelajaran::activePeriod();
+        $bulanOptions = $this->monthOptions($period);
+
+        if (! array_key_exists($this->bulan, $bulanOptions)) {
+            $this->bulan = $this->defaultBulan($period);
+        }
+
+        [$monthStart] = $this->monthBounds($period);
+        $bulanLabel = self::BULAN[$this->bulan].' '.$monthStart->year;
         $classes = $this->classOptions();
         $subjects = $this->kelasId !== null ? $this->subjectOptions($this->kelasId) : new Collection;
         $class = $this->kelasId !== null ? Kelas::query()->find($this->kelasId) : null;
@@ -175,8 +195,11 @@ class RekapAbsensi extends Page
             'guruName' => $class !== null && $subject !== null
                 ? $this->teacherNames($class, $subject, $period)
                 : '—',
+            'bulanOptions' => $bulanOptions,
+            'bulanLabel' => $bulanLabel,
             'period' => $period,
             'presensiUrl' => PresensiSiswa::getUrl(),
+            'canOpenPresensi' => PresensiSiswa::canAccess(),
         ];
     }
 
@@ -249,9 +272,13 @@ class RekapAbsensi extends Page
      */
     private function sessions(int $kelasId, int $mapelId, array $period): Collection
     {
+        [$from, $until] = $this->monthBounds($period);
+
         return SesiMengajar::query()
             ->where('semester', $period['semester'])
             ->where('tahun_ajaran', $period['tahun_ajaran'])
+            ->where('tanggal', '>=', $from->toDateString())
+            ->where('tanggal', '<', $until->toDateString())
             ->whereHas('jadwalPelajaran', function (Builder $query) use ($kelasId, $mapelId, $period): void {
                 $query->where('kelas_id', $kelasId)
                     ->where('mata_pelajaran', $mapelId)
@@ -285,5 +312,43 @@ class RekapAbsensi extends Page
             'Alpa' => 'A',
             default => null,
         };
+    }
+
+    /**
+     * Bulan yang tersedia mengikuti semester berjalan: Ganjil Juli-Desember,
+     * Genap Januari-Juni.
+     *
+     * @param  array{semester: string, tahun_ajaran: string}  $period
+     * @return array<int, string>
+     */
+    private function monthOptions(array $period): array
+    {
+        return $period['semester'] === 'Ganjil'
+            ? array_slice(self::BULAN, 6, null, true)
+            : array_slice(self::BULAN, 0, 6, true);
+    }
+
+    /** @param array{semester: string, tahun_ajaran: string} $period */
+    private function defaultBulan(array $period): int
+    {
+        $options = $this->monthOptions($period);
+        $bulan = (int) now()->month;
+
+        return array_key_exists($bulan, $options) ? $bulan : (int) array_key_first($options);
+    }
+
+    /**
+     * Rentang tanggal untuk bulan terpilih pada tahun ajaran periode berjalan.
+     *
+     * @param  array{semester: string, tahun_ajaran: string}  $period
+     * @return array{0: CarbonImmutable, 1: CarbonImmutable}
+     */
+    private function monthBounds(array $period): array
+    {
+        $startYear = (int) str($period['tahun_ajaran'])->before('/')->toString();
+        $year = $period['semester'] === 'Ganjil' ? $startYear : $startYear + 1;
+        $start = CarbonImmutable::create($year, $this->bulan, 1)->startOfMonth();
+
+        return [$start, $start->addMonth()];
     }
 }

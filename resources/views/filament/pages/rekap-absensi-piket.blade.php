@@ -7,6 +7,24 @@
             </div>
         @else
             <div class="rekap-kelas-bar">
+                <p class="rekap-kelas-title">Bulan</p>
+                <div class="rekap-kelas-buttons" role="group" aria-label="Pilih bulan">
+                    @foreach ($bulanOptions as $value => $label)
+                        <button
+                            type="button"
+                            @class(['rekap-kelas-button', 'is-active' => $value === $bulan])
+                            wire:click="pilihBulan({{ $value }})"
+                            wire:loading.attr="disabled"
+                            wire:target="pilihBulan,pilihKelas"
+                            aria-pressed="{{ $value === $bulan ? 'true' : 'false' }}"
+                        >
+                            {{ $label }}
+                        </button>
+                    @endforeach
+                </div>
+            </div>
+
+            <div class="rekap-kelas-bar">
                 <p class="rekap-kelas-title">Klik Untuk Pilih Kelas</p>
                 <div class="rekap-kelas-buttons" role="group" aria-label="Pilih kelas">
                     @foreach ($classes as $option)
@@ -45,16 +63,18 @@
                 </div>
             @elseif ($columns === [])
                 <div class="presensi-notice">
-                    <p class="presensi-label">Belum ada absensi piket tercatat untuk {{ $class?->nama_kelas ?? 'kelas ini' }} pada semester {{ $period['semester'] }}.</p>
+                    <p class="presensi-label">Belum ada absensi piket tercatat untuk {{ $class?->nama_kelas ?? 'kelas ini' }} pada bulan {{ $bulanLabel }}.</p>
                     <p class="presensi-help">Rekap akan terisi setelah guru piket mencatat absensi masuk dan pulang.</p>
-                    <p><a class="asesmen-link" href="{{ $piketUrl }}">Buka Absensi Piket</a></p>
+                    @if ($canOpenPiket)
+                        <p><a class="asesmen-link" href="{{ $piketUrl }}">Buka Absensi Piket</a></p>
+                    @endif
                 </div>
             @else
                 <p class="presensi-help">Kode masuk: H = Hadir, T = Terlambat, I = Izin, S = Sakit, A = Alpa. Kode pulang: P = Pulang, I = Izin, S = Sakit, A = Alpa. Kode atas adalah absen masuk, kode bawah adalah absen pulang.</p>
 
-                <div class="presensi-table-scroll" role="region" aria-label="Rekap absensi piket kelas {{ $class?->nama_kelas }}" tabindex="0">
+                <div class="presensi-table-scroll" role="region" aria-label="Rekap absensi piket kelas {{ $class?->nama_kelas }} bulan {{ $bulanLabel }}" tabindex="0">
                     <table class="asesmen-matrix rekap-matrix piket-matrix">
-                        <caption class="presensi-sr-only">Rekap absensi piket kelas {{ $class?->nama_kelas }} semester {{ $period['semester'] }} tahun ajaran {{ $period['tahun_ajaran'] }}</caption>
+                        <caption class="presensi-sr-only">Rekap absensi piket kelas {{ $class?->nama_kelas }} bulan {{ $bulanLabel }} semester {{ $period['semester'] }} tahun ajaran {{ $period['tahun_ajaran'] }}</caption>
                         <colgroup>
                             <col class="rekap-col-no">
                             <col class="rekap-col-nis">
