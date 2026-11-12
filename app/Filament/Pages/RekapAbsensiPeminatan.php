@@ -138,7 +138,6 @@ class RekapAbsensiPeminatan extends Page
             'rows' => $rows,
             'maleCount' => $male,
             'femaleCount' => $female,
-            'guruName' => Filament::auth()->user()?->name,
             'period' => $period,
             'peminatanUrl' => AbsensiPeminatan::getUrl(),
         ];

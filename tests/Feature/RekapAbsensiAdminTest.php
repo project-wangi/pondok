@@ -83,3 +83,29 @@ test('keeps accounts without a teacher profile out of the recaps', function () {
         ->and(RekapAbsensiPiket::canAccess())->toBeFalse()
         ->and(AbsenRapatResource::canAccess())->toBeFalse();
 });
+
+test('shows the teachers of the selected class and subject instead of the admin account', function () {
+    $admin = rekapAdminUser();
+    $admin->update(['name' => 'Admin Pondok']);
+    $this->actingAs($admin);
+
+    expect(Livewire::test(RekapAbsensi::class)->viewData('guruName'))->toBe('—');
+
+    $kelas = KelasFactory::new()->create(['nama_kelas' => 'VII']);
+    $mapel = MataPelajaranFactory::new()->create(['nama_mapel' => 'Matematika']);
+    $guru = GuruFactory::new()->create();
+    $guru->user->update(['name' => 'Ust. Ahmad Fauzi']);
+
+    foreach (['Senin', 'Selasa'] as $hari) {
+        JadwalPelajaranFactory::new()->create([
+            'guru_id' => $guru->id,
+            'kelas_id' => $kelas->id,
+            'mata_pelajaran' => $mapel->id,
+            'semester' => 'Ganjil',
+            'tahun_ajaran' => '2026/2027',
+            'hari' => $hari,
+        ]);
+    }
+
+    expect(Livewire::test(RekapAbsensi::class)->viewData('guruName'))->toBe('Ust. Ahmad Fauzi');
+});

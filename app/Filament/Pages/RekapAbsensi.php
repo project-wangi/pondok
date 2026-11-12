@@ -172,10 +172,34 @@ class RekapAbsensi extends Page
             'rows' => $rows,
             'maleCount' => $male,
             'femaleCount' => $female,
-            'guruName' => Filament::auth()->user()?->name,
+            'guruName' => $class !== null && $subject !== null
+                ? $this->teacherNames($class, $subject, $period)
+                : '—',
             'period' => $period,
             'presensiUrl' => PresensiSiswa::getUrl(),
         ];
+    }
+
+    /**
+     * Nama guru pengampu kelas dan mapel terpilih pada periode berjalan.
+     * Satu mapel bisa diajar lebih dari satu guru, jadi semua nama unik digabung.
+     *
+     * @param  array{semester: string, tahun_ajaran: string}  $period
+     */
+    private function teacherNames(Kelas $class, MataPelajaran $subject, array $period): string
+    {
+        $names = JadwalPelajaran::query()
+            ->forPeriod($period['semester'], $period['tahun_ajaran'])
+            ->where('kelas_id', $class->id)
+            ->where('mata_pelajaran', $subject->id)
+            ->with('guru.user:id,name')
+            ->get()
+            ->map(fn (JadwalPelajaran $schedule): ?string => $schedule->guru?->user?->name)
+            ->filter()
+            ->unique()
+            ->values();
+
+        return $names->isEmpty() ? '—' : $names->implode(', ');
     }
 
     private function guruId(): ?int
