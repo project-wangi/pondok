@@ -176,3 +176,65 @@ test('rejects editing a schedule into another conflicting time', function () {
         'id' => $editable->id, 'jam_mulai' => '10:00:00', 'jam_selesai' => '12:00:00',
     ]);
 });
+
+test('rejects a class that already has a schedule at an overlapping time', function () {
+    $this->actingAs(conflictUser('ViewAny:JadwalPelajaran', 'Create:JadwalPelajaran'));
+
+    $class = KelasFactory::new()->create();
+    busySchedule(GuruFactory::new()->create(), ['kelas_id' => $class->id]);
+
+    Livewire::test(CreateJadwalPelajaran::class)
+        ->fillForm([
+            ...conflictFormData(GuruFactory::new()->create()),
+            'kelas_id' => $class->id,
+        ])
+        ->call('create')
+        ->assertHasFormErrors(['kelas_id']);
+
+    $this->assertDatabaseCount('jadwal_pelajarans', 1);
+});
+
+test('keeps the class when the new time only touches another schedule', function () {
+    $this->actingAs(conflictUser('ViewAny:JadwalPelajaran', 'Create:JadwalPelajaran'));
+
+    $class = KelasFactory::new()->create();
+    busySchedule(GuruFactory::new()->create(), ['kelas_id' => $class->id]);
+
+    Livewire::test(CreateJadwalPelajaran::class)
+        ->fillForm([
+            ...conflictFormData(GuruFactory::new()->create(), '10:00', '12:00'),
+            'kelas_id' => $class->id,
+        ])
+        ->call('create')
+        ->assertHasNoFormErrors();
+
+    $this->assertDatabaseCount('jadwal_pelajarans', 2);
+});
+
+test('rejects an end time that is not after the start time', function (string $start, string $end) {
+    $this->actingAs(conflictUser('ViewAny:JadwalPelajaran', 'Create:JadwalPelajaran'));
+
+    Livewire::test(CreateJadwalPelajaran::class)
+        ->fillForm(conflictFormData(GuruFactory::new()->create(), $start, $end))
+        ->call('create')
+        ->assertHasFormErrors(['jam_selesai']);
+
+    $this->assertDatabaseCount('jadwal_pelajarans', 0);
+})->with([
+    'same time' => ['09:00', '09:00'],
+    'backwards' => ['11:00', '09:00'],
+]);
+
+test('allows editing a schedule class without conflicting with itself', function () {
+    $this->actingAs(conflictUser(
+        'ViewAny:JadwalPelajaran',
+        'View:JadwalPelajaran',
+        'Update:JadwalPelajaran',
+    ));
+    $schedule = busySchedule(GuruFactory::new()->create());
+
+    Livewire::test(EditJadwalPelajaran::class, ['record' => $schedule->getKey()])
+        ->fillForm(['kelas_id' => $schedule->kelas_id])
+        ->call('save')
+        ->assertHasNoFormErrors();
+});
