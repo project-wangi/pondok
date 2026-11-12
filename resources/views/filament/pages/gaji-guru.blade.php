@@ -101,10 +101,10 @@
             <p class="gaji-help">
                 JP mengajar hanya dihitung dari sesi yang sudah memiliki presensi siswa
                 (durasi jam mulai sampai jam selesai, 1 JP = 40 menit). Transport = jarak rumah × Rp1.000 ×
-                jumlah hari guru mengajar dan mencatat presensi siswa. Piket dihitung dari
-                jumlah hari piket yang dicatat. Peminatan = nominal jenis × jumlah absensi
-                peminatan pada bulan berjalan. Jabatan bersifat bulanan, jadi tetap muncul
-                pada bulan tanpa kegiatan.
+                jumlah hari hadir, yaitu tanggal unik saat guru mengajar yang sudah berpresensi siswa,
+                piket, peminatan, atau rapat. Piket dihitung dari jumlah hari piket yang dicatat.
+                Peminatan = nominal jenis × jumlah absensi peminatan pada bulan berjalan. Jabatan
+                bersifat bulanan, jadi tetap muncul pada bulan tanpa kegiatan.
             </p>
         @endif
     </div>

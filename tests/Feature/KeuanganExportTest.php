@@ -132,24 +132,25 @@ test('exports the salary recap for the selected month', function () {
 
     $data = $rows[5];
 
-    // 2 sesi × 90 menit = 4,5 JP → Rp45.000; transport 10 km × 2 hari = Rp20.000.
+    // 2 sesi × 90 menit = 4,5 JP → Rp45.000; transport 10 km × 4 hari hadir
+    // (mengajar 5 & 6, rapat 8, piket 9) = Rp40.000.
     expect($data[1])->toBe('Ust. Ahmad Fauzi')
         ->and((float) $data[2])->toBe(4.5)
-        ->and((int) $data[3])->toBe(2)
+        ->and((int) $data[3])->toBe(4)
         ->and((int) $data[4])->toBe(45000)
-        ->and((int) $data[5])->toBe(20000)
+        ->and((int) $data[5])->toBe(40000)
         ->and((int) $data[6])->toBe(500000)
         ->and((int) $data[7])->toBe(20000)
         ->and((int) $data[8])->toBe(0)
         ->and((int) $data[9])->toBe(10000)
-        ->and((int) $data[10])->toBe(595000);
+        ->and((int) $data[10])->toBe(615000);
 
     $total = $rows[6];
 
     expect($total[0])->toBe('Total')
         ->and((float) $total[2])->toBe(4.5)
         ->and((int) $total[4])->toBe(45000)
-        ->and((int) $total[10])->toBe(595000);
+        ->and((int) $total[10])->toBe(615000);
 });
 
 test('exports the teaching recap as a JP matrix per class', function () {

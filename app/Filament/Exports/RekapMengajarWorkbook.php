@@ -101,9 +101,9 @@ class RekapMengajarWorkbook
             $headerLeft = (clone $headerWrap)->setCellAlignment(CellAlignment::LEFT);
             $cell = (clone $base)->setBorder($border);
             $cellLeft = (clone $left)->setBorder($border);
-            $quantity = (clone $cell)->setFormat('0.##');
+            $quantity = (clone $cell)->setFormat('0.##;-0.##;0');
             $totalLabel = (clone $bold)->setBorder($border);
-            $totalQuantity = (clone $bold)->setBorder($border)->setFormat('0.##');
+            $totalQuantity = (clone $bold)->setBorder($border)->setFormat('0.##;-0.##;0');
 
             $rowNumber = 0;
             $add = function (array $values, Style|array $styles, float $height, array $merges = []) use ($writer, $options, $sheet, &$rowNumber, $lastColumn): void {

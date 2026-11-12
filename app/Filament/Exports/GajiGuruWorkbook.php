@@ -103,11 +103,11 @@ class GajiGuruWorkbook
             $header = (clone $bold)->setBorder($border);
             $cell = (clone $base)->setBorder($border);
             $cellLeft = (clone $left)->setBorder($border);
-            $quantity = (clone $cell)->setFormat('0.##');
+            $quantity = (clone $cell)->setFormat('0.##;-0.##;0');
             $count = (clone $cell)->setFormat('0');
             $money = (clone $cell)->setFormat('"Rp"#,##0');
             $totalLabel = (clone $bold)->setBorder($border);
-            $totalQuantity = (clone $bold)->setBorder($border)->setFormat('0.##');
+            $totalQuantity = (clone $bold)->setBorder($border)->setFormat('0.##;-0.##;0');
             $totalMoney = (clone $bold)->setBorder($border)->setFormat('"Rp"#,##0');
 
             $rowNumber = 0;
@@ -161,7 +161,8 @@ class GajiGuruWorkbook
             $add([], $base, 8);
             $add([
                 'JP mengajar dihitung dari sesi yang sudah memiliki presensi siswa (1 JP = 40 menit). '
-                .'Transport dan piket mengikuti jumlah hari yang tercatat pada periode ini.',
+                .'Transport dihitung dari hari hadir: tanggal unik mengajar yang sudah berpresensi siswa, '
+                .'piket, peminatan, atau rapat.',
             ], $leftWrap, 32, [[0, self::LAST_COLUMN]]);
         } finally {
             $writer->close();

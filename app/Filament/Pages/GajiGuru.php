@@ -3,6 +3,7 @@
 namespace App\Filament\Pages;
 
 use App\Filament\Exports\GajiGuruWorkbook;
+use App\Models\AbsenPeminatan;
 use App\Models\AbsenPiket;
 use App\Models\AbsenRapat;
 use App\Models\Guru;
@@ -12,6 +13,7 @@ use Carbon\CarbonImmutable;
 use Filament\Facades\Filament;
 use Filament\Pages\Page;
 use Filament\Support\Icons\Heroicon;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\DB;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 use UnitEnum;
@@ -122,15 +124,7 @@ class GajiGuru extends Page
                 }
             });
 
-        $attendanceCounts = SesiMengajar::query()
-            ->where('tanggal', '>=', $from)
-            ->where('tanggal', '<', $until)
-            ->whereNotNull('guru_id')
-            ->whereHas('presensiMurids')
-            ->selectRaw('guru_id, count(distinct tanggal) as total')
-            ->groupBy('guru_id')
-            ->pluck('total', 'guru_id')
-            ->all();
+        $attendanceDates = self::attendanceDates($from, $until);
 
         $meetingCounts = AbsenRapat::query()
             ->where('tanggal', '>=', $from)
@@ -186,7 +180,7 @@ class GajiGuru extends Page
         foreach ($teachers as $guru) {
             $minutes = (int) ($teachingMinutes[$guru->id] ?? 0);
             $jp = $minutes / self::MENIT_PER_JP;
-            $attendanceDays = (int) ($attendanceCounts[$guru->id] ?? 0);
+            $attendanceDays = count($attendanceDates[$guru->id] ?? []);
             $distance = (float) ($guru->jarak_rumah ?? 0);
 
             $mengajar = (int) round($jp * self::HONOR_PER_JP);
@@ -246,19 +240,17 @@ class GajiGuru extends Page
             ->get(['tanggal', 'jam_mulai', 'jam_selesai']);
 
         $minutes = 0;
-        $attendanceDays = [];
 
         foreach ($sessions as $session) {
             $duration = self::sessionMinutes($session->jam_mulai, $session->jam_selesai);
 
             if ($duration > 0) {
                 $minutes += $duration;
-                $attendanceDays[$session->tanggal->toDateString()] = true;
             }
         }
 
         $jp = $minutes / self::MENIT_PER_JP;
-        $dayCount = count($attendanceDays);
+        $dayCount = count(self::attendanceDates($from, $until, $guru->id)[$guru->id] ?? []);
         $distance = (float) ($guru->jarak_rumah ?? 0);
 
         $meetingCount = AbsenRapat::query()
@@ -329,6 +321,60 @@ class GajiGuru extends Page
             'piket' => $piket,
             'total' => $mengajar + $transport + $jabatan + $rapat + $peminatan + $piket,
         ];
+    }
+
+    /**
+     * Tanggal unik kehadiran guru pada rentang tanggal: mengajar yang sudah
+     * berpresensi siswa, piket, peminatan, dan rapat. Dipakai sebagai dasar
+     * hari hadir untuk transport.
+     *
+     * @return array<int, array<string, true>>
+     */
+    private static function attendanceDates(string $from, string $until, ?int $guruId = null): array
+    {
+        $dates = [];
+
+        $collect = function (iterable $rows) use (&$dates): void {
+            foreach ($rows as $row) {
+                $id = (int) $row->guru_id;
+                $tanggal = $row->tanggal?->toDateString();
+
+                if ($id > 0 && $tanggal !== null) {
+                    $dates[$id][$tanggal] = true;
+                }
+            }
+        };
+
+        $collect(SesiMengajar::query()
+            ->where('tanggal', '>=', $from)
+            ->where('tanggal', '<', $until)
+            ->whereNotNull('guru_id')
+            ->whereHas('presensiMurids')
+            ->when($guruId !== null, fn (Builder $query): Builder => $query->where('guru_id', $guruId))
+            ->get(['guru_id', 'tanggal']));
+
+        $collect(AbsenPiket::query()
+            ->where('tanggal', '>=', $from)
+            ->where('tanggal', '<', $until)
+            ->whereNotNull('guru_id')
+            ->when($guruId !== null, fn (Builder $query): Builder => $query->where('guru_id', $guruId))
+            ->get(['guru_id', 'tanggal']));
+
+        $collect(AbsenPeminatan::query()
+            ->where('tanggal', '>=', $from)
+            ->where('tanggal', '<', $until)
+            ->whereNotNull('guru_id')
+            ->when($guruId !== null, fn (Builder $query): Builder => $query->where('guru_id', $guruId))
+            ->get(['guru_id', 'tanggal']));
+
+        $collect(AbsenRapat::query()
+            ->where('tanggal', '>=', $from)
+            ->where('tanggal', '<', $until)
+            ->whereNotNull('guru_id')
+            ->when($guruId !== null, fn (Builder $query): Builder => $query->where('guru_id', $guruId))
+            ->get(['guru_id', 'tanggal']));
+
+        return $dates;
     }
 
     /**

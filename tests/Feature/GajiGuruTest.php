@@ -8,7 +8,9 @@ use App\Models\Jabatan;
 use App\Models\JadwalRapat;
 use App\Models\JenisPeminatan;
 use App\Models\User;
+use Database\Factories\AbsenPeminatanFactory;
 use Database\Factories\AbsenPiketFactory;
+use Database\Factories\AbsenRapatFactory;
 use Database\Factories\GuruFactory;
 use Database\Factories\JadwalPelajaranFactory;
 use Database\Factories\KelasFactory;
@@ -168,18 +170,19 @@ test('the salary page computes each component for the selected month', function 
 
     expect($rekap['periode'])->toBe('Oktober 2026')
         ->and($row['jp'])->toBe(6.75)
-        ->and($row['hari_hadir'])->toBe(3)
+        // Mengajar 5-7 Okt, rapat 8 & 15, piket 9 & 16, peminatan 1, 8, 15 → 8 hari unik.
+        ->and($row['hari_hadir'])->toBe(8)
         ->and($row['mengajar'])->toBe(67500)
-        ->and($row['transport'])->toBe(30000)
+        ->and($row['transport'])->toBe(80000)
         ->and($row['jabatan'])->toBe(750000)
         ->and($row['rapat'])->toBe(40000)
         ->and($row['peminatan'])->toBe(400000)
         ->and($row['piket'])->toBe(20000)
-        ->and($row['total'])->toBe(1307500)
-        ->and($rekap['totals']['total'])->toBe(1307500);
+        ->and($row['total'])->toBe(1357500)
+        ->and($rekap['totals']['total'])->toBe(1357500);
 
     $component->assertSee('Ust. Ahmad Fauzi')
-        ->assertSee('Rp 1.307.500')
+        ->assertSee('Rp 1.357.500')
         ->assertSee('Jabatan')
         ->assertSee('Transport');
 });
@@ -238,12 +241,44 @@ test('the salary page excludes records from other months', function () {
 
     expect($rekap['periode'])->toBe('September 2026')
         ->and($row['jp'])->toBe(2.25)
-        ->and($row['hari_hadir'])->toBe(1)
+        ->and($row['hari_hadir'])->toBe(4)
         ->and($row['mengajar'])->toBe(22500)
-        ->and($row['transport'])->toBe(10000)
+        ->and($row['transport'])->toBe(40000)
         ->and($row['rapat'])->toBe(20000)
         ->and($row['piket'])->toBe(10000)
-        ->and($row['total'])->toBe(962500);
+        ->and($row['total'])->toBe(992500);
+});
+
+test('counts picket, specialization, and meeting days for transport without teaching', function () {
+    $this->actingAs(gajiGuruAdmin());
+
+    $guru = GuruFactory::new()->create(['jarak_rumah' => 10]);
+    $class = KelasFactory::new()->create();
+    $otherClass = KelasFactory::new()->create();
+
+    // Dua catatan piket pada tanggal yang sama tetap dihitung satu hari.
+    AbsenPiketFactory::new()->create(['guru_id' => $guru->id, 'kelas_id' => $class->id, 'tanggal' => '2026-10-09']);
+    AbsenPiketFactory::new()->create(['guru_id' => $guru->id, 'kelas_id' => $otherClass->id, 'tanggal' => '2026-10-09']);
+    AbsenRapatFactory::new()->create(['guru_id' => $guru->id, 'tanggal' => '2026-10-08']);
+
+    $tahfizh = JenisPeminatan::create(['nama_peminatan' => "Tahfizh Al-Qur'an", 'nominal' => 150000]);
+    AbsenPeminatanFactory::new()->create([
+        'guru_id' => $guru->id,
+        'jenis_peminatan_id' => $tahfizh->id,
+        'tanggal' => '2026-10-01',
+    ]);
+
+    $row = collect(Livewire::test(GajiGuru::class)->set('bulan', 10)->set('tahun', 2026)->instance()->rekap()['rows'])
+        ->firstWhere('guru_id', $guru->id);
+
+    expect($row['jp'])->toBe(0.0)
+        ->and($row['mengajar'])->toBe(0)
+        ->and($row['hari_hadir'])->toBe(3)
+        ->and($row['transport'])->toBe(30000)
+        ->and($row['piket'])->toBe(10000)
+        ->and($row['rapat'])->toBe(20000)
+        ->and($row['peminatan'])->toBe(150000)
+        ->and($row['total'])->toBe(210000);
 });
 
 test('the salary page clamps an out of range month and year', function () {

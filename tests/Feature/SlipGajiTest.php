@@ -156,20 +156,20 @@ test('a teacher sees their own salary slip for the selected month', function () 
 
     expect($rincian['periode'])->toBe('Oktober 2026')
         ->and($rincian['jp'])->toBe(4.5)
-        ->and($rincian['hari_hadir'])->toBe(2)
+        ->and($rincian['hari_hadir'])->toBe(7)
         ->and($rincian['mengajar'])->toBe(45000)
-        ->and($rincian['transport'])->toBe(20000)
+        ->and($rincian['transport'])->toBe(70000)
         ->and($rincian['jabatan'])->toBe(500000)
         ->and($rincian['rapat'])->toBe(40000)
         ->and($rincian['peminatan'])->toBe(300000)
         ->and($rincian['piket'])->toBe(20000)
-        ->and($rincian['total'])->toBe(925000);
+        ->and($rincian['total'])->toBe(975000);
 
     $component->assertSee('Ust. Ahmad Fauzi')
         ->assertDontSee('Ustzh. Siti Aminah')
-        ->assertSee('Rp 925.000')
+        ->assertSee('Rp 975.000')
         ->assertSee('4,5 JP × Rp10.000')
-        ->assertSee('2 hari hadir')
+        ->assertSee('7 hari hadir')
         ->assertSee('Tahfizh Al-Qur\'an')
         ->assertSeeHtml('href="'.e(route('slip-gaji.print', ['bulan' => 10, 'tahun' => 2026])).'"');
 });
@@ -183,16 +183,16 @@ test('the salary slip follows the selected month', function () {
 
     expect($rincian['periode'])->toBe('September 2026')
         ->and($rincian['jp'])->toBe(2.25)
-        ->and($rincian['hari_hadir'])->toBe(1)
+        ->and($rincian['hari_hadir'])->toBe(2)
         ->and($rincian['mengajar'])->toBe(22500)
-        ->and($rincian['transport'])->toBe(10000)
+        ->and($rincian['transport'])->toBe(20000)
         ->and($rincian['rapat'])->toBe(0)
         ->and($rincian['piket'])->toBe(0)
         ->and($rincian['jabatan'])->toBe(500000)
         ->and($rincian['peminatan'])->toBe(150000)
-        ->and($rincian['total'])->toBe(682500);
+        ->and($rincian['total'])->toBe(692500);
 
-    $component->assertSee('Rp 682.500');
+    $component->assertSee('Rp 692.500');
 });
 
 test('renders a standalone printable slip that uses the browser print dialog', function () {
@@ -203,7 +203,7 @@ test('renders a standalone printable slip that uses the browser print dialog', f
         ->assertOk()
         ->assertSee('Slip Gaji Guru')
         ->assertSee('Ust. Ahmad Fauzi')
-        ->assertSee('Rp 925.000')
+        ->assertSee('Rp 975.000')
         ->assertSee('window.print()', false)
         ->assertSee('color-scheme: light', false)
         ->assertDontSee('fi-sidebar');
