@@ -11,8 +11,8 @@
             <td align="center">
                 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;background:#ffffff;border-radius:12px;overflow:hidden;border:1px solid #e5e7eb;">
                     <tr>
-                        <td style="padding:24px 28px;background:#0a2342;color:#ffffff;">
-                            <p style="margin:0;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:#c7d2fe;">{{ $schoolName }}</p>
+                        <td style="padding:24px 28px;background:#0F6B6B;color:#ffffff;">
+                            <p style="margin:0;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:#E3DDD3;">{{ $schoolName }}</p>
                             <h1 style="margin:6px 0 0;font-size:22px;line-height:1.25;">Kata Sandi Baru</h1>
                         </td>
                     </tr>
@@ -37,7 +37,7 @@
 
                             <table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 0 18px;">
                                 <tr>
-                                    <td style="border-radius:8px;background:#123d76;">
+                                    <td style="border-radius:8px;background:#0F6B6B;">
                                         <a href="{{ route('filament.siswa.auth.login') }}" style="display:inline-block;padding:12px 20px;color:#ffffff;text-decoration:none;font-weight:700;">
                                             Masuk ke Akun
                                         </a>

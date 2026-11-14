@@ -11,8 +11,8 @@
             <td align="center">
                 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;background:#ffffff;border-radius:12px;overflow:hidden;border:1px solid #e5e7eb;">
                     <tr>
-                        <td style="padding:24px 28px;background:#0a2342;color:#ffffff;">
-                            <p style="margin:0;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:#c7d2fe;">{{ $schoolName }}</p>
+                        <td style="padding:24px 28px;background:#0F6B6B;color:#ffffff;">
+                            <p style="margin:0;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:#E3DDD3;">{{ $schoolName }}</p>
                             <h1 style="margin:6px 0 0;font-size:22px;line-height:1.25;">Akun Pendaftaran Calon Siswa</h1>
                         </td>
                     </tr>
@@ -27,7 +27,7 @@
 
                             <table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 0 8px;">
                                 <tr>
-                                    <td style="border-radius:8px;background:#123d76;">
+                                    <td style="border-radius:8px;background:#0F6B6B;">
                                         <a href="{{ $tautanMasuk }}" style="display:inline-block;padding:12px 20px;color:#ffffff;text-decoration:none;font-weight:700;">
                                             Masuk ke Akun
                                         </a>
@@ -62,11 +62,11 @@
                             </table>
 
                             <p style="margin:0 0 16px;color:#4b5563;">
-                                Halaman masuk: <a href="{{ route('filament.siswa.auth.login') }}" style="color:#123d76;">{{ route('filament.siswa.auth.login') }}</a>
+                                Halaman masuk: <a href="{{ route('filament.siswa.auth.login') }}" style="color:#0F6B6B;">{{ route('filament.siswa.auth.login') }}</a>
                             </p>
                             <p style="margin:0 0 16px;color:#4b5563;">
                                 Halaman status pendaftaran:<br>
-                                <a href="{{ \App\Filament\Siswa\Pages\StatusPendaftaran::getUrl(panel: 'siswa') }}" style="color:#123d76;">{{ \App\Filament\Siswa\Pages\StatusPendaftaran::getUrl(panel: 'siswa') }}</a>
+                                <a href="{{ \App\Filament\Siswa\Pages\StatusPendaftaran::getUrl(panel: 'siswa') }}" style="color:#0F6B6B;">{{ \App\Filament\Siswa\Pages\StatusPendaftaran::getUrl(panel: 'siswa') }}</a>
                             </p>
                             <p style="margin:0;color:#6b7280;font-size:12px;">
                                 Jangan bagikan nama pengguna atau kata sandi ini kepada orang lain. Jika Anda tidak

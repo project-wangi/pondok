@@ -107,6 +107,8 @@ test('shows the public registration form', function () {
         ->assertSee('Nomor WhatsApp Pendaftar')
         ->assertSee('Masukkan Nama Lengkap Sesuai Akta Kelahiran.')
         ->assertSee('oninput="this.value = this.value.replace(/\\D/g, \'\')"', false)
+        ->assertDontSee('school-theme-pmb', false)
+        ->assertSee('<meta name="theme-color" content="#0F6B6B">', false)
         ->assertDontSee('Nomor Kartu Keluarga')
         ->assertDontSee('name="kk"', false);
 });
