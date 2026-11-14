@@ -17,6 +17,7 @@ use Database\Factories\PresensiMuridFactory;
 use Database\Factories\SesiMengajarFactory;
 use Filament\Facades\Filament;
 use Illuminate\Foundation\Testing\LazilyRefreshDatabase;
+use Spatie\Permission\Models\Role;
 
 uses(LazilyRefreshDatabase::class);
 
@@ -202,6 +203,41 @@ test('marks each piket teacher who recorded today as done', function () {
         ->and(substr_count($response->getContent(), 'Belum mencatat'))->toBe(0);
 
     $response->assertSee('Petugas Satu')->assertSee('Petugas Dua');
+});
+
+test('shows the teacher dashboard for the guru role even without a teacher profile', function () {
+    Role::create(['name' => 'guru', 'guard_name' => 'web']);
+    Role::create(['name' => 'panel_user', 'guard_name' => 'web']);
+    $user = User::factory()->create(['name' => 'Guru Tanpa Profil'])->assignRole(['guru', 'panel_user']);
+    $this->actingAs($user);
+
+    $this->get('/admin')
+        ->assertOk()
+        ->assertSee('Selamat pagi')
+        ->assertSee('Guru Tanpa Profil')
+        ->assertSee('Tidak ada jadwal mengajar hari ini.');
+});
+
+test('shows the admin dashboard for the admin role without the dashboard permission', function () {
+    Role::create(['name' => 'admin', 'guard_name' => 'web']);
+    $user = User::factory()->create()->assignRole('admin');
+    $this->actingAs($user);
+
+    $this->get('/admin')
+        ->assertOk()
+        ->assertSee('Jadwal hari ini')
+        ->assertSee('Total Siswa');
+});
+
+test('shows the default dashboard for accounts without an administrative or guru role', function () {
+    Role::create(['name' => 'panel_user', 'guard_name' => 'web']);
+    $user = User::factory()->create()->assignRole('panel_user');
+    $this->actingAs($user);
+
+    $this->get('/admin')
+        ->assertOk()
+        ->assertDontSee('Jadwal hari ini')
+        ->assertDontSee('Selamat pagi');
 });
 
 test('shows honest empty states on the admin dashboard', function () {

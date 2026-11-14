@@ -51,11 +51,23 @@ class Dashboard extends BaseDashboard
     {
         $user = Filament::auth()->user();
 
-        if (! $user instanceof User || ! $user->guru()->exists()) {
+        if (! $user instanceof User || static::isAdminDashboard()) {
             return false;
         }
 
-        return ! $user->can('View:Dashboard');
+        return $user->guru()->exists() || $user->hasRole('guru');
+    }
+
+    protected static function isAdminDashboard(): bool
+    {
+        $user = Filament::auth()->user();
+
+        if (! $user instanceof User) {
+            return false;
+        }
+
+        return $user->can('View:Dashboard')
+            || $user->hasAnyRole(['admin', config('filament-shield.super_admin.name', 'super_admin')]);
     }
 
     /** @return array<string, mixed> */
@@ -136,11 +148,6 @@ class Dashboard extends BaseDashboard
                 'donasi' => DonasiResource::getUrl(),
             ],
         ];
-    }
-
-    protected static function isAdminDashboard(): bool
-    {
-        return Filament::auth()->user()?->can('View:Dashboard') ?? false;
     }
 
     /** @return array<string, mixed> */

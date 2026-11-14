@@ -3,23 +3,21 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\UserResource\Pages;
-use App\Filament\Resources\UserResource\RelationManagers;
 use App\Models\User;
+use Filament\Actions\DeleteAction;
+use Filament\Actions\EditAction;
 use Filament\Forms;
-use Filament\Schemas\Schema;
 use Filament\Resources\Resource;
+use Filament\Schemas\Schema;
 use Filament\Tables;
 use Filament\Tables\Table;
-use Filament\Actions\EditAction;
-use Filament\Actions\DeleteAction;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
 
 class UserResource extends Resource
 {
     protected static ?string $model = User::class;
 
-    protected static string | \BackedEnum | null $navigationIcon = 'heroicon-o-user';
+    protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-user';
 
     protected static string|\UnitEnum|null $navigationGroup = 'Manajemen Sekolah';
 
@@ -28,7 +26,7 @@ class UserResource extends Resource
     public static function getEloquentQuery(): Builder
     {
         return parent::getEloquentQuery()
-            ->when(!auth()->user()->hasRole('super_admin'), function ($query) {
+            ->when(! auth()->user()->hasRole('super_admin'), function ($query) {
                 $query->whereDoesntHave('roles', fn ($q) => $q->where('name', 'super_admin'));
             });
     }
@@ -62,9 +60,12 @@ class UserResource extends Resource
                     ]),
                 Forms\Components\Select::make('roles')
                     ->label('Role')
-                    ->relationship('roles', 'name', fn ($query) =>
-                        !auth()->user()->hasRole('super_admin') ? $query->where('name', '!=', 'super_admin') : null
+                    ->relationship('roles', 'name', fn ($query) => ! auth()->user()->hasRole('super_admin') ? $query->where('name', '!=', 'super_admin') : null
                     )
+                    ->multiple()
+                    ->preload()
+                    ->searchable()
+                    ->helperText('Boleh memilih lebih dari satu role.')
                     ->required(),
                 Forms\Components\TextInput::make('password')
                     ->password()
