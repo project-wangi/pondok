@@ -2,32 +2,33 @@
 
 @section('content')
     <section class="school-hero" aria-labelledby="welcome-title" data-school-photo>
-        @if ($settings->hero_image)
-            <img src="{{ Illuminate\Support\Facades\Storage::disk('public')->url($settings->hero_image) }}" alt="Lingkungan {{ $settings->school_name }}" fetchpriority="high" width="1600" height="1000" class="school-hero-media" data-school-image>
-            <div class="school-hero-overlay" aria-hidden="true"></div>
-            <p class="school-hero-fallback" data-photo-fallback hidden>Foto sekolah tidak dapat ditampilkan.</p>
-        @else
-            <div class="school-hero-overlay" aria-hidden="true"></div>
-        @endif
-
-        <div class="school-container school-hero-inner">
-            <p class="school-eyebrow school-eyebrow-light">{{ $settings->tagline }}</p>
-            <h1 id="welcome-title" class="school-hero-title">{{ $settings->hero_title }}</h1>
-            <p class="school-hero-lead">{{ $settings->hero_description }}</p>
-            <div class="school-hero-actions">
-                @if ($settings->registration_url && App\Models\SiteSetting::isSafeUrl($settings->registration_url))
-                    <a href="{{ $settings->registration_url }}" class="school-button school-button-gold">{{ $settings->registration_label }}</a>
-                @else
-                    <a href="{{ route('pendaftaran.create') }}" class="school-button school-button-gold">{{ $settings->registration_label ?: 'Daftar Sekarang' }}</a>
-                @endif
-                <a href="#profil" class="school-button school-button-outline">Profil sekolah</a>
-            </div>
-            @unless ($settings->hero_image)
-                <div class="school-hero-note">
-                    <strong>Ruang untuk foto sekolah</strong>
-                    <span>Foto belum ditambahkan. Gambar utama dapat diunggah melalui Pengaturan Website.</span>
+        <div class="school-container school-hero-grid">
+            <div class="school-hero-copy">
+                <p class="school-eyebrow">{{ $settings->tagline }}</p>
+                <h1 id="welcome-title" class="school-hero-title">{{ $settings->hero_title }}</h1>
+                <p class="school-hero-lead">{{ $settings->hero_description }}</p>
+                <div class="school-hero-actions">
+                    @if ($settings->registration_url && App\Models\SiteSetting::isSafeUrl($settings->registration_url))
+                        <a href="{{ $settings->registration_url }}" class="school-button school-button-primary">{{ $settings->registration_label }}</a>
+                    @else
+                        <a href="{{ route('pendaftaran.create') }}" class="school-button school-button-primary">{{ $settings->registration_label ?: 'Daftar Sekarang' }}</a>
+                    @endif
+                    <a href="#profil" class="school-button school-button-gold">Profil sekolah</a>
                 </div>
-            @endunless
+            </div>
+
+            <div class="school-hero-visual">
+                @if ($settings->hero_image)
+                    <img src="{{ Illuminate\Support\Facades\Storage::disk('public')->url($settings->hero_image) }}" alt="Lingkungan {{ $settings->school_name }}" fetchpriority="high" width="1600" height="1000" class="school-hero-media" data-school-image>
+                @else
+                    <div class="school-hero-placeholder">
+                        <x-heroicon-o-photo class="size-8" />
+                        <strong>Ruang untuk foto sekolah</strong>
+                        <span>Foto belum ditambahkan. Gambar utama dapat diunggah melalui Pengaturan Website.</span>
+                    </div>
+                @endif
+                <p class="school-hero-fallback" data-photo-fallback hidden>Foto sekolah tidak dapat ditampilkan.</p>
+            </div>
         </div>
     </section>
 
