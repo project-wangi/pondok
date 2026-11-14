@@ -20,6 +20,7 @@ use Filament\Tables\Columns\ImageColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\HtmlString;
@@ -51,6 +52,11 @@ class MuridsTable
                 TextColumn::make('nohp_siswa')
                     ->label('No. HP'),
                 TextColumn::make('jenis_kelamin'),
+                TextColumn::make('kelas.unit')
+                    ->label('Unit')
+                    ->badge()
+                    ->placeholder('-')
+                    ->color(fn (?string $state): string => $state === Kelas::UNIT_MA ? 'info' : 'success'),
                 TextColumn::make('kelas.nama_kelas')
                     ->label('Kelas')
                     ->badge()
@@ -145,6 +151,24 @@ class MuridsTable
                     ->label('Status Siswa')
                     ->options(Murid::STATUS)
                     ->default(Murid::STATUS_AKTIF),
+                SelectFilter::make('unit')
+                    ->label('Unit')
+                    ->options(Kelas::UNITS)
+                    ->query(function (Builder $query, array $data): Builder {
+                        $unit = $data['value'] ?? null;
+
+                        if (! is_string($unit) || $unit === '') {
+                            return $query;
+                        }
+
+                        $classIds = Kelas::query()
+                            ->get()
+                            ->filter(fn (Kelas $kelas): bool => $kelas->unit === $unit)
+                            ->pluck('id')
+                            ->all();
+
+                        return $query->whereIn('kelas_id', $classIds);
+                    }),
                 SelectFilter::make('kelas_id')
                     ->label('Kelas')
                     ->options(fn (): array => Kelas::query()->orderBy('nama_kelas')->pluck('nama_kelas', 'id')->all())
