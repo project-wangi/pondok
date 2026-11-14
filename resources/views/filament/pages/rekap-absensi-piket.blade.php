@@ -7,57 +7,40 @@
             </div>
         @else
             <div class="rekap-kelas-bar">
-                <p class="rekap-kelas-title">Bulan</p>
-                <div class="rekap-kelas-buttons" role="group" aria-label="Pilih bulan">
-                    @foreach ($bulanOptions as $value => $label)
-                        <button
-                            type="button"
-                            @class(['rekap-kelas-button', 'is-active' => $value === $bulan])
-                            wire:click="pilihBulan({{ $value }})"
-                            wire:loading.attr="disabled"
-                            wire:target="pilihBulan,pilihTahun,pilihKelas"
-                            aria-pressed="{{ $value === $bulan ? 'true' : 'false' }}"
-                        >
-                            {{ $label }}
-                        </button>
-                    @endforeach
-                </div>
-            </div>
+                <label class="rekap-filter" for="rekap-piket-bulan">
+                    <span>Bulan</span>
+                    <select id="rekap-piket-bulan" wire:change="pilihBulan($event.target.value)" wire:loading.attr="disabled" wire:target="pilihBulan,pilihTahun,pilihKelas">
+                        @foreach ($bulanOptions as $value => $label)
+                            <option value="{{ $value }}" @selected($value === $bulan)>{{ $label }}</option>
+                        @endforeach
+                    </select>
+                </label>
 
-            <div class="rekap-kelas-bar">
-                <p class="rekap-kelas-title">Tahun</p>
-                <div class="rekap-kelas-buttons" role="group" aria-label="Pilih tahun">
-                    @foreach ($tahunOptions as $year)
-                        <button
-                            type="button"
-                            @class(['rekap-kelas-button', 'is-active' => $year === $tahun])
-                            wire:click="pilihTahun({{ $year }})"
-                            wire:loading.attr="disabled"
-                            wire:target="pilihBulan,pilihTahun,pilihKelas"
-                            aria-pressed="{{ $year === $tahun ? 'true' : 'false' }}"
-                        >
-                            {{ $year }}
-                        </button>
-                    @endforeach
-                </div>
-            </div>
+                <label class="rekap-filter" for="rekap-piket-tahun">
+                    <span>Tahun</span>
+                    <select id="rekap-piket-tahun" wire:change="pilihTahun($event.target.value)" wire:loading.attr="disabled" wire:target="pilihBulan,pilihTahun,pilihKelas">
+                        @foreach ($tahunOptions as $year)
+                            <option value="{{ $year }}" @selected($year === $tahun)>{{ $year }}</option>
+                        @endforeach
+                    </select>
+                </label>
 
-            <div class="rekap-kelas-bar">
-                <p class="rekap-kelas-title">Klik Untuk Pilih Kelas</p>
-                <div class="rekap-kelas-buttons" role="group" aria-label="Pilih kelas">
-                    @foreach ($classes as $option)
-                        <button
-                            type="button"
-                            @class(['rekap-kelas-button', 'is-active' => $option->id === $kelasId])
-                            wire:click="pilihKelas({{ $option->id }})"
-                            wire:loading.attr="disabled"
-                            wire:target="pilihKelas"
-                            aria-pressed="{{ $option->id === $kelasId ? 'true' : 'false' }}"
-                        >
-                            {{ $option->nama_kelas }}
-                        </button>
-                    @endforeach
-                </div>
+                <label class="rekap-filter" for="rekap-piket-kelas">
+                    <span>Kelas</span>
+                    <select id="rekap-piket-kelas" wire:change="pilihKelas($event.target.value)" wire:loading.attr="disabled" wire:target="pilihBulan,pilihTahun,pilihKelas">
+                        @foreach ($classes as $option)
+                            <option value="{{ $option->id }}" @selected($option->id === $kelasId)>{{ $option->nama_kelas }}</option>
+                        @endforeach
+                    </select>
+                </label>
+
+                @if ($class)
+                    <div class="rekap-export">
+                        <x-filament::button wire:click="ekspor" color="success" icon="heroicon-o-arrow-down-tray">
+                            Ekspor Excel
+                        </x-filament::button>
+                    </div>
+                @endif
             </div>
 
             <x-filament::section>

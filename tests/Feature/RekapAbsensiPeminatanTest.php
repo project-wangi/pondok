@@ -16,6 +16,8 @@ use Illuminate\Foundation\Testing\LazilyRefreshDatabase;
 use Livewire\Features\SupportLockedProperties\CannotUpdateLockedPropertyException;
 use Livewire\Features\SupportTesting\Testable;
 use Livewire\Livewire;
+use OpenSpout\Reader\XLSX\Options as ReaderOptions;
+use OpenSpout\Reader\XLSX\Reader;
 
 uses(LazilyRefreshDatabase::class);
 
@@ -38,6 +40,35 @@ function peminatanRecapTeacher(): Guru
 function peminatanRecapPage(): Testable
 {
     return Livewire::test(RekapAbsensiPeminatan::class);
+}
+
+/** @return list<array<int, mixed>> */
+function peminatanWorkbookRows(array $download): array
+{
+    $path = tempnam(sys_get_temp_dir(), 'peminatan-export-');
+    file_put_contents($path, base64_decode($download['content']));
+
+    $options = new ReaderOptions;
+    $options->SHOULD_PRESERVE_EMPTY_ROWS = true;
+    $reader = new Reader($options);
+    $reader->open($path);
+    $rows = [];
+
+    try {
+        foreach ($reader->getSheetIterator() as $sheet) {
+            foreach ($sheet->getRowIterator() as $row) {
+                $rows[] = $row->toArray();
+            }
+        }
+    } finally {
+        $reader->close();
+
+        if (is_file($path)) {
+            unlink($path);
+        }
+    }
+
+    return $rows;
 }
 
 function peminatanRecapType(string $name): JenisPeminatan
@@ -135,7 +166,7 @@ test('selects the first peminatan and renders the attendance grid', function () 
     $page = peminatanRecapPage()
         ->assertOk()
         ->assertSet('jenisPeminatanId', $peminatanA->id)
-        ->assertSee('Klik Untuk Pilih Peminatan')
+        ->assertSeeHtml('id="rekap-peminatan-jenis"')
         ->assertSee('Peminatan A')->assertSee('Peminatan B')
         ->assertSee('Jumlah Pertemuan:')->assertSeeInOrder(['Jumlah Pertemuan:', '2'])
         ->assertSeeInOrder(['Laki-laki:', '1', 'Perempuan:', '1', 'Jml:', '2'])
@@ -237,6 +268,30 @@ test('rejects a year outside the available options on the peminatan recap', func
     $this->actingAs(peminatanRecapTeacher()->user);
 
     peminatanRecapPage()->call('pilihTahun', 1999)->assertNotFound();
+});
+
+test('exports the peminatan recap to excel', function () {
+    $peminatan = peminatanRecapType('Peminatan A');
+    $class = KelasFactory::new()->create(['nama_kelas' => 'Kelas X']);
+    $student = peminatanRecapStudent('Ahmad', $peminatan, $class->id, '001');
+    peminatanRecapSession($peminatan, '2026-10-05', [$student->id => 'Hadir']);
+    $this->actingAs(peminatanRecapTeacher()->user);
+
+    $component = peminatanRecapPage()
+        ->call('ekspor')
+        ->assertFileDownloaded('rekap-absensi-peminatan-peminatan-a-oktober-2026.xlsx');
+
+    $rows = peminatanWorkbookRows($component->effects['download']);
+
+    expect($rows[1][0])->toBe('REKAP ABSENSI PEMINATAN')
+        ->and($rows[2][0])->toBe('Peminatan: Peminatan A')
+        ->and($rows[3][0])->toBe('Bulan: Oktober 2026')
+        ->and($rows[5][5])->toBe('Senin, 5 Oktober 2026')
+        ->and($rows[6][2])->toBe('Ahmad')
+        ->and($rows[6][3])->toBe('Kelas X')
+        ->and($rows[6][5])->toBe('H')
+        ->and((int) $rows[6][6])->toBe(1)
+        ->and((int) $rows[6][10])->toBe(100);
 });
 
 test('filters students and sessions by the selected peminatan type', function () {

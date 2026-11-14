@@ -2,6 +2,7 @@
 
 namespace App\Filament\Pages;
 
+use App\Filament\Exports\RekapAbsensiPeminatanWorkbook;
 use App\Models\AbsenPeminatan;
 use App\Models\JenisPeminatan;
 use App\Models\Murid;
@@ -13,6 +14,7 @@ use Filament\Support\Icons\Heroicon;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Livewire\Attributes\Locked;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 use UnitEnum;
 
 class RekapAbsensiPeminatan extends Page
@@ -91,6 +93,16 @@ class RekapAbsensiPeminatan extends Page
         abort_unless(static::canAccess(), 403);
         abort_if(! JenisPeminatan::query()->whereKey($jenisPeminatanId)->exists(), 404);
         $this->jenisPeminatanId = $jenisPeminatanId;
+    }
+
+    public function ekspor(): StreamedResponse
+    {
+        abort_unless(static::canAccess(), 403);
+
+        $laporan = $this->getViewData();
+        abort_if($laporan['peminatan'] === null, 404);
+
+        return app(RekapAbsensiPeminatanWorkbook::class)->download($laporan);
     }
 
     /** @return array<string, mixed> */

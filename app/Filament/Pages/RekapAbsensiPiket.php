@@ -2,6 +2,7 @@
 
 namespace App\Filament\Pages;
 
+use App\Filament\Exports\RekapAbsensiPiketWorkbook;
 use App\Models\AbsenPiket;
 use App\Models\Kelas;
 use App\Models\Murid;
@@ -12,6 +13,7 @@ use Filament\Pages\Page;
 use Filament\Support\Icons\Heroicon;
 use Illuminate\Database\Eloquent\Collection;
 use Livewire\Attributes\Locked;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 use UnitEnum;
 
 class RekapAbsensiPiket extends Page
@@ -90,6 +92,16 @@ class RekapAbsensiPiket extends Page
         abort_unless(static::canAccess(), 403);
         abort_if(! Kelas::query()->whereKey($kelasId)->exists(), 404);
         $this->kelasId = $kelasId;
+    }
+
+    public function ekspor(): StreamedResponse
+    {
+        abort_unless(static::canAccess(), 403);
+
+        $laporan = $this->getViewData();
+        abort_if($laporan['class'] === null, 404);
+
+        return app(RekapAbsensiPiketWorkbook::class)->download($laporan);
     }
 
     /** @return array<string, mixed> */

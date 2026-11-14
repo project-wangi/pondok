@@ -16,6 +16,8 @@ use Illuminate\Foundation\Testing\LazilyRefreshDatabase;
 use Livewire\Features\SupportLockedProperties\CannotUpdateLockedPropertyException;
 use Livewire\Features\SupportTesting\Testable;
 use Livewire\Livewire;
+use OpenSpout\Reader\XLSX\Options as ReaderOptions;
+use OpenSpout\Reader\XLSX\Reader;
 
 uses(LazilyRefreshDatabase::class);
 
@@ -33,6 +35,35 @@ afterEach(function () {
 function piketRecapPage(): Testable
 {
     return Livewire::test(RekapAbsensiPiket::class);
+}
+
+/** @return list<array<int, mixed>> */
+function piketWorkbookRows(array $download): array
+{
+    $path = tempnam(sys_get_temp_dir(), 'piket-export-');
+    file_put_contents($path, base64_decode($download['content']));
+
+    $options = new ReaderOptions;
+    $options->SHOULD_PRESERVE_EMPTY_ROWS = true;
+    $reader = new Reader($options);
+    $reader->open($path);
+    $rows = [];
+
+    try {
+        foreach ($reader->getSheetIterator() as $sheet) {
+            foreach ($sheet->getRowIterator() as $row) {
+                $rows[] = $row->toArray();
+            }
+        }
+    } finally {
+        $reader->close();
+
+        if (is_file($path)) {
+            unlink($path);
+        }
+    }
+
+    return $rows;
 }
 
 function piketRecapTeacher(): Guru
@@ -108,7 +139,7 @@ test('selects the first class and renders masuk and pulang codes with counts', f
     $page = piketRecapPage()
         ->assertOk()
         ->assertSet('kelasId', $class->id)
-        ->assertSee('Klik Untuk Pilih Kelas')->assertSee('Kelas X')
+        ->assertSeeHtml('id="rekap-piket-kelas"')->assertSee('Kelas X')
         ->assertSee('Jumlah Piket:')->assertSeeInOrder(['Jumlah Piket:', '2'])
         ->assertSeeInOrder(['Laki-laki:', '1', 'Perempuan:', '1', 'Jml:', '2'])
         ->assertSee('Tanggal Piket')->assertSee('Absensi Masuk')->assertSee('Pulang')->assertSee('% Kehadiran')
@@ -249,6 +280,31 @@ test('rejects a year outside the available options on the piket recap', function
     $this->actingAs(piketRecapTeacher()->user);
 
     piketRecapPage()->call('pilihTahun', 1999)->assertNotFound();
+});
+
+test('exports the piket recap to excel', function () {
+    $class = KelasFactory::new()->create(['nama_kelas' => 'Kelas X']);
+    $student = MuridFactory::new()->create(['kelas_id' => $class->id, 'nama' => 'Ahmad']);
+    piketRecapSession($class, '2026-10-05', [
+        $student->id => ['masuk' => 'Hadir', 'pulang' => 'Pulang'],
+    ]);
+    $this->actingAs(piketRecapTeacher()->user);
+
+    $component = piketRecapPage()
+        ->call('ekspor')
+        ->assertFileDownloaded('rekap-absensi-piket-kelas-x-oktober-2026.xlsx');
+
+    $rows = piketWorkbookRows($component->effects['download']);
+
+    expect($rows[1][0])->toBe('REKAP ABSENSI PIKET')
+        ->and($rows[2][0])->toBe('Kelas: Kelas X')
+        ->and($rows[3][0])->toBe('Bulan: Oktober 2026')
+        ->and($rows[5][4])->toBe('Senin, 5 Oktober 2026')
+        ->and($rows[6][2])->toBe('Ahmad')
+        ->and($rows[6][4])->toBe('H/P')
+        ->and((int) $rows[6][5])->toBe(1)
+        ->and((int) $rows[6][10])->toBe(1)
+        ->and((int) $rows[6][11])->toBe(100);
 });
 
 test('switches the selected class and rejects unknown classes', function () {

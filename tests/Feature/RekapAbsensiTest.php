@@ -160,7 +160,7 @@ test('selects the first class and renders the attendance grid', function () {
         ->assertOk()
         ->assertSet('kelasId', $class->id)
         ->assertSet('mataPelajaranId', $subject->id)
-        ->assertSee('Klik Untuk Pilih Kelas')
+        ->assertSeeHtml('id="rekap-kelas"')
         ->assertSee('Kelas X')->assertSee('Tahfidz')->assertSee('Guru Rekap')
         ->assertSee('Laki-laki:')->assertSee('Perempuan:')->assertSee('Jml:')
         ->assertSeeInOrder(['Laki-laki:', '1', 'Perempuan:', '1', 'Jml:', '2'])
@@ -200,6 +200,8 @@ test('switches the selected class and subject', function () {
     rekapPage()
         ->assertSet('kelasId', $classA->id)
         ->assertSet('mataPelajaranId', $firstSubject->id)
+        ->assertSeeHtml('id="rekap-kelas"')
+        ->assertSeeHtml('id="rekap-mapel"')
         ->call('pilihMapel', $secondSubject->id)
         ->assertSet('mataPelajaranId', $secondSubject->id)
         ->call('pilihKelas', $classB->id)
@@ -258,6 +260,8 @@ test('filters sessions by the selected month', function () {
     $page = rekapPage()
         ->assertSet('bulan', 10)
         ->assertSee('Bulan')
+        ->assertSeeHtml('id="rekap-bulan"')
+        ->assertSeeHtml('id="rekap-tahun"')
         ->assertSee('Oktober')
         ->assertSee('November');
 

@@ -2,15 +2,20 @@
 
 namespace App\Filament\Resources\AbsenRapats\Tables;
 
+use App\Filament\Exports\AbsenRapatWorkbook;
+use App\Filament\Resources\AbsenRapats\AbsenRapatResource;
 use App\Models\AbsenRapat;
 use Filament\Actions\Action;
+use Filament\Facades\Filament;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\ImageColumn;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Contracts\HasTable;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Storage;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 use Throwable;
 
 class AbsenRapatsTable
@@ -81,6 +86,18 @@ class AbsenRapatsTable
                         }
 
                         return $query;
+                    }),
+            ])
+            ->headerActions([
+                Action::make('eksporExcel')
+                    ->label('Ekspor Excel')
+                    ->icon('heroicon-o-arrow-down-tray')
+                    ->color('success')
+                    ->authorize(fn (): bool => Filament::auth()->user()?->can('ViewAny:AbsenRapat') ?? false)
+                    ->action(function (HasTable $livewire): StreamedResponse {
+                        $query = $livewire->getFilteredSortedTableQuery() ?? AbsenRapatResource::getEloquentQuery();
+
+                        return app(AbsenRapatWorkbook::class)->download($query->get());
                     }),
             ])
             ->recordActions([
