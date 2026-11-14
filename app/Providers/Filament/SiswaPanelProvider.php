@@ -18,6 +18,7 @@ use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
 use Illuminate\Foundation\Vite;
 use Illuminate\Routing\Middleware\SubstituteBindings;
 use Illuminate\Session\Middleware\StartSession;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\HtmlString;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
 
@@ -31,6 +32,12 @@ class SiswaPanelProvider extends PanelProvider
             ->login()
             ->passwordReset()
             ->brandName(fn (): string => SiteSetting::current()->school_name)
+            ->brandLogo(function (): ?string {
+                $logo = SiteSetting::current()->logo;
+
+                return filled($logo) ? Storage::disk('public')->url($logo) : null;
+            })
+            ->brandLogoHeight('2.5rem')
             ->colors([
                 'primary' => Color::Blue,
             ])
