@@ -15,10 +15,36 @@
                             @class(['rekap-kelas-button', 'is-active' => $value === $bulan])
                             wire:click="pilihBulan({{ $value }})"
                             wire:loading.attr="disabled"
-                            wire:target="pilihBulan,pilihKelas,pilihMapel"
+                            wire:target="pilihBulan,pilihTahun,pilihKelas,pilihMapel"
                             aria-pressed="{{ $value === $bulan ? 'true' : 'false' }}"
                         >
                             {{ $label }}
+                        </button>
+                    @endforeach
+                </div>
+
+                @if ($class && $subject)
+                    <div class="rekap-export">
+                        <x-filament::button wire:click="ekspor" color="success" icon="heroicon-o-arrow-down-tray">
+                            Ekspor Excel
+                        </x-filament::button>
+                    </div>
+                @endif
+            </div>
+
+            <div class="rekap-kelas-bar">
+                <p class="rekap-kelas-title">Tahun</p>
+                <div class="rekap-kelas-buttons" role="group" aria-label="Pilih tahun">
+                    @foreach ($tahunOptions as $year)
+                        <button
+                            type="button"
+                            @class(['rekap-kelas-button', 'is-active' => $year === $tahun])
+                            wire:click="pilihTahun({{ $year }})"
+                            wire:loading.attr="disabled"
+                            wire:target="pilihBulan,pilihTahun,pilihKelas,pilihMapel"
+                            aria-pressed="{{ $year === $tahun ? 'true' : 'false' }}"
+                        >
+                            {{ $year }}
                         </button>
                     @endforeach
                 </div>

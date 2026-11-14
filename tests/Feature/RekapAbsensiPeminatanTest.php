@@ -213,11 +213,30 @@ test('filters peminatan sessions by the selected month', function () {
         ->and($page->viewData('columns')[0]['label'])->toBe('Senin, 2 November 2026');
 });
 
-test('rejects a month outside the running semester on the peminatan recap', function () {
+test('filters peminatan sessions by the selected year', function () {
+    $peminatan = peminatanRecapType('Peminatan A');
+    $class = KelasFactory::new()->create();
+    $student = peminatanRecapStudent('Ahmad', $peminatan, $class->id);
+    peminatanRecapSession($peminatan, '2026-10-05', [$student->id => 'Hadir']);
+    peminatanRecapSession($peminatan, '2025-10-06', [$student->id => 'Alpa']);
+    $this->actingAs(peminatanRecapTeacher()->user);
+
+    $page = peminatanRecapPage()->assertSet('tahun', 2026);
+
+    expect($page->viewData('columns'))->toHaveCount(1)
+        ->and($page->viewData('columns')[0]['label'])->toBe('Senin, 5 Oktober 2026');
+
+    $page->call('pilihTahun', 2025)->assertSet('tahun', 2025);
+
+    expect($page->viewData('columns'))->toHaveCount(1)
+        ->and($page->viewData('columns')[0]['label'])->toBe('Senin, 6 Oktober 2025');
+});
+
+test('rejects a year outside the available options on the peminatan recap', function () {
     peminatanRecapType('Peminatan A');
     $this->actingAs(peminatanRecapTeacher()->user);
 
-    peminatanRecapPage()->call('pilihBulan', 2)->assertNotFound();
+    peminatanRecapPage()->call('pilihTahun', 1999)->assertNotFound();
 });
 
 test('filters students and sessions by the selected peminatan type', function () {

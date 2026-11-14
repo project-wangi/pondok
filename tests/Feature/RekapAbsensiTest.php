@@ -19,6 +19,8 @@ use Illuminate\Foundation\Testing\LazilyRefreshDatabase;
 use Livewire\Features\SupportLockedProperties\CannotUpdateLockedPropertyException;
 use Livewire\Features\SupportTesting\Testable;
 use Livewire\Livewire;
+use OpenSpout\Reader\XLSX\Options as ReaderOptions;
+use OpenSpout\Reader\XLSX\Reader;
 
 uses(LazilyRefreshDatabase::class);
 
@@ -54,6 +56,35 @@ function rekapSchedule(Guru $teacher, MataPelajaran $subject, int $classId, arra
 function rekapPage(): Testable
 {
     return Livewire::test(RekapAbsensi::class);
+}
+
+/** @return list<array<int, mixed>> */
+function rekapWorkbookRows(array $download): array
+{
+    $path = tempnam(sys_get_temp_dir(), 'rekap-absensi-test-');
+    file_put_contents($path, base64_decode($download['content']));
+
+    $options = new ReaderOptions;
+    $options->SHOULD_PRESERVE_EMPTY_ROWS = true;
+    $reader = new Reader($options);
+    $reader->open($path);
+    $rows = [];
+
+    try {
+        foreach ($reader->getSheetIterator() as $sheet) {
+            foreach ($sheet->getRowIterator() as $row) {
+                $rows[] = $row->toArray();
+            }
+        }
+    } finally {
+        $reader->close();
+
+        if (is_file($path)) {
+            unlink($path);
+        }
+    }
+
+    return $rows;
 }
 
 /** @param array<int, string> $statuses */
@@ -239,14 +270,65 @@ test('filters sessions by the selected month', function () {
         ->and($page->viewData('columns')[0]['label'])->toBe('Senin, 2 November 2026');
 });
 
-test('rejects a month outside the running semester', function () {
+test('filters sessions by the selected year', function () {
+    $teacher = rekapTeacher();
+    $subject = MataPelajaranFactory::new()->create(['nama_mapel' => 'Tahfidz']);
+    $class = KelasFactory::new()->create(['nama_kelas' => 'Kelas X']);
+    $currentSchedule = rekapSchedule($teacher, $subject, $class->id);
+    $oldSchedule = rekapSchedule($teacher, $subject, $class->id, ['semester' => 'Ganjil', 'tahun_ajaran' => '2025/2026']);
+    $student = MuridFactory::new()->create(['kelas_id' => $class->id]);
+    rekapSession($currentSchedule, '2026-10-05', [$student->id => 'Hadir']);
+    rekapSession($oldSchedule, '2025-10-06', [$student->id => 'Sakit']);
+    $this->actingAs($teacher->user);
+
+    $page = rekapPage()
+        ->assertSet('tahun', 2026)
+        ->assertSet('bulan', 10)
+        ->assertSee('Tahun');
+
+    expect($page->viewData('columns'))->toHaveCount(1)
+        ->and($page->viewData('columns')[0]['label'])->toBe('Senin, 5 Oktober 2026');
+
+    $page->call('pilihTahun', 2025)->assertSet('tahun', 2025);
+
+    expect($page->viewData('columns'))->toHaveCount(1)
+        ->and($page->viewData('columns')[0]['label'])->toBe('Senin, 6 Oktober 2025');
+});
+
+test('rejects a year outside the available options', function () {
     $teacher = rekapTeacher();
     $subject = MataPelajaranFactory::new()->create();
     $class = KelasFactory::new()->create();
     rekapSchedule($teacher, $subject, $class->id);
     $this->actingAs($teacher->user);
 
-    rekapPage()->call('pilihBulan', 2)->assertNotFound();
+    rekapPage()->call('pilihTahun', 1999)->assertNotFound();
+});
+
+test('exports the attendance recap to excel', function () {
+    $teacher = rekapTeacher(['user_id' => User::factory()->create(['name' => 'Guru Rekap'])->id]);
+    $subject = MataPelajaranFactory::new()->create(['nama_mapel' => 'Tahfidz']);
+    $class = KelasFactory::new()->create(['nama_kelas' => 'Kelas X']);
+    $schedule = rekapSchedule($teacher, $subject, $class->id);
+    $student = MuridFactory::new()->create(['kelas_id' => $class->id, 'nama' => 'Ahmad', 'nis' => '001']);
+    rekapSession($schedule, '2026-10-05', [$student->id => 'Hadir']);
+    $this->actingAs($teacher->user);
+
+    $component = rekapPage()
+        ->call('ekspor')
+        ->assertFileDownloaded('rekap-absensi-kelas-x-tahfidz-oktober-2026.xlsx');
+
+    $rows = rekapWorkbookRows($component->effects['download']);
+
+    expect($rows[1][0])->toBe('REKAP ABSENSI')
+        ->and($rows[2][0])->toBe('Kelas: Kelas X · Mata Pelajaran: Tahfidz')
+        ->and($rows[3][0])->toBe('Guru: Guru Rekap')
+        ->and($rows[4][0])->toBe('Bulan: Oktober 2026')
+        ->and($rows[6][4])->toBe('Senin, 5 Oktober 2026')
+        ->and($rows[7][2])->toBe('Ahmad')
+        ->and($rows[7][4])->toBe('H')
+        ->and((int) $rows[7][8])->toBe(1)
+        ->and((int) $rows[7][9])->toBe(100);
 });
 
 test('percentages use only recorded statuses so empty sessions do not lower the score', function () {

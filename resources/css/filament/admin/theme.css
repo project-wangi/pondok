@@ -970,6 +970,10 @@
     gap: 0.5rem;
 }
 
+.rekap-page .rekap-export {
+    margin-inline-start: auto;
+}
+
 .rekap-page .rekap-kelas-button {
     min-width: 3.5rem;
     min-height: 2.75rem;

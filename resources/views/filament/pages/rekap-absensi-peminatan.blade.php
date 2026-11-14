@@ -15,10 +15,28 @@
                             @class(['rekap-kelas-button', 'is-active' => $value === $bulan])
                             wire:click="pilihBulan({{ $value }})"
                             wire:loading.attr="disabled"
-                            wire:target="pilihBulan,pilihPeminatan"
+                            wire:target="pilihBulan,pilihTahun,pilihPeminatan"
                             aria-pressed="{{ $value === $bulan ? 'true' : 'false' }}"
                         >
                             {{ $label }}
+                        </button>
+                    @endforeach
+                </div>
+            </div>
+
+            <div class="rekap-kelas-bar">
+                <p class="rekap-kelas-title">Tahun</p>
+                <div class="rekap-kelas-buttons" role="group" aria-label="Pilih tahun">
+                    @foreach ($tahunOptions as $year)
+                        <button
+                            type="button"
+                            @class(['rekap-kelas-button', 'is-active' => $year === $tahun])
+                            wire:click="pilihTahun({{ $year }})"
+                            wire:loading.attr="disabled"
+                            wire:target="pilihBulan,pilihTahun,pilihPeminatan"
+                            aria-pressed="{{ $year === $tahun ? 'true' : 'false' }}"
+                        >
+                            {{ $year }}
                         </button>
                     @endforeach
                 </div>
