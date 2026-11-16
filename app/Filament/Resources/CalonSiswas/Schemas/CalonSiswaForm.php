@@ -114,8 +114,8 @@ class CalonSiswaForm
                     ->schema([
                         TextInput::make('nama_ayah')->label('Nama Ayah')->disabled()->dehydrated(false),
                         Select::make('status_ayah')
-                            ->label('Status Ayah')
-                            ->options(Murid::STATUS_ORANG_TUA)
+                            ->label('Kategori Ayah')
+                            ->options(Murid::KATEGORI_ORANG_TUA)
                             ->disabled()
                             ->dehydrated(false),
                         TextInput::make('nik_ayah')->label('NIK Ayah')->disabled()->dehydrated(false),
@@ -124,8 +124,8 @@ class CalonSiswaForm
                         TextInput::make('nohp_ayah')->label('No. HP Ayah')->disabled()->dehydrated(false),
                         TextInput::make('nama_ibu')->label('Nama Ibu')->disabled()->dehydrated(false),
                         Select::make('status_ibu')
-                            ->label('Status Ibu')
-                            ->options(Murid::STATUS_ORANG_TUA)
+                            ->label('Kategori Ibu')
+                            ->options(Murid::KATEGORI_ORANG_TUA)
                             ->disabled()
                             ->dehydrated(false),
                         TextInput::make('nik_ibu')->label('NIK Ibu')->disabled()->dehydrated(false),

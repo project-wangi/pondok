@@ -507,20 +507,19 @@ class RaporAdmin extends Page
     }
 
     /**
-     * Nama orang tua untuk tanda tangan: ayah yang masih hidup lebih dahulu,
-     * lalu ibu, lalu nama orang tua yang tercatat.
+     * Nama orang tua untuk tanda tangan: ayah lebih dahulu, lalu ibu.
      */
     private function namaOrangTua(Murid $murid): ?string
     {
-        if (filled($murid->nama_ayah) && $murid->status_ayah !== 'Meninggal') {
+        if (filled($murid->nama_ayah)) {
             return $murid->nama_ayah;
         }
 
-        if (filled($murid->nama_ibu) && $murid->status_ibu !== 'Meninggal') {
+        if (filled($murid->nama_ibu)) {
             return $murid->nama_ibu;
         }
 
-        return $murid->nama_ayah ?: $murid->nama_ibu;
+        return null;
     }
 
     /**

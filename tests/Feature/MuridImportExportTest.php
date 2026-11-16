@@ -88,6 +88,10 @@ test('exports student data with the same columns as the import format', function
         'nisn' => '1234567890',
         'nik' => '3273010101010001',
         'status' => Murid::STATUS_LULUS,
+        'nama_ayah' => 'Bapak Ahmad',
+        'status_ayah' => 'Kandung',
+        'nama_ibu' => 'Ibu Aminah',
+        'status_ibu' => 'Tiri',
     ]);
 
     $path = tempnam(sys_get_temp_dir(), 'murid-export-').'.xlsx';
@@ -101,7 +105,56 @@ test('exports student data with the same columns as the import format', function
         ->and($rows[1][2])->toBe('Ahmad')
         ->and($rows[1][6])->toBe('VII')
         ->and($rows[1][10])->toBe(Murid::STATUS_LULUS)
-        ->and($rows[1][11])->toBe('2026-11-01');
+        ->and($rows[1][11])->toBe('2026-11-01')
+        ->and($rows[1][13])->toBe('Bapak Ahmad')
+        ->and($rows[1][14])->toBe('Kandung')
+        ->and($rows[1][19])->toBe('Ibu Aminah')
+        ->and($rows[1][20])->toBe('Tiri');
+});
+
+test('imports parent data from the guided template', function () {
+    KelasFactory::new()->create(['nama_kelas' => 'VII']);
+
+    $headers = MuridWorkbook::TEMPLATE_HEADERS;
+    $values = array_fill(0, count($headers), '');
+    $isi = function (string $header, string $value) use (&$values, $headers): void {
+        $values[(int) array_search($header, $headers, true)] = $value;
+    };
+
+    $isi('NIS', '20260001');
+    $isi('Nama', 'Ahmad');
+    $isi('Jenis Kelamin (L/P)', 'L');
+    $isi('Email', 'ahmad@example.test');
+    $isi('Kelas (lihat sheet Petunjuk)', 'VII');
+    $isi('Nama Ayah', 'Bapak Ahmad');
+    $isi('Kategori Ayah (Kandung/Tiri)', 'Tiri');
+    $isi('NIK Ayah', '3201000000000001');
+    $isi('Pekerjaan Ayah', 'Petani');
+    $isi('Penghasilan Ayah', 'Rp2.000.000');
+    $isi('No. HP Ayah', '081200000001');
+    $isi('Nama Ibu', 'Ibu Aminah');
+    $isi('Kategori Ibu (Kandung/Tiri)', 'Kandung');
+    $isi('No. HP Ibu', '081200000002');
+
+    $path = muridCsvFile([$headers, $values]);
+    $hasil = app(MuridImporter::class)->import($path);
+    unlink($path);
+
+    expect($hasil['dibuat'])->toBe(1)
+        ->and($hasil['gagal'])->toBe([]);
+
+    $this->assertDatabaseHas('murids', [
+        'email' => 'ahmad@example.test',
+        'nama_ayah' => 'Bapak Ahmad',
+        'status_ayah' => 'Tiri',
+        'nik_ayah' => '3201000000000001',
+        'pekerjaan_ayah' => 'Petani',
+        'penghasilan_ayah' => 'Rp2.000.000',
+        'nohp_ayah' => '081200000001',
+        'nama_ibu' => 'Ibu Aminah',
+        'status_ibu' => 'Kandung',
+        'nohp_ibu' => '081200000002',
+    ]);
 });
 
 test('imports new students from a csv file', function () {
@@ -263,8 +316,11 @@ test('offers a template with guided headers and a reference sheet', function () 
 
     expect($data)->toHaveCount(1)
         ->and($data[0])->toBe(MuridWorkbook::TEMPLATE_HEADERS)
+        ->and($data[0])->toContain('Nama Ayah')
+        ->and($data[0])->toContain('Kategori Ibu (Kandung/Tiri)')
         ->and($petunjuk)->toContain('PETUNJUK PENGISIAN')
         ->and($petunjuk)->toContain('PILIHAN STATUS')
+        ->and($petunjuk)->toContain('PILIHAN KATEGORI ORANG TUA')
         ->and($petunjuk)->toContain('VII')
         ->and($petunjuk)->toContain('VIII');
 });

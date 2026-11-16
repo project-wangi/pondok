@@ -137,9 +137,9 @@ class MuridForm
                     ->schema([
                         TextInput::make('nama_ayah')->label('Nama Ayah'),
                         Select::make('status_ayah')
-                            ->label('Status Ayah')
-                            ->options(Murid::STATUS_ORANG_TUA)
-                            ->default('Hidup'),
+                            ->label('Kategori Ayah')
+                            ->options(Murid::KATEGORI_ORANG_TUA)
+                            ->default('Kandung'),
                         TextInput::make('nik_ayah')->label('NIK Ayah'),
                         TextInput::make('pekerjaan_ayah')->label('Pekerjaan Ayah'),
                         TextInput::make('penghasilan_ayah')->label('Penghasilan Ayah'),
@@ -148,9 +148,9 @@ class MuridForm
                             ->label('No. HP Ayah'),
                         TextInput::make('nama_ibu')->label('Nama Ibu'),
                         Select::make('status_ibu')
-                            ->label('Status Ibu')
-                            ->options(Murid::STATUS_ORANG_TUA)
-                            ->default('Hidup'),
+                            ->label('Kategori Ibu')
+                            ->options(Murid::KATEGORI_ORANG_TUA)
+                            ->default('Kandung'),
                         TextInput::make('nik_ibu')->label('NIK Ibu'),
                         TextInput::make('pekerjaan_ibu')->label('Pekerjaan Ibu'),
                         TextInput::make('penghasilan_ibu')->label('Penghasilan Ibu'),

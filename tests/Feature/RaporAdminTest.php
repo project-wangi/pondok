@@ -100,9 +100,9 @@ function raporAdminScenario(): array
         'nis' => '003',
         'nisn' => '1000000003',
         'nama_ayah' => 'Bapak Cholid',
-        'status_ayah' => 'Meninggal',
+        'status_ayah' => 'Tiri',
         'nama_ibu' => 'Ibu Cholid',
-        'status_ibu' => 'Hidup',
+        'status_ibu' => 'Kandung',
     ]);
 
     $raporMatematika = ERaporFactory::new()->create([
@@ -310,7 +310,7 @@ test('shows every subject while only filling scores that were submitted', functi
         ->and($empty['jumlah'])->toBeNull()
         ->and($empty['rata_rata'])->toBeNull()
         ->and($empty['peringkat'])->toBeNull()
-        ->and($empty['orang_tua'])->toBe('Ibu Cholid');
+        ->and($empty['orang_tua'])->toBe('Bapak Cholid');
 });
 
 test('converts scores into report letters', function () {

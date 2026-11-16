@@ -75,9 +75,9 @@ function calonDataLengkap(): array
         'agama' => 'Islam',
         'alamat' => 'Jl. Pesantren No. 1',
         'nama_ayah' => 'Bapak Calon',
-        'status_ayah' => 'Hidup',
+        'status_ayah' => 'Kandung',
         'nama_ibu' => 'Ibu Calon',
-        'status_ibu' => 'Hidup',
+        'status_ibu' => 'Kandung',
         'kk' => 'calon-dokumen/kk/kk.pdf',
         'ijazah' => 'calon-dokumen/ijazah/ijazah.pdf',
     ];
@@ -287,7 +287,7 @@ test('lets a candidate complete the administration data from the student panel',
         ->and($calon->nama_ayah)->toBe('Bapak Calon')
         ->and($calon->pekerjaan_ayah)->toBe('Petani')
         ->and($calon->nama_ibu)->toBe('Ibu Calon')
-        ->and($calon->status_ibu)->toBe('Hidup')
+        ->and($calon->status_ibu)->toBe('Kandung')
         ->and($calon->kk)->toBe('calon-dokumen/kk/kk.pdf')
         ->and($calon->ijazah)->toBe('calon-dokumen/ijazah/ijazah.pdf')
         ->and($calon->dataLengkap())->toBeTrue()

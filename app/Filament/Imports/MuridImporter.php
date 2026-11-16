@@ -193,6 +193,7 @@ class MuridImporter
             'alamat' => $this->nullable($ambil('alamat')),
             'nohp_siswa' => $this->nullable($ambil('no. hp')),
             'kelas_id' => $kelasId,
+            ...$this->atributOrangTua($ambil, $kolom),
         ];
 
         try {
@@ -225,6 +226,74 @@ class MuridImporter
 
             return ['ok' => false, 'galat' => "{$label}: data gagal disimpan."];
         }
+    }
+
+    /**
+     * Data orang tua hanya disentuh bila berkas memang memuat kolomnya,
+     * supaya template lama tidak menghapus data yang sudah tersimpan.
+     *
+     * @param  callable(string): string  $ambil
+     * @param  array<string, int>  $kolom
+     * @return array<string, string|null>
+     */
+    private function atributOrangTua(callable $ambil, array $kolom): array
+    {
+        $peta = [
+            'nama ayah' => 'nama_ayah',
+            'nik ayah' => 'nik_ayah',
+            'pekerjaan ayah' => 'pekerjaan_ayah',
+            'penghasilan ayah' => 'penghasilan_ayah',
+            'no. hp ayah' => 'nohp_ayah',
+            'nama ibu' => 'nama_ibu',
+            'nik ibu' => 'nik_ibu',
+            'pekerjaan ibu' => 'pekerjaan_ibu',
+            'penghasilan ibu' => 'penghasilan_ibu',
+            'no. hp ibu' => 'nohp_ibu',
+        ];
+
+        $kolomKategori = [
+            'kategori ayah' => 'status_ayah',
+            'kategori ibu' => 'status_ibu',
+        ];
+
+        $adaKolom = false;
+
+        foreach ([...array_keys($peta), ...array_keys($kolomKategori)] as $judul) {
+            if (array_key_exists($judul, $kolom)) {
+                $adaKolom = true;
+
+                break;
+            }
+        }
+
+        if (! $adaKolom) {
+            return [];
+        }
+
+        $atribut = [];
+
+        foreach ($peta as $judul => $namaKolom) {
+            if (array_key_exists($judul, $kolom)) {
+                $atribut[$namaKolom] = $this->nullable($ambil($judul));
+            }
+        }
+
+        foreach ($kolomKategori as $judul => $namaKolom) {
+            if (array_key_exists($judul, $kolom)) {
+                $atribut[$namaKolom] = $this->kategoriOrangTua($ambil($judul));
+            }
+        }
+
+        return $atribut;
+    }
+
+    private function kategoriOrangTua(string $nilai): ?string
+    {
+        return match (mb_strtolower(trim($nilai))) {
+            '', 'kandung' => 'Kandung',
+            'tiri' => 'Tiri',
+            default => null,
+        };
     }
 
     private function jenisKelamin(string $nilai): ?string

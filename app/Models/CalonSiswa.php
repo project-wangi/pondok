@@ -69,9 +69,9 @@ class CalonSiswa extends Model
         'agama' => 'Agama',
         'alamat' => 'Alamat lengkap',
         'nama_ayah' => 'Nama ayah',
-        'status_ayah' => 'Status ayah',
+        'status_ayah' => 'Kategori ayah',
         'nama_ibu' => 'Nama ibu',
-        'status_ibu' => 'Status ibu',
+        'status_ibu' => 'Kategori ibu',
         'kk' => 'Dokumen Kartu Keluarga',
         'ijazah' => 'Dokumen ijazah',
     ];

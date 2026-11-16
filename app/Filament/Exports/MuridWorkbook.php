@@ -29,6 +29,18 @@ class MuridWorkbook
         'Status',
         'Tanggal Lulus',
         'Tanggal Keluar',
+        'Nama Ayah',
+        'Kategori Ayah',
+        'NIK Ayah',
+        'Pekerjaan Ayah',
+        'Penghasilan Ayah',
+        'No. HP Ayah',
+        'Nama Ibu',
+        'Kategori Ibu',
+        'NIK Ibu',
+        'Pekerjaan Ibu',
+        'Penghasilan Ibu',
+        'No. HP Ibu',
     ];
 
     /**
@@ -37,6 +49,7 @@ class MuridWorkbook
      *
      * @var list<string>
      */
+    /** @var list<string> */
     public const TEMPLATE_HEADERS = [
         'NIS',
         'NISN',
@@ -51,6 +64,18 @@ class MuridWorkbook
         'Status (Aktif/Lulus/Keluar)',
         'Tanggal Lulus (YYYY-MM-DD)',
         'Tanggal Keluar (YYYY-MM-DD)',
+        'Nama Ayah',
+        'Kategori Ayah (Kandung/Tiri)',
+        'NIK Ayah',
+        'Pekerjaan Ayah',
+        'Penghasilan Ayah',
+        'No. HP Ayah',
+        'Nama Ibu',
+        'Kategori Ibu (Kandung/Tiri)',
+        'NIK Ibu',
+        'Pekerjaan Ibu',
+        'Penghasilan Ibu',
+        'No. HP Ibu',
     ];
 
     /** @param Collection<int, Murid> $murids */
@@ -115,6 +140,18 @@ class MuridWorkbook
                     (string) ($murid->status ?? Murid::STATUS_AKTIF),
                     $murid->tanggal_lulus?->format('Y-m-d') ?? '',
                     $murid->tanggal_keluar?->format('Y-m-d') ?? '',
+                    (string) ($murid->nama_ayah ?? ''),
+                    (string) ($murid->status_ayah ?? ''),
+                    (string) ($murid->nik_ayah ?? ''),
+                    (string) ($murid->pekerjaan_ayah ?? ''),
+                    (string) ($murid->penghasilan_ayah ?? ''),
+                    (string) ($murid->nohp_ayah ?? ''),
+                    (string) ($murid->nama_ibu ?? ''),
+                    (string) ($murid->status_ibu ?? ''),
+                    (string) ($murid->nik_ibu ?? ''),
+                    (string) ($murid->pekerjaan_ibu ?? ''),
+                    (string) ($murid->penghasilan_ibu ?? ''),
+                    (string) ($murid->nohp_ibu ?? ''),
                 ]));
             }
         } finally {
@@ -156,12 +193,19 @@ class MuridWorkbook
             ['Status', 'Pilih salah satu: Aktif / Lulus / Keluar. Kosong berarti Aktif.'],
             ['Tanggal Lulus', 'Format YYYY-MM-DD atau DD/MM/YYYY. Kosong = terisi otomatis saat status Lulus.'],
             ['Tanggal Keluar', 'Format YYYY-MM-DD atau DD/MM/YYYY. Kosong = terisi otomatis saat status Keluar.'],
+            ['Nama Ayah / Nama Ibu', 'Opsional. Isi nama orang tua atau wali.'],
+            ['Kategori Ayah / Kategori Ibu', 'Pilih Kandung atau Tiri. Kosong berarti Kandung.'],
+            ['NIK / Pekerjaan / Penghasilan', 'Opsional. Penghasilan boleh ditulis seperti Rp2.000.000.'],
+            ['No. HP Ayah / No. HP Ibu', 'Opsional. Nomor telepon orang tua atau wali.'],
             [],
             ['PILIHAN JENIS KELAMIN'],
             ['laki-laki', 'perempuan'],
             [],
             ['PILIHAN STATUS'],
             array_keys(Murid::STATUS),
+            [],
+            ['PILIHAN KATEGORI ORANG TUA'],
+            array_keys(Murid::KATEGORI_ORANG_TUA),
             [],
             ['PILIHAN KELAS'],
         ];

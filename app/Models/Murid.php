@@ -22,9 +22,9 @@ class Murid extends Model
     ];
 
     /** @var array<string, string> */
-    public const STATUS_ORANG_TUA = [
-        'Hidup' => 'Hidup',
-        'Meninggal' => 'Meninggal',
+    public const KATEGORI_ORANG_TUA = [
+        'Kandung' => 'Kandung',
+        'Tiri' => 'Tiri',
     ];
 
     protected $fillable = [

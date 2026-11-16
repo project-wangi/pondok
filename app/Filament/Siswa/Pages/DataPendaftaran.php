@@ -147,9 +147,9 @@ class DataPendaftaran extends Page
                             ->required()
                             ->maxLength(150),
                         Select::make('status_ayah')
-                            ->label('Status Ayah')
-                            ->options(Murid::STATUS_ORANG_TUA)
-                            ->default('Hidup')
+                            ->label('Kategori Ayah')
+                            ->options(Murid::KATEGORI_ORANG_TUA)
+                            ->default('Kandung')
                             ->required(),
                         TextInput::make('nik_ayah')
                             ->label('NIK Ayah')
@@ -183,9 +183,9 @@ class DataPendaftaran extends Page
                             ->required()
                             ->maxLength(150),
                         Select::make('status_ibu')
-                            ->label('Status Ibu')
-                            ->options(Murid::STATUS_ORANG_TUA)
-                            ->default('Hidup')
+                            ->label('Kategori Ibu')
+                            ->options(Murid::KATEGORI_ORANG_TUA)
+                            ->default('Kandung')
                             ->required(),
                         TextInput::make('nik_ibu')
                             ->label('NIK Ibu')

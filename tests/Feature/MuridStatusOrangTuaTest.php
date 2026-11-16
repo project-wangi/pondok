@@ -43,26 +43,26 @@ function statusMuridData(string $email = 'siswa.status@example.test'): array
     ];
 }
 
-test('stores the parent status chosen in the form', function () {
+test('stores the parent category chosen in the form', function () {
     $this->actingAs(statusMuridUser('ViewAny:Murid', 'Create:Murid'));
 
     Livewire::test(CreateMurid::class)
         ->fillForm([
             ...statusMuridData(),
-            'status_ayah' => 'Meninggal',
-            'status_ibu' => 'Hidup',
+            'status_ayah' => 'Tiri',
+            'status_ibu' => 'Kandung',
         ])
         ->call('create')
         ->assertHasNoFormErrors();
 
     $this->assertDatabaseHas('murids', [
         'email' => 'siswa.status@example.test',
-        'status_ayah' => 'Meninggal',
-        'status_ibu' => 'Hidup',
+        'status_ayah' => 'Tiri',
+        'status_ibu' => 'Kandung',
     ]);
 });
 
-test('defaults both parent statuses to Hidup', function () {
+test('defaults both parent categories to Kandung', function () {
     $this->actingAs(statusMuridUser('ViewAny:Murid', 'Create:Murid'));
 
     Livewire::test(CreateMurid::class)
@@ -72,26 +72,26 @@ test('defaults both parent statuses to Hidup', function () {
 
     $murid = Murid::query()->where('email', 'siswa.status@example.test')->sole();
 
-    expect($murid->status_ayah)->toBe('Hidup')
-        ->and($murid->status_ibu)->toBe('Hidup');
+    expect($murid->status_ayah)->toBe('Kandung')
+        ->and($murid->status_ibu)->toBe('Kandung');
 });
 
-test('updates the parent status when editing a student', function () {
+test('updates the parent category when editing a student', function () {
     $this->actingAs(statusMuridUser('ViewAny:Murid', 'Update:Murid'));
     $murid = MuridFactory::new()->create(['kelas_id' => KelasFactory::new()->create()->id]);
 
     Livewire::test(EditMurid::class, ['record' => $murid->getKey()])
         ->fillForm([
             ...statusMuridData($murid->email),
-            'status_ayah' => 'Hidup',
-            'status_ibu' => 'Meninggal',
+            'status_ayah' => 'Kandung',
+            'status_ibu' => 'Tiri',
         ])
         ->call('save')
         ->assertHasNoFormErrors();
 
     $this->assertDatabaseHas('murids', [
         'id' => $murid->id,
-        'status_ayah' => 'Hidup',
-        'status_ibu' => 'Meninggal',
+        'status_ayah' => 'Kandung',
+        'status_ibu' => 'Tiri',
     ]);
 });
