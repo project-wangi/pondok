@@ -18,6 +18,7 @@ use Filament\Forms\Components\Select;
 use Filament\Notifications\Notification;
 use Filament\Tables\Columns\ImageColumn;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Enums\FiltersLayout;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
@@ -31,6 +32,9 @@ class MuridsTable
     public static function configure(Table $table): Table
     {
         return $table
+            ->extraAttributes(['class' => 'murid-table'])
+            ->filtersLayout(FiltersLayout::Hidden)
+            ->deferFilters(false)
             ->columns([
                 TextColumn::make('row_index')
                     ->label('No')

@@ -48,6 +48,15 @@ test('shows only active students in the default list', function () {
         ->assertCanNotSeeTableRecords([$lulus, $keluar]);
 });
 
+test('renders the student filters inline with the search', function () {
+    $this->actingAs(muridStatusAdmin());
+
+    Livewire::test(ListMurids::class)
+        ->assertSeeHtml('murid-filter-bar')
+        ->assertSeeHtml('table-filter-field')
+        ->assertDontSee('Terapkan filter');
+});
+
 test('filters students by status', function () {
     $admin = muridStatusAdmin();
     $aktif = MuridFactory::new()->create(['nama' => 'Siswa Aktif']);

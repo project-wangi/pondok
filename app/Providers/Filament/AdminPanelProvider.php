@@ -4,6 +4,7 @@ namespace App\Providers\Filament;
 
 use App\Filament\Pages\Dashboard;
 use App\Filament\Resources\JadwalPelajarans\Pages\ListJadwalPelajarans;
+use App\Filament\Resources\Murids\Pages\ListMurids;
 use App\Models\SiteSetting;
 use BezhanSalleh\FilamentShield\FilamentShieldPlugin;
 use Filament\Http\Middleware\Authenticate;
@@ -56,6 +57,11 @@ class AdminPanelProvider extends PanelProvider
                 TablesRenderHook::TOOLBAR_START,
                 fn (): View => view('filament.tables.jadwal-filter-bar'),
                 scopes: ListJadwalPelajarans::class,
+            )
+            ->renderHook(
+                TablesRenderHook::TOOLBAR_START,
+                fn (): View => view('filament.tables.murid-filter-bar'),
+                scopes: ListMurids::class,
             )
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\\Filament\\Resources')
             ->discoverPages(in: app_path('Filament/Pages'), for: 'App\\Filament\\Pages')

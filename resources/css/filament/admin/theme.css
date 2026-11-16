@@ -3619,7 +3619,7 @@ body:has(.slip-gaji-page),
 
 /* Jadwal pelajaran: filter sebaris dengan pencarian ---------- */
 
-.jadwal-filter-bar {
+.table-filter-bar {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
@@ -3627,7 +3627,7 @@ body:has(.slip-gaji-page),
     min-width: 0;
 }
 
-.jadwal-filter-bar .jadwal-filter-field {
+.table-filter-bar .table-filter-field {
     display: flex;
     align-items: center;
     gap: 0.5rem;
@@ -3636,7 +3636,7 @@ body:has(.slip-gaji-page),
     white-space: nowrap;
 }
 
-.jadwal-filter-bar select {
+.table-filter-bar select {
     min-height: 2.25rem;
     min-width: 9rem;
     max-width: 100%;
@@ -3649,18 +3649,18 @@ body:has(.slip-gaji-page),
     font-weight: 500;
 }
 
-.jadwal-filter-bar select:focus-visible {
+.table-filter-bar select:focus-visible {
     outline: 2px solid var(--pondok-accent);
     outline-offset: 2px;
 }
 
-.fi.dark .jadwal-filter-bar select {
+.fi.dark .table-filter-bar select {
     background-color: var(--gray-900, #111827);
     color: var(--gray-100, #f3f4f6);
 }
 
 @media (max-width: 48rem) {
-    .jadwal-filter-bar {
+    .table-filter-bar {
         flex: 1 0 100%;
         width: 100%;
         display: grid;
@@ -3668,13 +3668,13 @@ body:has(.slip-gaji-page),
         gap: 0.5rem 0.75rem;
     }
 
-    .jadwal-filter-bar .jadwal-filter-field {
+    .table-filter-bar .table-filter-field {
         display: grid;
         gap: 0.25rem;
         white-space: normal;
     }
 
-    .jadwal-filter-bar select {
+    .table-filter-bar select {
         width: 100%;
         min-width: 0;
     }

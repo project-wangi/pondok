@@ -18,8 +18,8 @@
         ->all();
 @endphp
 
-<div class="jadwal-filter-bar" role="group" aria-label="Filter jadwal pelajaran">
-    <label class="jadwal-filter-field" for="jadwal-filter-semester">
+<div class="table-filter-bar jadwal-filter-bar" role="group" aria-label="Filter jadwal pelajaran">
+    <label class="table-filter-field" for="jadwal-filter-semester">
         <span>Semester</span>
         <select
             id="jadwal-filter-semester"
@@ -33,7 +33,7 @@
         </select>
     </label>
 
-    <label class="jadwal-filter-field" for="jadwal-filter-tahun">
+    <label class="table-filter-field" for="jadwal-filter-tahun">
         <span>Tahun ajaran</span>
         <select
             id="jadwal-filter-tahun"
