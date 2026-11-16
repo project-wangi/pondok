@@ -1,18 +1,18 @@
 .fi {
-    --pondok-background: #eff6ff; /* Latar halaman */
-    --pondok-navigation: #dbeafe; /* Sidebar dan header */
-    --pondok-border: #bfdbfe;     /* Garis pembatas */
-    --pondok-active: #bfdbfe;     /* Menu aktif dan hover */
-    --pondok-accent: #1e40af;     /* Teks aksen */
+    --pondok-background: #f8f6f1; /* Latar halaman (kertas) */
+    --pondok-navigation: #ffffff; /* Sidebar dan header */
+    --pondok-border: #e3ddd3;     /* Garis pembatas */
+    --pondok-active: #efeae3;     /* Menu aktif dan hover */
+    --pondok-accent: #0f6b6b;     /* Teks aksen */
 }
 
 
 .fi.dark {
-    --pondok-background: #0b1d33;
-    --pondok-navigation: #102a48;
-    --pondok-border: #1e3d63;
-    --pondok-active: #173a5e;
-    --pondok-accent: #93c5fd;
+    --pondok-background: #072322;
+    --pondok-navigation: #0b3230;
+    --pondok-border: #1f4c49;
+    --pondok-active: #123f3d;
+    --pondok-accent: #7cc5c2;
 }
 
 .fi .fi-body {
@@ -56,12 +56,12 @@
 }
 
 .presensi-page {
-    --presensi-text: #172554;
-    --presensi-muted: #475569;
+    --presensi-text: #262a29;
+    --presensi-muted: #666967;
     --presensi-error: #b91c1c;
     --presensi-surface: #ffffff;
-    --presensi-stripe: #f0f6ff;
-    --presensi-heading: #1e40af;
+    --presensi-stripe: #f4f1ea;
+    --presensi-heading: #0f6b6b;
     display: grid;
     grid-template-columns: minmax(0, 1fr);
     gap: 1rem;
@@ -74,12 +74,12 @@
 }
 
 .fi.dark .presensi-page {
-    --presensi-text: #e2e8f0;
-    --presensi-muted: #cbd5e1;
+    --presensi-text: #e6ece9;
+    --presensi-muted: #c4d0cc;
     --presensi-error: #fca5a5;
-    --presensi-surface: #102a48;
-    --presensi-stripe: #132f50;
-    --presensi-heading: #173a5e;
+    --presensi-surface: #0b3230;
+    --presensi-stripe: #0f3a38;
+    --presensi-heading: #0b5555;
 }
 
 .presensi-page .presensi-stack,
@@ -506,7 +506,7 @@
 }
 
 .asesmen-page .asesmen-matrix thead tr:last-child th {
-    background-color: var(--primary-600, #2563eb);
+    background-color: var(--primary-600, #0f6b6b);
 }
 
 .asesmen-page .asesmen-matrix .asesmen-material {
@@ -886,7 +886,7 @@
 
 .rapor-page .asesmen-matrix.rapor-matrix thead tr:nth-child(2) th,
 .rapor-page .asesmen-matrix.rapor-matrix thead tr:last-child th {
-    background-color: var(--primary-600, #2563eb);
+    background-color: var(--primary-600, #0f6b6b);
 }
 
 .rapor-page .rapor-matrix thead th.rapor-wrap {
@@ -1202,7 +1202,7 @@
 }
 
 .rekap-page .rekap-matrix thead th.rekap-head {
-    color: #172554;
+    color: #262a29;
     font-weight: 700;
 }
 
@@ -1323,7 +1323,7 @@
 }
 
 .rekap-page .rekap-matrix thead tr:last-child th.piket-head {
-    color: #172554;
+    color: #262a29;
     font-weight: 700;
 }
 
@@ -1403,7 +1403,7 @@
 }
 
 .sikap-page .sikap-table thead tr:last-child th {
-    background-color: var(--primary-600, #2563eb);
+    background-color: var(--primary-600, #0f6b6b);
 }
 
 .sikap-page .sikap-table .sikap-group {
@@ -2506,7 +2506,7 @@
     --presensi-muted: #374151;
     --presensi-surface: #ffffff;
     --presensi-stripe: #f3f4f6;
-    --presensi-heading: #1e40af;
+    --presensi-heading: #0f6b6b;
     --pondok-border: #d1d5db;
     --pondok-navigation: #f3f4f6;
     --pondok-background: #ffffff;
@@ -2562,7 +2562,7 @@ body:has(.slip-gaji-page),
         --presensi-muted: #374151;
         --presensi-surface: #ffffff;
         --presensi-stripe: #f3f4f6;
-        --presensi-heading: #1e40af;
+        --presensi-heading: #0f6b6b;
         --pondok-border: #d1d5db;
         --pondok-navigation: #f3f4f6;
         --pondok-background: #ffffff;
@@ -2805,11 +2805,11 @@ body:has(.slip-gaji-page),
 }
 
 .admin-home .admin-bar-hadir {
-    background-color: #1e40af;
+    background-color: #0f6b6b;
 }
 
 .admin-home .admin-bar-izin {
-    background-color: #60a5fa;
+    background-color: #74bbb7;
 }
 
 .admin-home .admin-bar-sakit {
@@ -2851,11 +2851,11 @@ body:has(.slip-gaji-page),
 }
 
 .admin-home .admin-dot-hadir {
-    background-color: #1e40af;
+    background-color: #0f6b6b;
 }
 
 .admin-home .admin-dot-izin {
-    background-color: #60a5fa;
+    background-color: #74bbb7;
 }
 
 .admin-home .admin-dot-sakit {
@@ -3100,8 +3100,8 @@ body:has(.slip-gaji-page),
 }
 
 .admin-home .admin-stat-card.is-guru {
-    --stat-accent: #1e40af;
-    --stat-tint: #dbeafe;
+    --stat-accent: #0f6b6b;
+    --stat-tint: #e3ddd3;
 }
 
 .admin-home .admin-stat-card.is-kelas {
@@ -3120,8 +3120,8 @@ body:has(.slip-gaji-page),
 }
 
 .fi.dark .admin-home .admin-stat-card.is-guru {
-    --stat-accent: #93c5fd;
-    --stat-tint: #1e3a5f;
+    --stat-accent: #7cc5c2;
+    --stat-tint: #0f3a38;
 }
 
 .fi.dark .admin-home .admin-stat-card.is-kelas {
@@ -3917,7 +3917,7 @@ body:has(.slip-gaji-page),
 }
 
 .fi.dark .jam-picker-option.is-selected {
-    color: #0b1d33;
+    color: #072322;
 }
 
 .fi.dark .jam-picker-clear {

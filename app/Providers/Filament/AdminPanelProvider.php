@@ -47,7 +47,8 @@ class AdminPanelProvider extends PanelProvider
             ->globalSearch(false)
             ->login()
             ->colors([
-                'primary' => Color::Blue,
+                'primary' => Color::hex('#0f6b6b'),
+                'gray' => Color::Stone,
             ])
             ->renderHook(
                 PanelsRenderHook::STYLES_AFTER,
