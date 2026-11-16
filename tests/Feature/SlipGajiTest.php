@@ -269,6 +269,37 @@ test('prints the names of the teachers holding the treasurer and foundation head
         ->assertSee('KH. Ahmad Sholeh');
 });
 
+test('renders every teacher slip in one printable document', function () {
+    $this->actingAs(adminPanelUser('View:GajiGuru'));
+
+    $first = GuruFactory::new()->create(['jarak_rumah' => 0]);
+    $first->user->update(['name' => 'Ust. Ahmad Fauzi']);
+
+    $second = GuruFactory::new()->create(['jarak_rumah' => 0]);
+    $second->user->update(['name' => 'Ustzh. Siti Aminah']);
+
+    $response = $this->get(route('slip-gaji.print-all', ['bulan' => 10, 'tahun' => 2026]));
+
+    $response->assertOk()
+        ->assertSee('Ust. Ahmad Fauzi')
+        ->assertSee('Ustzh. Siti Aminah')
+        ->assertSee('2 slip · Oktober 2026')
+        ->assertSee('window.print()', false)
+        ->assertDontSee('fi-sidebar');
+
+    expect(substr_count($response->getContent(), 'Slip Gaji Guru'))->toBe(2);
+});
+
+test('protects the bulk slip document from users without salary access', function () {
+    $this->get(route('slip-gaji.print-all'))->assertForbidden();
+
+    $teacher = GuruFactory::new()->create();
+
+    $this->actingAs($teacher->user)
+        ->get(route('slip-gaji.print-all'))
+        ->assertForbidden();
+});
+
 test('protects the printable slip from guests and non-teachers', function () {
     $this->get(route('slip-gaji.print'))->assertForbidden();
 

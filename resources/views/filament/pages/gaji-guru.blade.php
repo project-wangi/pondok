@@ -26,6 +26,17 @@
             </p>
 
             <div class="gaji-export">
+                <x-filament::button
+                    tag="a"
+                    :href="route('slip-gaji.print-all', ['bulan' => $bulan, 'tahun' => $tahun])"
+                    target="_blank"
+                    rel="noopener"
+                    color="gray"
+                    icon="heroicon-o-printer"
+                >
+                    Cetak semua slip
+                </x-filament::button>
+
                 <x-filament::button wire:click="ekspor" color="success" icon="heroicon-o-arrow-down-tray">
                     Ekspor Excel
                 </x-filament::button>

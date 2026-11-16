@@ -2226,6 +2226,9 @@
 }
 
 .gaji-page .gaji-export {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
     margin-inline-start: auto;
 }
 
@@ -2644,8 +2647,9 @@ body:has(.slip-gaji-page),
         print-color-adjust: exact;
     }
 
+    /* Ukuran dan orientasi kertas mengikuti dialog cetak. */
     @page {
-        size: portrait;
+        size: auto;
         margin: 12mm;
     }
 }

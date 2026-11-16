@@ -348,6 +348,16 @@ test('shows the treasurer and headmaster signature names on the salary recap', f
         ->assertSee('Ust. Abdullah Hakim');
 });
 
+test('links to the bulk salary slip printout for the selected month', function () {
+    $this->actingAs(gajiGuruAdmin());
+
+    Livewire::test(GajiGuru::class)
+        ->set('bulan', 10)
+        ->set('tahun', 2026)
+        ->assertSee('Cetak semua slip')
+        ->assertSeeHtml('href="'.e(route('slip-gaji.print-all', ['bulan' => 10, 'tahun' => 2026])).'"');
+});
+
 test('the salary page clamps an out of range month and year', function () {
     $this->actingAs(gajiGuruAdmin());
 
