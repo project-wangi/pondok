@@ -30,7 +30,7 @@
             </div>
             <div class="school-topbar-list">
                 <a href="{{ route('filament.siswa.auth.login') }}"><x-heroicon-o-user class="inline size-3.5 align-[-2px]" /> Masuk calon murid</a>
-                <a href="{{ route('filament.admin.auth.login') }}"><x-heroicon-o-lock-closed class="inline size-3.5 align-[-2px]" /> Masuk admin</a>
+                <a href="{{ route('filament.admin.auth.login') }}"><x-heroicon-o-lock-closed class="inline size-3.5 align-[-2px]" /> Masuk siakad</a>
             </div>
         </div>
     </div>
@@ -117,7 +117,7 @@
                             <a href="{{ route('pendaftaran.create') }}" class="school-button school-button-gold">{{ $settings->registration_label ?: 'Daftar Sekarang' }}</a>
                         @endif
                         <a href="{{ route('filament.siswa.auth.login') }}">Masuk calon murid</a>
-                        <a href="{{ route('filament.admin.auth.login') }}">Masuk admin</a>
+                        <a href="{{ route('filament.admin.auth.login') }}">Masuk siakad</a>
                     </nav>
                 </details>
             </div>
@@ -173,7 +173,7 @@
         <div class="school-footer-bottom">
             <div class="school-container school-footer-bottom-inner">
                 <p>&copy; {{ date('Y') }} {{ $settings->school_name }}. Seluruh hak cipta dilindungi.</p>
-                <a href="{{ route('filament.admin.auth.login') }}" class="school-footer-link">Masuk admin</a>
+                <a href="{{ route('filament.admin.auth.login') }}" class="school-footer-link">Masuk siakad</a>
             </div>
         </div>
     </footer>
