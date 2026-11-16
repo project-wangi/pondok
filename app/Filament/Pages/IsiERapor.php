@@ -3,6 +3,7 @@
 namespace App\Filament\Pages;
 
 use App\Models\AsesmenFormatif;
+use App\Models\BobotNilai;
 use App\Models\ERapor;
 use App\Models\ERaporNilai;
 use App\Models\JadwalPelajaran;
@@ -93,37 +94,12 @@ class IsiERapor extends Page
     {
         $this->assertTeachesClassSubject();
 
-        $bobot = Validator::make($this->normalizedBobot(), [
-            'bobotFormatif' => ['required', 'integer', 'between:0,100'],
-            'bobotSumatif' => ['required', 'integer', 'between:0,100'],
-            'bobotAsts' => ['required', 'integer', 'between:0,100'],
-            'bobotAsas' => ['required', 'integer', 'between:0,100'],
-            'bobotKehadiran' => ['required', 'integer', 'between:0,100'],
-            'bobotSikap' => ['required', 'integer', 'between:0,100'],
-            'bobotKeaktifan' => ['required', 'integer', 'between:0,100'],
-        ], [
-            'bobotFormatif.required' => 'Bobot nilai formatif wajib diisi.',
-            'bobotSumatif.required' => 'Bobot sumatif lingkup materi wajib diisi.',
-            'bobotAsts.required' => 'Bobot ASTS wajib diisi.',
-            'bobotAsas.required' => 'Bobot ASAS wajib diisi.',
-            'bobotKehadiran.required' => 'Bobot kehadiran wajib diisi.',
-            'bobotSikap.required' => 'Bobot sikap wajib diisi.',
-            'bobotKeaktifan.required' => 'Bobot keaktifan wajib diisi.',
-            'bobotFormatif.between' => 'Bobot harus berada antara 0 dan 100.',
-            'bobotSumatif.between' => 'Bobot harus berada antara 0 dan 100.',
-            'bobotAsts.between' => 'Bobot harus berada antara 0 dan 100.',
-            'bobotAsas.between' => 'Bobot harus berada antara 0 dan 100.',
-            'bobotKehadiran.between' => 'Bobot harus berada antara 0 dan 100.',
-            'bobotSikap.between' => 'Bobot harus berada antara 0 dan 100.',
-            'bobotKeaktifan.between' => 'Bobot harus berada antara 0 dan 100.',
-            'bobotFormatif.integer' => 'Bobot harus berupa bilangan bulat.',
-            'bobotSumatif.integer' => 'Bobot harus berupa bilangan bulat.',
-            'bobotAsts.integer' => 'Bobot harus berupa bilangan bulat.',
-            'bobotAsas.integer' => 'Bobot harus berupa bilangan bulat.',
-            'bobotKehadiran.integer' => 'Bobot harus berupa bilangan bulat.',
-            'bobotSikap.integer' => 'Bobot harus berupa bilangan bulat.',
-            'bobotKeaktifan.integer' => 'Bobot harus berupa bilangan bulat.',
-        ])->validate();
+        $period = JadwalPelajaran::activePeriod();
+        $bobot = BobotNilai::untuk(
+            (int) $this->mataPelajaranId,
+            $period['semester'],
+            $period['tahun_ajaran'],
+        );
 
         $kkm = Validator::make(['kkm' => $this->normalizeIntegerInput($this->kkm)], [
             'kkm' => ['required', 'integer', 'between:0,100'],
@@ -132,14 +108,6 @@ class IsiERapor extends Page
             'kkm.integer' => 'Batas nilai ketuntasan harus berupa bilangan bulat.',
             'kkm.between' => 'Batas nilai ketuntasan harus berada antara 0 dan 100.',
         ])->validate()['kkm'];
-
-        $total = array_sum($bobot);
-
-        if ($total !== 100) {
-            throw ValidationException::withMessages([
-                'bobot' => 'Total bobot harus 100%. Saat ini '.$total.'%.',
-            ]);
-        }
 
         DB::transaction(function () use ($bobot, $kkm): void {
             $schedule = $this->scheduleQuery()->lockForUpdate()->firstOrFail();
@@ -170,13 +138,7 @@ class IsiERapor extends Page
             ])->validate();
 
             $settings = [
-                'bobot_formatif' => $bobot['bobotFormatif'],
-                'bobot_sumatif' => $bobot['bobotSumatif'],
-                'bobot_asts' => $bobot['bobotAsts'],
-                'bobot_asas' => $bobot['bobotAsas'],
-                'bobot_kehadiran' => $bobot['bobotKehadiran'],
-                'bobot_sikap' => $bobot['bobotSikap'],
-                'bobot_keaktifan' => $bobot['bobotKeaktifan'],
+                ...BobotNilai::kolomRapor($bobot),
                 'kkm' => $kkm,
             ];
 
@@ -231,7 +193,7 @@ class IsiERapor extends Page
 
         $this->loadRapor();
         Notification::make()->success()->title('e-Rapor tersimpan')
-            ->body('Nilai ASTS, ASAS, bobot, dan batas ketuntasan tersimpan.')->send();
+            ->body('Nilai ASTS, ASAS, dan batas ketuntasan tersimpan. Bobot nilai diatur oleh kurikulum.')->send();
         $this->redirect(InputERapor::getUrl());
     }
 
@@ -379,14 +341,21 @@ class IsiERapor extends Page
         $this->eRaporId = $rapor?->id;
         $this->revisi = $rapor?->revisi;
 
+        $period = JadwalPelajaran::activePeriod();
+        $bobot = BobotNilai::untuk(
+            (int) $this->mataPelajaranId,
+            $period['semester'],
+            $period['tahun_ajaran'],
+        );
+        $this->bobotFormatif = (string) $bobot['formatif'];
+        $this->bobotSumatif = (string) $bobot['sumatif'];
+        $this->bobotAsts = (string) $bobot['asts'];
+        $this->bobotAsas = (string) $bobot['asas'];
+        $this->bobotKehadiran = (string) $bobot['kehadiran'];
+        $this->bobotSikap = (string) $bobot['sikap'];
+        $this->bobotKeaktifan = (string) $bobot['keaktifan'];
+
         if ($rapor !== null) {
-            $this->bobotFormatif = (string) $rapor->bobot_formatif;
-            $this->bobotSumatif = (string) $rapor->bobot_sumatif;
-            $this->bobotAsts = (string) $rapor->bobot_asts;
-            $this->bobotAsas = (string) $rapor->bobot_asas;
-            $this->bobotKehadiran = (string) $rapor->bobot_kehadiran;
-            $this->bobotSikap = (string) $rapor->bobot_sikap;
-            $this->bobotKeaktifan = (string) $rapor->bobot_keaktifan;
             $this->kkm = (string) $rapor->kkm;
         }
 
@@ -401,20 +370,6 @@ class IsiERapor extends Page
                 $this->nilai[$row->murid_id] = ['asts' => $row->asts, 'asas' => $row->asas];
             }
         }
-    }
-
-    /** @return array<string, mixed> */
-    private function normalizedBobot(): array
-    {
-        return [
-            'bobotFormatif' => $this->normalizeIntegerInput($this->bobotFormatif),
-            'bobotSumatif' => $this->normalizeIntegerInput($this->bobotSumatif),
-            'bobotAsts' => $this->normalizeIntegerInput($this->bobotAsts),
-            'bobotAsas' => $this->normalizeIntegerInput($this->bobotAsas),
-            'bobotKehadiran' => $this->normalizeIntegerInput($this->bobotKehadiran),
-            'bobotSikap' => $this->normalizeIntegerInput($this->bobotSikap),
-            'bobotKeaktifan' => $this->normalizeIntegerInput($this->bobotKeaktifan),
-        ];
     }
 
     /** @return array<string, int> */

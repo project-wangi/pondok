@@ -203,7 +203,13 @@
                                 <td class="rapor-no-col presensi-numeric">{{ $index + 1 }}</td>
                                 <td class="rapor-subject-name">{{ $subject['nama'] }}</td>
                                 <td class="rapor-kkm-col presensi-numeric">{{ $subject['kkm'] ?? '—' }}</td>
-                                <td class="rapor-score-col presensi-numeric">{{ $subject['angka'] ?? '—' }}</td>
+                                <td @class([
+                                    'rapor-score-col',
+                                    'presensi-numeric',
+                                    'rapor-below-kkm' => $subject['angka'] !== null
+                                        && $subject['kkm'] !== null
+                                        && $subject['angka'] < $subject['kkm'],
+                                ])>{{ $subject['angka'] ?? '—' }}</td>
                                 <td class="rapor-letter-col">{{ $subject['huruf'] ?? '—' }}</td>
                             </tr>
                         @empty

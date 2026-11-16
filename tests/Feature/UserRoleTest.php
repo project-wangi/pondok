@@ -61,6 +61,14 @@ test('updates a user to multiple roles and shows every badge', function () {
         ->assertSee('Panel User');
 });
 
+test('allows the curriculum and homeroom roles into the admin panel', function () {
+    foreach (['kurikulum', 'wali_kelas'] as $roleName) {
+        $user = User::factory()->create()->assignRole(Role::findOrCreate($roleName, 'web'));
+
+        expect($user->canAccessPanel(Filament::getPanel('admin')))->toBeTrue();
+    }
+});
+
 test('keeps at least one role required', function () {
     Role::create(['name' => 'guru', 'guard_name' => 'web']);
     $this->actingAs(userRoleAdmin());

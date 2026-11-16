@@ -71,57 +71,8 @@
             </div>
         @else
             <form wire:submit="simpan" class="asesmen-form">
-                <x-filament::section heading="Pengaturan bobot nilai rapor" description="Persentase bisa diubah sesuai analisis guru. Total harus 100%. Komponen yang belum memiliki nilai dihitung 0.">
+                <x-filament::section heading="Batas nilai ketuntasan" description="KKM ditetapkan guru pengampu. Bobot nilai rapor diatur oleh kurikulum.">
                     <div class="rapor-bobot">
-                        <div class="rapor-bobot-item">
-                            <label class="rapor-bobot-label" for="rapor-bobot-formatif">Nilai Formatif</label>
-                            <input id="rapor-bobot-formatif" type="number" class="rapor-input" min="0" max="100" step="1" inputmode="numeric" wire:model.live.debounce.500ms="bobotFormatif" aria-describedby="rapor-bobot-formatif-error">
-                            <div id="rapor-bobot-formatif-error">
-                                @error('bobotFormatif') <p class="presensi-error">{{ $message }}</p> @enderror
-                            </div>
-                        </div>
-                        <div class="rapor-bobot-item">
-                            <label class="rapor-bobot-label" for="rapor-bobot-sumatif">Sumatif Lingkup Materi</label>
-                            <input id="rapor-bobot-sumatif" type="number" class="rapor-input" min="0" max="100" step="1" inputmode="numeric" wire:model.live.debounce.500ms="bobotSumatif" aria-describedby="rapor-bobot-sumatif-error">
-                            <div id="rapor-bobot-sumatif-error">
-                                @error('bobotSumatif') <p class="presensi-error">{{ $message }}</p> @enderror
-                            </div>
-                        </div>
-                        <div class="rapor-bobot-item">
-                            <label class="rapor-bobot-label" for="rapor-bobot-asts">Sumatif Tengah Semester (ASTS)</label>
-                            <input id="rapor-bobot-asts" type="number" class="rapor-input" min="0" max="100" step="1" inputmode="numeric" wire:model.live.debounce.500ms="bobotAsts" aria-describedby="rapor-bobot-asts-error">
-                            <div id="rapor-bobot-asts-error">
-                                @error('bobotAsts') <p class="presensi-error">{{ $message }}</p> @enderror
-                            </div>
-                        </div>
-                        <div class="rapor-bobot-item">
-                            <label class="rapor-bobot-label" for="rapor-bobot-asas">Sumatif Akhir Semester (ASAS)</label>
-                            <input id="rapor-bobot-asas" type="number" class="rapor-input" min="0" max="100" step="1" inputmode="numeric" wire:model.live.debounce.500ms="bobotAsas" aria-describedby="rapor-bobot-asas-error">
-                            <div id="rapor-bobot-asas-error">
-                                @error('bobotAsas') <p class="presensi-error">{{ $message }}</p> @enderror
-                            </div>
-                        </div>
-                        <div class="rapor-bobot-item">
-                            <label class="rapor-bobot-label" for="rapor-bobot-kehadiran">Nilai Kehadiran</label>
-                            <input id="rapor-bobot-kehadiran" type="number" class="rapor-input" min="0" max="100" step="1" inputmode="numeric" wire:model.live.debounce.500ms="bobotKehadiran" aria-describedby="rapor-bobot-kehadiran-error">
-                            <div id="rapor-bobot-kehadiran-error">
-                                @error('bobotKehadiran') <p class="presensi-error">{{ $message }}</p> @enderror
-                            </div>
-                        </div>
-                        <div class="rapor-bobot-item">
-                            <label class="rapor-bobot-label" for="rapor-bobot-sikap">Nilai Sikap</label>
-                            <input id="rapor-bobot-sikap" type="number" class="rapor-input" min="0" max="100" step="1" inputmode="numeric" wire:model.live.debounce.500ms="bobotSikap" aria-describedby="rapor-bobot-sikap-error">
-                            <div id="rapor-bobot-sikap-error">
-                                @error('bobotSikap') <p class="presensi-error">{{ $message }}</p> @enderror
-                            </div>
-                        </div>
-                        <div class="rapor-bobot-item">
-                            <label class="rapor-bobot-label" for="rapor-bobot-keaktifan">Nilai Keaktifan</label>
-                            <input id="rapor-bobot-keaktifan" type="number" class="rapor-input" min="0" max="100" step="1" inputmode="numeric" wire:model.live.debounce.500ms="bobotKeaktifan" aria-describedby="rapor-bobot-keaktifan-error">
-                            <div id="rapor-bobot-keaktifan-error">
-                                @error('bobotKeaktifan') <p class="presensi-error">{{ $message }}</p> @enderror
-                            </div>
-                        </div>
                         <div class="rapor-bobot-item">
                             <label class="rapor-bobot-label" for="rapor-bobot-kkm">Batas Nilai Ketuntasan (KKM)</label>
                             <input id="rapor-bobot-kkm" type="number" class="rapor-input" min="0" max="100" step="1" inputmode="numeric" wire:model.live.debounce.500ms="kkm" aria-describedby="rapor-bobot-kkm-error">
@@ -132,17 +83,17 @@
                     </div>
 
                     <div class="rapor-bobot-summary">
-                        <span>Total bobot nilai</span>
+                        <span>Total bobot nilai (kurikulum)</span>
                         <strong @class(['rapor-total-invalid' => $totalBobot !== 100])>{{ $totalBobot }}%</strong>
                     </div>
 
-                    @if ($totalBobot !== 100)
-                        <p class="presensi-error" role="alert">Total bobot saat ini {{ $totalBobot }}%. Ubah bobot hingga berjumlah 100% sebelum menyimpan.</p>
-                    @endif
-                    @error('bobot')
-                        <p class="presensi-error">{{ $message }}</p>
-                    @enderror
-                    <p class="presensi-help">Nilai akhir = jumlah (bobot × nilai komponen) ÷ 100. Nilai yang belum tersedia dihitung 0.</p>
+                    <p class="presensi-help">
+                        Bobot saat ini: formatif {{ $bobot['formatif'] }}%, sumatif lingkup materi {{ $bobot['sumatif'] }}%,
+                        ASTS {{ $bobot['asts'] }}%, ASAS {{ $bobot['asas'] }}%, kehadiran {{ $bobot['kehadiran'] }}%,
+                        sikap {{ $bobot['sikap'] }}%, dan keaktifan {{ $bobot['keaktifan'] }}%.
+                        Nilai akhir = jumlah (bobot × nilai komponen) ÷ 100. Nilai yang belum tersedia dihitung 0.
+                        Ubah bobot melalui halaman Bobot Nilai pada akun kurikulum.
+                    </p>
                 </x-filament::section>
 
                 <x-filament::section heading="Matriks nilai rapor" :description="'Nilai rapor kelas '.($class?->nama_kelas ?? '-').'.'">
@@ -248,7 +199,7 @@
                                         <td class="rapor-value">{{ $row['kehadiran'] ?? '-' }}</td>
                                         <td class="rapor-value">{{ $row['sikap'] ?? '-' }}</td>
                                         <td class="rapor-value">{{ $row['keaktifan'] ?? '-' }}</td>
-                                        <td class="rapor-value rapor-akhir">{{ $row['nilai_akhir'] }}</td>
+                                        <td class="rapor-value rapor-akhir @if ($row['nilai_akhir'] < $kkm) rapor-below-kkm @endif">{{ $row['nilai_akhir'] }}</td>
                                         <td class="rapor-ket">
                                             <span @class(['rapor-tuntas' => $row['ket'] === 'Tuntas', 'rapor-belum' => $row['ket'] !== 'Tuntas'])>{{ $row['ket'] }}</span>
                                         </td>

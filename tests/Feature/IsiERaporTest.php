@@ -4,6 +4,7 @@ use App\Filament\Pages\InputERapor;
 use App\Filament\Pages\IsiERapor;
 use App\Models\AsesmenFormatif;
 use App\Models\AsesmenFormatifNilai;
+use App\Models\BobotNilai;
 use App\Models\ERapor;
 use App\Models\Guru;
 use App\Models\JadwalPelajaran;
@@ -313,14 +314,16 @@ test('renders empty placeholder columns when no exam components exist', function
     expect($page->viewData('components'))->toHaveCount(0);
 });
 
-test('loads saved weights kkm and manual scores then uses them for the final score', function () {
+test('loads curriculum weights kkm and manual scores then uses them for the final score', function () {
     $teacher = raporTeacher();
     $subject = MataPelajaranFactory::new()->create();
     $class = KelasFactory::new()->create();
     raporSchedule($teacher, $subject, $class->id);
     $student = MuridFactory::new()->create(['kelas_id' => $class->id]);
-    $rapor = raporRecord($teacher, $subject, $class->id, [
-        'revisi' => 3,
+    BobotNilai::query()->create([
+        'mata_pelajaran_id' => $subject->id,
+        'semester' => 'Ganjil',
+        'tahun_ajaran' => '2026/2027',
         'bobot_formatif' => 0,
         'bobot_sumatif' => 0,
         'bobot_asts' => 0,
@@ -328,8 +331,8 @@ test('loads saved weights kkm and manual scores then uses them for the final sco
         'bobot_kehadiran' => 0,
         'bobot_sikap' => 0,
         'bobot_keaktifan' => 0,
-        'kkm' => 80,
     ]);
+    $rapor = raporRecord($teacher, $subject, $class->id, ['revisi' => 3, 'kkm' => 80]);
     $rapor->nilais()->create([
         'murid_id' => $student->id,
         'nama_murid' => $student->nama,
@@ -394,7 +397,7 @@ test('saves manual scores with snapshots and default weights', function () {
     ]);
 });
 
-test('updates manual scores and weights without duplicates and keeps the recorded time', function () {
+test('updates manual scores and kkm without duplicates and keeps the recorded time', function () {
     $teacher = raporTeacher();
     $subject = MataPelajaranFactory::new()->create();
     $class = KelasFactory::new()->create();
@@ -412,15 +415,13 @@ test('updates manual scores and weights without duplicates and keeps the recorde
         ->assertSet('nilai.'.$student->id.'.asts', 60)
         ->set('nilai.'.$student->id.'.asts', 80)
         ->set('nilai.'.$student->id.'.asas', 85)
-        ->set('bobotFormatif', '5')
-        ->set('bobotAsas', '40')
         ->set('kkm', '70')
         ->call('simpan')->assertHasNoErrors();
 
     $this->assertDatabaseCount('e_rapors', 1);
     $this->assertDatabaseCount('e_rapor_nilais', 1);
     $this->assertDatabaseHas('e_rapors', [
-        'id' => $rapor->id, 'revisi' => 2, 'bobot_formatif' => 5, 'bobot_asas' => 40, 'kkm' => 70,
+        'id' => $rapor->id, 'revisi' => 2, 'bobot_formatif' => 10, 'bobot_asas' => 35, 'kkm' => 70,
         'dicatat_pada' => '2026-10-19 10:00:00',
     ]);
     $this->assertDatabaseHas('e_rapor_nilais', [
@@ -449,45 +450,51 @@ test('removes stored manual scores when both fields are cleared', function () {
     $this->assertDatabaseHas('e_rapors', ['revisi' => 2]);
 });
 
-test('rejects weights that do not total 100 percent', function () {
+test('ignores weight overrides because curriculum owns the weights', function () {
     $teacher = raporTeacher();
     $subject = MataPelajaranFactory::new()->create();
     $class = KelasFactory::new()->create();
     raporSchedule($teacher, $subject, $class->id);
-    MuridFactory::new()->create(['kelas_id' => $class->id]);
+    $student = MuridFactory::new()->create(['kelas_id' => $class->id]);
+    BobotNilai::query()->create([
+        'mata_pelajaran_id' => $subject->id,
+        'semester' => 'Ganjil',
+        'tahun_ajaran' => '2026/2027',
+        'bobot_asas' => 100,
+        'bobot_formatif' => 0,
+        'bobot_sumatif' => 0,
+        'bobot_asts' => 0,
+        'bobot_kehadiran' => 0,
+        'bobot_sikap' => 0,
+        'bobot_keaktifan' => 0,
+    ]);
     $this->actingAs($teacher->user);
 
     raporPage($class->id, $subject->id)
         ->set('bobotAsas', '30')
+        ->set('nilai.'.$student->id.'.asas', 80)
         ->call('simpan')
-        ->assertHasErrors(['bobot'])
-        ->assertSee('Total bobot harus 100%. Saat ini 95%.')
-        ->assertNotNotified();
+        ->assertHasNoErrors();
 
-    $this->assertDatabaseCount('e_rapors', 0);
+    $this->assertDatabaseHas('e_rapors', [
+        'bobot_formatif' => 0,
+        'bobot_asas' => 100,
+    ]);
 });
 
-test('rejects invalid weight values', function (string $property, mixed $value, string $message) {
+test('marks final scores below kkm in red', function () {
     $teacher = raporTeacher();
     $subject = MataPelajaranFactory::new()->create();
     $class = KelasFactory::new()->create();
     raporSchedule($teacher, $subject, $class->id);
-    MuridFactory::new()->create(['kelas_id' => $class->id]);
+    $student = MuridFactory::new()->create(['kelas_id' => $class->id]);
     $this->actingAs($teacher->user);
 
     raporPage($class->id, $subject->id)
-        ->set($property, $value)
-        ->call('simpan')
-        ->assertHasErrors([$property])
-        ->assertSee($message)
-        ->assertNotNotified();
-
-    $this->assertDatabaseCount('e_rapors', 0);
-})->with([
-    'text' => ['bobotFormatif', 'abc', 'Bobot harus berupa bilangan bulat.'],
-    'above 100' => ['bobotAsas', '101', 'Bobot harus berada antara 0 dan 100.'],
-    'blank' => ['bobotSikap', '', 'Bobot sikap wajib diisi.'],
-]);
+        ->set('nilai.'.$student->id.'.asts', 20)
+        ->set('nilai.'.$student->id.'.asas', 30)
+        ->assertSeeHtml('rapor-below-kkm');
+});
 
 test('rejects invalid manual scores without saving', function (string $field, mixed $value, string $message) {
     $teacher = raporTeacher();

@@ -28,15 +28,24 @@ class Guru extends Model
 
     /**
      * Setiap akun guru otomatis memakai role guru agar hak akses halamannya
-     * dapat diatur dari menu Role & Permission tanpa menyentuh kode.
+     * dapat diatur dari menu Role & Permission tanpa menyentuh kode. Guru yang
+     * ditetapkan sebagai wali kelas juga mendapat role wali_kelas.
      */
     protected static function booted(): void
     {
         static::saved(function (Guru $guru): void {
             $user = $guru->user()->first();
 
-            if ($user !== null && ! $user->hasRole('guru')) {
+            if ($user === null) {
+                return;
+            }
+
+            if (! $user->hasRole('guru')) {
                 $user->assignRole(Role::findOrCreate('guru', 'web'));
+            }
+
+            if (filled($guru->kelas_id) && ! $user->hasRole('wali_kelas')) {
+                $user->assignRole(Role::findOrCreate('wali_kelas', 'web'));
             }
         });
     }
