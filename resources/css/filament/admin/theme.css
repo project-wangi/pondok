@@ -1502,6 +1502,47 @@
     min-width: 46rem;
 }
 
+.absen-guru-page .absen-guru-clock {
+    display: grid;
+    gap: 0.25rem;
+}
+
+.absen-guru-page .absen-guru-time {
+    color: var(--presensi-text);
+    font-size: clamp(2.25rem, 6vw, 3rem);
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 0.04em;
+    line-height: 1.1;
+}
+
+.absen-guru-page .absen-guru-status {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0.75rem;
+}
+
+@media (min-width: 40rem) {
+    .absen-guru-page .absen-guru-status {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+.absen-guru-page .absen-guru-status-cell {
+    border: 1px solid var(--pondok-border);
+    border-radius: 0.5rem;
+    padding: 0.75rem 1rem;
+    background-color: var(--presensi-surface);
+}
+
+.absen-guru-page .absen-guru-table {
+    min-width: 34rem;
+}
+
+.absen-guru-page .absen-guru-table .presensi-time {
+    white-space: nowrap;
+}
+
 .rapat-page .rapat-time-col {
     width: 9rem;
     white-space: nowrap;

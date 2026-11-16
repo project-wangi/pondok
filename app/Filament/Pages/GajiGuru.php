@@ -3,6 +3,7 @@
 namespace App\Filament\Pages;
 
 use App\Filament\Exports\GajiGuruWorkbook;
+use App\Models\AbsenGuru;
 use App\Models\AbsenPeminatan;
 use App\Models\AbsenPiket;
 use App\Models\AbsenRapat;
@@ -325,8 +326,8 @@ class GajiGuru extends Page
 
     /**
      * Tanggal unik kehadiran guru pada rentang tanggal: mengajar yang sudah
-     * berpresensi siswa, piket, peminatan, dan rapat. Dipakai sebagai dasar
-     * hari hadir untuk transport.
+     * berpresensi siswa, absensi guru harian, piket, peminatan, dan rapat.
+     * Dipakai sebagai dasar hari hadir untuk transport.
      *
      * @return array<int, array<string, true>>
      */
@@ -350,6 +351,14 @@ class GajiGuru extends Page
             ->where('tanggal', '<', $until)
             ->whereNotNull('guru_id')
             ->whereHas('presensiMurids')
+            ->when($guruId !== null, fn (Builder $query): Builder => $query->where('guru_id', $guruId))
+            ->get(['guru_id', 'tanggal']));
+
+        $collect(AbsenGuru::query()
+            ->where('tanggal', '>=', $from)
+            ->where('tanggal', '<', $until)
+            ->whereNotNull('guru_id')
+            ->whereNotNull('masuk_pada')
             ->when($guruId !== null, fn (Builder $query): Builder => $query->where('guru_id', $guruId))
             ->get(['guru_id', 'tanggal']));
 

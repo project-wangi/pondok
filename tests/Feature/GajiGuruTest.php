@@ -8,6 +8,7 @@ use App\Models\Jabatan;
 use App\Models\JadwalRapat;
 use App\Models\JenisPeminatan;
 use App\Models\User;
+use Database\Factories\AbsenGuruFactory;
 use Database\Factories\AbsenPeminatanFactory;
 use Database\Factories\AbsenPiketFactory;
 use Database\Factories\AbsenRapatFactory;
@@ -279,6 +280,29 @@ test('counts picket, specialization, and meeting days for transport without teac
         ->and($row['rapat'])->toBe(20000)
         ->and($row['peminatan'])->toBe(150000)
         ->and($row['total'])->toBe(210000);
+});
+
+test('counts teacher clock in days for transport', function () {
+    $this->actingAs(gajiGuruAdmin());
+
+    $guru = GuruFactory::new()->create(['jarak_rumah' => 5]);
+
+    // Hari absen guru tanpa mengajar, piket, peminatan, atau rapat.
+    AbsenGuruFactory::new()->create(['guru_id' => $guru->id, 'tanggal' => '2026-10-02']);
+
+    // Tanggal yang sama dengan piket tetap dihitung satu hari.
+    AbsenGuruFactory::new()->create(['guru_id' => $guru->id, 'tanggal' => '2026-10-03']);
+    AbsenPiketFactory::new()->create([
+        'guru_id' => $guru->id,
+        'kelas_id' => KelasFactory::new()->create()->id,
+        'tanggal' => '2026-10-03',
+    ]);
+
+    $row = collect(Livewire::test(GajiGuru::class)->set('bulan', 10)->set('tahun', 2026)->instance()->rekap()['rows'])
+        ->firstWhere('guru_id', $guru->id);
+
+    expect($row['hari_hadir'])->toBe(2)
+        ->and($row['transport'])->toBe(10000);
 });
 
 test('the salary page clamps an out of range month and year', function () {

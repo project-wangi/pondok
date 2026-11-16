@@ -17,6 +17,7 @@ class GuruFactory extends Factory
      * @var list<string>
      */
     public const PAGE_PERMISSIONS = [
+        'View:AbsensiGuru',
         'View:AbsensiPeminatan',
         'View:AbsensiPiket',
         'View:AbsensiRapat',
