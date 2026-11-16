@@ -6,11 +6,13 @@ use App\Filament\Forms\Components\JamPicker;
 use App\Models\Guru;
 use App\Models\JadwalPelajaran;
 use App\Models\Kelas;
+use App\Models\MataPelajaran;
 use Carbon\CarbonImmutable;
 use Closure;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Schemas\Components\Utilities\Get;
+use Filament\Schemas\Components\Utilities\Set;
 use Filament\Schemas\Schema;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
@@ -56,11 +58,59 @@ class JadwalPelajaranForm
                     ])
                     ->required()
                     ->live(),
+                Select::make('kelas_id')
+                    ->relationship('kelas', 'id')
+                    ->getOptionLabelFromRecordUsing(fn (Kelas $record): string => self::optionLabel($record->nama_kelas ?? (string) $record->id, $record->unit))
+                    ->allowHtml()
+                    ->required()
+                    ->live()
+                    ->afterStateUpdated(function (mixed $state, Get $get, Set $set): void {
+                        $subjectId = $get('mata_pelajaran');
+
+                        if (blank($subjectId)) {
+                            return;
+                        }
+
+                        if (! self::subjectMatchesClassUnit($subjectId, $state)) {
+                            $set('mata_pelajaran', null);
+                        }
+                    })
+                    ->searchable()
+                    ->preload()
+                    ->rules([
+                        fn (Get $get, ?Model $record): Closure => function (string $attribute, mixed $value, Closure $fail) use ($get, $record): void {
+                            if (self::classHasConflict(
+                                $value,
+                                $get('semester'),
+                                $get('tahun_ajaran'),
+                                $get('hari'),
+                                $get('jam_mulai'),
+                                $get('jam_selesai'),
+                                $record?->getKey(),
+                            )) {
+                                $fail('Kelas ini sudah memiliki jadwal lain pada hari dan jam yang sama.');
+                            }
+                        },
+                    ]),
                 Select::make('mata_pelajaran')
-                    ->relationship('mataPelajaran', 'nama_mapel')
+                    ->relationship(
+                        'mataPelajaran',
+                        'nama_mapel',
+                        modifyQueryUsing: fn (Builder $query, Get $get): Builder => $query->forUnit(self::classUnit($get('kelas_id'))),
+                    )
+                    ->getOptionLabelFromRecordUsing(fn (MataPelajaran $record): string => self::optionLabel((string) $record->nama_mapel, $record->unit))
+                    ->allowHtml()
                     ->required()
                     ->searchable()
-                    ->preload(),
+                    ->preload()
+                    ->helperText('Pilihan mengikuti unit kelas, termasuk mata pelajaran yang berlaku untuk semua unit.')
+                    ->rules([
+                        fn (Get $get): Closure => function (string $attribute, mixed $value, Closure $fail) use ($get): void {
+                            if (! self::subjectMatchesClassUnit($value, $get('kelas_id'))) {
+                                $fail('Mata pelajaran ini tidak sesuai dengan unit kelas.');
+                            }
+                        },
+                    ]),
                 JamPicker::make('jam_mulai')
                     ->label('Jam mulai')
                     ->required()
@@ -112,28 +162,48 @@ class JadwalPelajaranForm
                             }
                         },
                     ]),
-                Select::make('kelas_id')
-                    ->relationship('kelas', 'id')
-                    ->getOptionLabelFromRecordUsing(fn (Kelas $record) => $record->nama_kelas ?? $record->id)
-                    ->required()
-                    ->searchable()
-                    ->preload()
-                    ->rules([
-                        fn (Get $get, ?Model $record): Closure => function (string $attribute, mixed $value, Closure $fail) use ($get, $record): void {
-                            if (self::classHasConflict(
-                                $value,
-                                $get('semester'),
-                                $get('tahun_ajaran'),
-                                $get('hari'),
-                                $get('jam_mulai'),
-                                $get('jam_selesai'),
-                                $record?->getKey(),
-                            )) {
-                                $fail('Kelas ini sudah memiliki jadwal lain pada hari dan jam yang sama.');
-                            }
-                        },
-                    ]),
             ]);
+    }
+
+    /**
+     * Label pilihan beserta badge unit, misalnya "Fiqih" diikuti badge MTs.
+     * Nama di-escape karena label dirender sebagai HTML.
+     */
+    public static function optionLabel(string $nama, ?string $unit): string
+    {
+        $label = filled($unit) ? $unit : 'Semua unit';
+        $class = filled($unit) ? 'jadwal-unit-badge' : 'jadwal-unit-badge is-all';
+
+        return e($nama).' <span class="'.$class.'">'.e($label).'</span>';
+    }
+
+    /**
+     * Unit kelas terpilih, dipakai untuk menyaring pilihan mata pelajaran.
+     */
+    private static function classUnit(mixed $kelasId): ?string
+    {
+        if (blank($kelasId)) {
+            return null;
+        }
+
+        return Kelas::query()->whereKey($kelasId)->value('unit');
+    }
+
+    /**
+     * Mata pelajaran harus dari unit kelas, atau berlaku untuk semua unit.
+     */
+    public static function subjectMatchesClassUnit(mixed $subjectId, mixed $kelasId): bool
+    {
+        $unit = self::classUnit($kelasId);
+
+        if (blank($unit) || blank($subjectId)) {
+            return true;
+        }
+
+        return MataPelajaran::query()
+            ->whereKey($subjectId)
+            ->forUnit($unit)
+            ->exists();
     }
 
     /**
