@@ -8,6 +8,7 @@ use App\Filament\Resources\JadwalPelajarans\JadwalPelajaranResource;
 use App\Filament\Resources\Kelas\KelasResource;
 use App\Filament\Resources\Murids\MuridResource;
 use App\Models\AbsenPiket;
+use App\Models\AbsenRapat;
 use App\Models\Donasi;
 use App\Models\Guru;
 use App\Models\JadwalPelajaran;
@@ -196,14 +197,17 @@ class Dashboard extends BaseDashboard
             ->with('guru.user')
             ->get();
 
-        $piketRecorded = $piket->isEmpty()
+        $piketAttendance = $piket->isEmpty()
             ? collect()
             : AbsenPiket::query()
                 ->whereDate('tanggal', $today->toDateString())
                 ->whereIn('guru_id', $piket->pluck('guru_id'))
-                ->distinct()
-                ->pluck('guru_id')
-                ->flip();
+                ->get()
+                ->groupBy('guru_id')
+                ->map(fn ($rows): array => [
+                    'masuk' => $rows->pluck('masuk_pada')->filter()->min(),
+                    'pulang' => $rows->pluck('pulang_pada')->filter()->max(),
+                ]);
 
         $teachers = Guru::query()->with('user:id,name')->get();
 
@@ -211,17 +215,36 @@ class Dashboard extends BaseDashboard
             fn (Guru $guru): int => (int) GajiGuru::rincianGuru($guru, $today->month, $today->year)['total'],
         );
 
-        $meetings = JadwalRapat::query()
+        $meetingModels = JadwalRapat::query()
             ->whereDate('tanggal', '>=', $today->toDateString())
             ->orderBy('tanggal')
             ->orderBy('jam_mulai')
             ->limit(3)
-            ->get()
-            ->map(fn (JadwalRapat $rapat): array => [
-                'tanggal' => CarbonImmutable::parse((string) $rapat->tanggal)->locale('id')->translatedFormat('d M Y'),
-                'jam' => substr((string) $rapat->jam_mulai, 0, 5),
-                'agenda' => $rapat->agenda,
-            ])
+            ->get();
+
+        $rapatAttendance = $meetingModels->isEmpty()
+            ? collect()
+            : AbsenRapat::query()
+                ->whereIn('jadwal_rapat_id', $meetingModels->pluck('id'))
+                ->selectRaw('jadwal_rapat_id, count(*) as total, max(dicatat_pada) as terakhir')
+                ->groupBy('jadwal_rapat_id')
+                ->get()
+                ->keyBy('jadwal_rapat_id');
+
+        $meetings = $meetingModels
+            ->map(function (JadwalRapat $rapat) use ($rapatAttendance): array {
+                $absen = $rapatAttendance->get($rapat->id);
+
+                return [
+                    'tanggal' => CarbonImmutable::parse((string) $rapat->tanggal)->locale('id')->translatedFormat('d M Y'),
+                    'jam' => substr((string) $rapat->jam_mulai, 0, 5),
+                    'agenda' => $rapat->agenda,
+                    'jumlah_absen' => (int) ($absen->total ?? 0),
+                    'absen_pukul' => $absen?->terakhir
+                        ? CarbonImmutable::parse($absen->terakhir)->format('H:i')
+                        : null,
+                ];
+            })
             ->all();
 
         $hour = (int) $today->format('H');
@@ -249,7 +272,7 @@ class Dashboard extends BaseDashboard
                 ? rtrim(rtrim(number_format($attendanceCounts['Hadir'] / $attendanceTotal * 100, 1, ',', '.'), '0'), ',')
                 : null,
             'piket' => $piket,
-            'piketRecorded' => $piketRecorded,
+            'piketAttendance' => $piketAttendance,
             'salaryTotal' => (int) $salaryTotal,
             'teacherCount' => $teachers->count(),
             'counts' => [

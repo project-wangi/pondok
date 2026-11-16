@@ -2873,6 +2873,13 @@ body:has(.slip-gaji-page),
     font-size: 0.82rem;
 }
 
+.admin-home .admin-piket-times {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 0.35rem;
+}
+
 .admin-home .admin-agenda {
     display: grid;
     gap: 0.1rem;

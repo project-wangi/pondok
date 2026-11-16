@@ -34,6 +34,8 @@ class AbsenPiket extends Model
         'nama_guru',
         'nama_kelas',
         'dicatat_pada',
+        'masuk_pada',
+        'pulang_pada',
     ];
 
     /** @return array{tanggal: string, dicatat_pada: string, revisi: string} */
@@ -42,6 +44,8 @@ class AbsenPiket extends Model
         return [
             'tanggal' => 'date',
             'dicatat_pada' => 'datetime',
+            'masuk_pada' => 'datetime',
+            'pulang_pada' => 'datetime',
             'revisi' => 'integer',
         ];
     }

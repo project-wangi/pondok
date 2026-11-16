@@ -166,6 +166,13 @@ class AbsensiPiket extends Page
 
             $data = $validator->validate();
 
+            $adaMasuk = collect($data['kehadiran'])->contains(
+                fn (array $row): bool => filled($row['masuk'] ?? null),
+            );
+            $adaPulang = collect($data['kehadiran'])->contains(
+                fn (array $row): bool => filled($row['pulang'] ?? null),
+            );
+
             if ($session === null) {
                 $session = AbsenPiket::query()->create([
                     'kelas_id' => $class->id,
@@ -176,9 +183,25 @@ class AbsensiPiket extends Page
                     'nama_guru' => Filament::auth()->user()?->name ?? 'Guru',
                     'nama_kelas' => $class->nama_kelas,
                     'dicatat_pada' => now(),
+                    'masuk_pada' => $adaMasuk ? now() : null,
+                    'pulang_pada' => $adaPulang ? now() : null,
                 ]);
             } else {
                 $session->increment('revisi');
+
+                $waktu = [];
+
+                if ($adaMasuk && $session->masuk_pada === null) {
+                    $waktu['masuk_pada'] = now();
+                }
+
+                if ($adaPulang && $session->pulang_pada === null) {
+                    $waktu['pulang_pada'] = now();
+                }
+
+                if ($waktu !== []) {
+                    $session->update($waktu);
+                }
             }
 
             $session->murids()->delete();

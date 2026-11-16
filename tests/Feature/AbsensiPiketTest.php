@@ -110,6 +110,7 @@ test('saves masuk and pulang snapshots for every student', function () {
         'id' => $session->id, 'kelas_id' => $class->id, 'guru_id' => $teacher->id,
         'pencatat_id' => $teacher->user_id, 'revisi' => 1,
         'nama_guru' => 'Guru Piket', 'nama_kelas' => 'Kelas VII', 'dicatat_pada' => '2026-10-19 10:00:00',
+        'masuk_pada' => '2026-10-19 10:00:00', 'pulang_pada' => '2026-10-19 10:00:00',
     ]);
     expect($session->tanggal->toDateString())->toBe('2026-10-19');
     $this->assertDatabaseCount('absen_piket_murids', 2);
@@ -173,6 +174,7 @@ test('updates the same class record and keeps the first recorded time', function
     $this->assertDatabaseCount('absen_piket_murids', 2);
     $this->assertDatabaseHas('absen_pikets', [
         'id' => $session->id, 'revisi' => 2, 'dicatat_pada' => '2026-10-19 10:00:00',
+        'masuk_pada' => '2026-10-19 10:00:00', 'pulang_pada' => '2026-10-19 11:30:00',
     ]);
     $this->assertDatabaseHas('absen_piket_murids', ['absen_piket_id' => $session->id, 'pulang' => 'Pulang']);
 });

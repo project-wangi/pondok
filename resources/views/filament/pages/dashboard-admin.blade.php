@@ -224,13 +224,21 @@
                 <h2 id="admin-piket-title" class="admin-card-title">Piket hari ini</h2>
 
                 @forelse ($piket as $jadwalPiket)
+                    @php($absen = $piketAttendance->get($jadwalPiket->guru_id) ?? [])
                     <div class="admin-row">
                         <span>{{ $jadwalPiket->guru?->user?->name ?? 'Guru' }}</span>
-                        @if ($piketRecorded->has($jadwalPiket->guru_id))
-                            <span class="admin-tag admin-tag-done">Sudah mencatat</span>
-                        @else
-                            <span class="admin-tag admin-tag-pending">Belum mencatat</span>
-                        @endif
+                        <span class="admin-piket-times">
+                            @if ($absen['masuk'] ?? null)
+                                <span class="admin-tag admin-tag-done">Masuk {{ $absen['masuk']->format('H:i') }}</span>
+                            @else
+                                <span class="admin-tag admin-tag-pending">Masuk -</span>
+                            @endif
+                            @if ($absen['pulang'] ?? null)
+                                <span class="admin-tag admin-tag-done">Pulang {{ $absen['pulang']->format('H:i') }}</span>
+                            @else
+                                <span class="admin-tag admin-tag-pending">Pulang -</span>
+                            @endif
+                        </span>
                     </div>
                 @empty
                     <p class="admin-empty">Tidak ada jadwal piket hari ini.</p>
@@ -244,6 +252,13 @@
                     <div class="admin-agenda">
                         <span class="admin-agenda-date">{{ $rapat['tanggal'] }} · {{ $rapat['jam'] }}</span>
                         <span>{{ $rapat['agenda'] }}</span>
+                        @if ($rapat['jumlah_absen'] > 0)
+                            <span class="admin-tag admin-tag-done">
+                                {{ $rapat['jumlah_absen'] }} guru · pukul {{ $rapat['absen_pukul'] }}
+                            </span>
+                        @else
+                            <span class="admin-tag admin-tag-pending">Belum ada absensi</span>
+                        @endif
                     </div>
                 @empty
                     <p class="admin-empty">Belum ada rapat terjadwal.</p>

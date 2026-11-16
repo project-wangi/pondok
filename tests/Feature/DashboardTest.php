@@ -7,6 +7,7 @@ use App\Models\JadwalRapat;
 use App\Models\User;
 use Carbon\CarbonImmutable;
 use Database\Factories\AbsenPiketFactory;
+use Database\Factories\AbsenRapatFactory;
 use Database\Factories\DonasiFactory;
 use Database\Factories\GuruFactory;
 use Database\Factories\JadwalPelajaranFactory;
@@ -176,7 +177,8 @@ test('shows the admin dashboard with real operational data', function () {
         ->assertSee('Gaji guru bulan ini')
         ->assertSee('Rp 22.500')
         ->assertSee('Piket hari ini')
-        ->assertSee('Belum mencatat')
+        ->assertSee('Masuk -')
+        ->assertSee('Pulang -')
         ->assertSee('Total Siswa')
         ->assertSee('Total Guru')
         ->assertSee('Kelas Aktif')
@@ -184,7 +186,7 @@ test('shows the admin dashboard with real operational data', function () {
         ->assertDontSee('Jadwal mengajar hari ini');
 });
 
-test('marks each piket teacher who recorded today as done', function () {
+test('shows piket check-in and check-out times on the dashboard', function () {
     $admin = adminPanelUser('View:Dashboard');
     $first = dashboardTeacher(['user_id' => User::factory()->create(['name' => 'Petugas Satu'])->id]);
     $second = dashboardTeacher(['user_id' => User::factory()->create(['name' => 'Petugas Dua'])->id]);
@@ -192,17 +194,43 @@ test('marks each piket teacher who recorded today as done', function () {
 
     JadwalPiket::query()->create(['hari' => 'Senin', 'guru_id' => $first->id, 'ket' => null]);
     JadwalPiket::query()->create(['hari' => 'Senin', 'guru_id' => $second->id, 'ket' => null]);
-    AbsenPiketFactory::new()->create(['guru_id' => $first->id, 'kelas_id' => $class->id]);
-    AbsenPiketFactory::new()->create(['guru_id' => $second->id, 'kelas_id' => $class->id]);
+    AbsenPiketFactory::new()->create([
+        'guru_id' => $first->id,
+        'kelas_id' => $class->id,
+        'masuk_pada' => '2026-10-19 07:20:00',
+        'pulang_pada' => '2026-10-19 13:05:00',
+    ]);
+    AbsenPiketFactory::new()->create([
+        'guru_id' => $second->id,
+        'kelas_id' => $class->id,
+        'masuk_pada' => '2026-10-19 07:25:00',
+        'pulang_pada' => null,
+    ]);
 
     $this->actingAs($admin);
 
     $response = $this->get('/admin')->assertOk();
 
-    expect(substr_count($response->getContent(), 'Sudah mencatat'))->toBe(2)
-        ->and(substr_count($response->getContent(), 'Belum mencatat'))->toBe(0);
+    $response->assertSee('Petugas Satu')
+        ->assertSee('Petugas Dua')
+        ->assertSee('Masuk 07:20')
+        ->assertSee('Pulang 13:05')
+        ->assertSee('Masuk 07:25');
 
-    $response->assertSee('Petugas Satu')->assertSee('Petugas Dua');
+    expect(substr_count($response->getContent(), 'Pulang -'))->toBe(1)
+        ->and(substr_count($response->getContent(), 'Masuk -'))->toBe(0);
+});
+
+test('shows the latest meeting attendance time on the dashboard', function () {
+    $admin = adminPanelUser('View:Dashboard');
+    AbsenRapatFactory::new()->create(['dicatat_pada' => '2026-10-19 13:10:00']);
+
+    $this->actingAs($admin);
+
+    $this->get('/admin')
+        ->assertOk()
+        ->assertSee('Rapat berikutnya')
+        ->assertSee('1 guru · pukul 13:10');
 });
 
 test('shows the teacher dashboard for the guru role even without a teacher profile', function () {
