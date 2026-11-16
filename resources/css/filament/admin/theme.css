@@ -2308,6 +2308,44 @@
     line-height: 1.7;
 }
 
+.gaji-page .gaji-signatures {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1.5rem;
+    margin-block-start: 1.5rem;
+    padding-block-start: 1.5rem;
+    border-block-start: 1px solid var(--pondok-border);
+}
+
+@media (max-width: 40rem) {
+    .gaji-page .gaji-signatures {
+        grid-template-columns: minmax(0, 1fr);
+    }
+}
+
+.gaji-page .gaji-signature {
+    min-width: 0;
+}
+
+.gaji-page .gaji-sign-role {
+    color: var(--presensi-text);
+    font-size: 0.8125rem;
+    font-weight: 600;
+}
+
+.gaji-page .gaji-sign-space {
+    height: 3.5rem;
+}
+
+.gaji-page .gaji-sign-name {
+    width: min(100%, 14rem);
+    min-height: 1.5rem;
+    padding-block-end: 0.25rem;
+    color: var(--presensi-text);
+    font-weight: 600;
+    border-block-end: 1px solid var(--presensi-muted);
+}
+
 /* Rekap Mengajar Guru ---------------------------------------- */
 
 .rekap-mengajar-page .rekap-mengajar-table .rekap-mengajar-no {

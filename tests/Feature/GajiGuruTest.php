@@ -328,6 +328,26 @@ test('subtracts donations from the salary recap', function () {
         ->and($rekap['totals']['total'])->toBe(350000);
 });
 
+test('shows the treasurer and headmaster signature names on the salary recap', function () {
+    $this->actingAs(gajiGuruAdmin());
+
+    $treasurer = GuruFactory::new()->create();
+    $treasurer->user->update(['name' => 'Ust. Abdul Rahman']);
+    $treasurer->jabatans()->attach(Jabatan::create(['nama_jabatan' => 'Bendahara', 'gaji' => 0])->id);
+
+    $headmaster = GuruFactory::new()->create();
+    $headmaster->user->update(['name' => 'Ust. Abdullah Hakim']);
+    $headmaster->jabatans()->attach(Jabatan::create(['nama_jabatan' => 'Kepala Sekolah', 'gaji' => 0])->id);
+
+    Livewire::test(GajiGuru::class)
+        ->set('bulan', 10)
+        ->set('tahun', 2026)
+        ->assertSee('Bendahara')
+        ->assertSee('Kepala Sekolah')
+        ->assertSee('Ust. Abdul Rahman')
+        ->assertSee('Ust. Abdullah Hakim');
+});
+
 test('the salary page clamps an out of range month and year', function () {
     $this->actingAs(gajiGuruAdmin());
 

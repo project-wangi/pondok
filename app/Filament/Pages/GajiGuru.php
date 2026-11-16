@@ -9,6 +9,7 @@ use App\Models\AbsenPiket;
 use App\Models\AbsenRapat;
 use App\Models\Donasi;
 use App\Models\Guru;
+use App\Models\Jabatan;
 use App\Models\SesiMengajar;
 use BackedEnum;
 use Carbon\CarbonImmutable;
@@ -431,6 +432,20 @@ class GajiGuru extends Page
         return (int) round($start->diffInMinutes($end));
     }
 
+    /**
+     * Nama penanda tangan rekap gaji: bendahara dan kepala sekolah, diambil
+     * dari guru yang memegang jabatan tersebut.
+     *
+     * @return array{bendahara: ?string, kepalaSekolah: ?string}
+     */
+    public static function penandatangan(): array
+    {
+        return [
+            'bendahara' => Jabatan::namaPemegang('Bendahara'),
+            'kepalaSekolah' => Jabatan::namaPemegang('Kepala Sekolah'),
+        ];
+    }
+
     /** @return array<string, mixed> */
     protected function getViewData(): array
     {
@@ -442,8 +457,12 @@ class GajiGuru extends Page
             sort($years);
         }
 
+        $penandatangan = self::penandatangan();
+
         return [
             'rekap' => $this->rekap(),
+            'bendahara' => $penandatangan['bendahara'],
+            'kepalaSekolah' => $penandatangan['kepalaSekolah'],
             'bulanOptions' => self::BULAN,
             'tahunOptions' => $years,
             'rupiah' => fn (int $value): string => 'Rp '.number_format($value, 0, ',', '.'),

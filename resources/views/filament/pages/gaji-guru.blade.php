@@ -111,6 +111,32 @@
                 donasi bulan berjalan × Rp50.000 dan mengurangi total gaji. Jabatan bersifat bulanan, jadi tetap muncul pada
                 bulan tanpa kegiatan.
             </p>
+
+            <footer class="gaji-signatures">
+                <div class="gaji-signature">
+                    <p class="gaji-sign-role">Bendahara</p>
+                    <div class="gaji-sign-space" aria-hidden="true"></div>
+                    <p class="gaji-sign-name">
+                        @if (filled($bendahara))
+                            {{ $bendahara }}
+                        @else
+                            <span class="presensi-sr-only">Nama dan tanda tangan Bendahara</span>
+                        @endif
+                    </p>
+                </div>
+
+                <div class="gaji-signature">
+                    <p class="gaji-sign-role">Kepala Sekolah</p>
+                    <div class="gaji-sign-space" aria-hidden="true"></div>
+                    <p class="gaji-sign-name">
+                        @if (filled($kepalaSekolah))
+                            {{ $kepalaSekolah }}
+                        @else
+                            <span class="presensi-sr-only">Nama dan tanda tangan Kepala Sekolah</span>
+                        @endif
+                    </p>
+                </div>
+            </footer>
         @endif
     </div>
 </x-filament-panels::page>

@@ -11,7 +11,6 @@ use Closure;
 use Filament\Facades\Filament;
 use Filament\Pages\Page;
 use Filament\Support\Icons\Heroicon;
-use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use UnitEnum;
 
 class SlipGaji extends Page
@@ -111,21 +110,9 @@ class SlipGaji extends Page
      */
     public static function penandatangan(): array
     {
-        $jabatans = Jabatan::query()
-            ->with(['gurus' => fn (BelongsToMany $query) => $query->with('user:id,name')->orderBy('gurus.id')])
-            ->get(['id', 'nama_jabatan']);
-
-        $nama = function (string $jabatan) use ($jabatans): ?string {
-            $match = $jabatans->first(
-                fn (Jabatan $item): bool => mb_strtolower((string) $item->nama_jabatan) === mb_strtolower($jabatan),
-            );
-
-            return $match?->gurus->first()?->nama;
-        };
-
         return [
-            'bendahara' => $nama('Bendahara'),
-            'kepalaYayasan' => $nama('Kepala Yayasan'),
+            'bendahara' => Jabatan::namaPemegang('Bendahara'),
+            'kepalaYayasan' => Jabatan::namaPemegang('Kepala Yayasan'),
         ];
     }
 
