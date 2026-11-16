@@ -43,6 +43,11 @@ class MuridForm
                             ->required()
                             ->helperText('Daftar siswa secara bawaan hanya menampilkan status Aktif.'),
 
+                        DatePicker::make('tanggal_masuk')
+                            ->label('Tanggal Masuk')
+                            ->default(fn () => now())
+                            ->helperText('Tanggal siswa mulai masuk ke madrasah.'),
+
                         DatePicker::make('tanggal_lulus')
                             ->label('Tanggal Lulus')
                             ->helperText('Terisi otomatis saat status Lulus. Boleh disesuaikan.')

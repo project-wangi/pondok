@@ -30,6 +30,7 @@ class Murid extends Model
     protected $fillable = [
         'kelas_id',
         'status',
+        'tanggal_masuk',
         'tanggal_lulus',
         'tanggal_keluar',
         'foto',
@@ -66,6 +67,7 @@ class Murid extends Model
     protected function casts(): array
     {
         return [
+            'tanggal_masuk' => 'date',
             'tanggal_lulus' => 'date',
             'tanggal_keluar' => 'date',
         ];

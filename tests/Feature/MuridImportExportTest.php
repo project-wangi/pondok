@@ -92,6 +92,7 @@ test('exports student data with the same columns as the import format', function
         'status_ayah' => 'Kandung',
         'nama_ibu' => 'Ibu Aminah',
         'status_ibu' => 'Tiri',
+        'tanggal_masuk' => '2026-07-15',
     ]);
 
     $path = tempnam(sys_get_temp_dir(), 'murid-export-').'.xlsx';
@@ -106,10 +107,11 @@ test('exports student data with the same columns as the import format', function
         ->and($rows[1][6])->toBe('VII')
         ->and($rows[1][10])->toBe(Murid::STATUS_LULUS)
         ->and($rows[1][11])->toBe('2026-11-01')
-        ->and($rows[1][13])->toBe('Bapak Ahmad')
-        ->and($rows[1][14])->toBe('Kandung')
-        ->and($rows[1][19])->toBe('Ibu Aminah')
-        ->and($rows[1][20])->toBe('Tiri');
+        ->and($rows[1][13])->toBe('2026-07-15')
+        ->and($rows[1][14])->toBe('Bapak Ahmad')
+        ->and($rows[1][15])->toBe('Kandung')
+        ->and($rows[1][20])->toBe('Ibu Aminah')
+        ->and($rows[1][21])->toBe('Tiri');
 });
 
 test('imports parent data from the guided template', function () {
@@ -126,6 +128,7 @@ test('imports parent data from the guided template', function () {
     $isi('Jenis Kelamin (L/P)', 'L');
     $isi('Email', 'ahmad@example.test');
     $isi('Kelas (lihat sheet Petunjuk)', 'VII');
+    $isi('Tanggal Masuk (YYYY-MM-DD)', '2026-07-15');
     $isi('Nama Ayah', 'Bapak Ahmad');
     $isi('Kategori Ayah (Kandung/Tiri)', 'Tiri');
     $isi('NIK Ayah', '3201000000000001');
@@ -155,6 +158,9 @@ test('imports parent data from the guided template', function () {
         'status_ibu' => 'Kandung',
         'nohp_ibu' => '081200000002',
     ]);
+
+    expect(Murid::query()->where('email', 'ahmad@example.test')->sole()->tanggal_masuk?->toDateString())
+        ->toBe('2026-07-15');
 });
 
 test('imports new students from a csv file', function () {

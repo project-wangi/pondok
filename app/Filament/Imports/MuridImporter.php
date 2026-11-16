@@ -197,10 +197,15 @@ class MuridImporter
         ];
 
         try {
+            $tanggalMasuk = $this->tanggal($ambil('tanggal masuk'));
             $tanggalLulus = $this->tanggal($ambil('tanggal lulus'));
             $tanggalKeluar = $this->tanggal($ambil('tanggal keluar'));
         } catch (Throwable) {
             return ['ok' => false, 'galat' => "{$label}: format tanggal harus YYYY-MM-DD atau DD/MM/YYYY."];
+        }
+
+        if ($tanggalMasuk !== null) {
+            $atribut['tanggal_masuk'] = $tanggalMasuk;
         }
 
         if ($tanggalLulus !== null) {

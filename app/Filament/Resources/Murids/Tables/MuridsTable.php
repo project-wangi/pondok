@@ -70,6 +70,11 @@ class MuridsTable
                     ->badge()
                     ->color(fn (?string $state): string => Murid::statusColors()[$state] ?? 'gray')
                     ->sortable(),
+                TextColumn::make('tanggal_masuk')
+                    ->label('Tanggal Masuk')
+                    ->date('d M Y')
+                    ->placeholder('-')
+                    ->sortable(),
                 TextColumn::make('tanggal_lulus')
                     ->label('Tanggal Lulus')
                     ->date('d M Y')
