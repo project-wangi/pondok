@@ -2,9 +2,11 @@
 
 namespace App\Filament\Resources\Kelas\Tables;
 
+use App\Models\Kelas;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\EditAction;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 
 class KelasTable
@@ -19,13 +21,20 @@ class KelasTable
                 TextColumn::make('nama_kelas')
                     ->sortable()
                     ->searchable(),
+                TextColumn::make('unit')
+                    ->label('Unit')
+                    ->badge()
+                    ->placeholder('—')
+                    ->sortable(),
                 TextColumn::make('murid_count')
                     ->getStateUsing(fn ($record) => $record->murids()->count())
                     ->label('Jumlah Murid')
                     ->badge(),
             ])
             ->filters([
-                //
+                SelectFilter::make('unit')
+                    ->label('Unit')
+                    ->options(Kelas::UNITS),
             ])
             ->recordActions([
                 EditAction::make(),

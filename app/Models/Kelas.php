@@ -27,15 +27,15 @@ class Kelas extends Model
         'XII' => 12,
     ];
 
-    protected $fillable = ['nama_kelas'];
+    protected $fillable = ['nama_kelas', 'unit'];
 
     /**
      * Tingkat kelas dari nama kelas, mendukung angka Romawi (VII, X) maupun
      * angka biasa (7, 10) beserta akhiran seperti "VII A".
      */
-    public function tingkat(): ?int
+    public static function tingkatDariNama(string $nama): ?int
     {
-        $nama = mb_strtoupper(trim((string) $this->nama_kelas));
+        $nama = mb_strtoupper(trim($nama));
 
         if ($nama === '') {
             return null;
@@ -54,10 +54,15 @@ class Kelas extends Model
         return null;
     }
 
-    /** Unit madrasah: MTs untuk kelas 7-9, MA untuk kelas 10-12. */
-    public function getUnitAttribute(): ?string
+    public function tingkat(): ?int
     {
-        return match ($this->tingkat()) {
+        return self::tingkatDariNama((string) $this->nama_kelas);
+    }
+
+    /** Unit madrasah dari nama kelas: MTs untuk 7-9, MA untuk 10-12. */
+    public static function unitUntukNama(string $nama): ?string
+    {
+        return match (self::tingkatDariNama($nama)) {
             7, 8, 9 => self::UNIT_MTS,
             10, 11, 12 => self::UNIT_MA,
             default => null,

@@ -197,7 +197,15 @@ class DataAkademikSeeder extends Seeder
         $classes = [];
 
         foreach (array_keys(self::KELAS) as $nama) {
-            $kelas = Kelas::firstOrCreate(['nama_kelas' => $nama]);
+            $kelas = Kelas::firstOrCreate(
+                ['nama_kelas' => $nama],
+                ['unit' => Kelas::unitUntukNama($nama)],
+            );
+
+            if (blank($kelas->unit)) {
+                $kelas->update(['unit' => Kelas::unitUntukNama($nama)]);
+            }
+
             $classes[$nama] = ['id' => $kelas->id, 'nama' => $kelas->nama_kelas];
         }
 

@@ -208,7 +208,7 @@ function raporGuruWithPermission(User $admin, array $overrides = []): Guru
 }
 
 test('the student report page exposes navigation and restricts access', function () {
-    expect(RaporAdmin::getNavigationGroup())->toBe('Manajemen Sekolah')
+    expect(RaporAdmin::getNavigationGroup())->toBe('Rapor')
         ->and(RaporAdmin::getNavigationLabel())->toBe('Rapor Siswa')
         ->and(RaporAdmin::getSlug())->toBe('rapor')
         ->and(RaporAdmin::shouldRegisterNavigation())->toBeTrue();

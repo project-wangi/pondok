@@ -161,13 +161,7 @@ class MuridsTable
                             return $query;
                         }
 
-                        $classIds = Kelas::query()
-                            ->get()
-                            ->filter(fn (Kelas $kelas): bool => $kelas->unit === $unit)
-                            ->pluck('id')
-                            ->all();
-
-                        return $query->whereIn('kelas_id', $classIds);
+                        return $query->whereHas('kelas', fn (Builder $kelas): Builder => $kelas->where('unit', $unit));
                     }),
                 SelectFilter::make('kelas_id')
                     ->label('Kelas')
