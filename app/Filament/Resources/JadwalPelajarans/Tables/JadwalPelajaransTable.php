@@ -14,6 +14,7 @@ use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Contracts\HasTable;
+use Filament\Tables\Enums\FiltersLayout;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 use Illuminate\Support\Facades\Gate;
@@ -24,6 +25,9 @@ class JadwalPelajaransTable
     public static function configure(Table $table): Table
     {
         return $table
+            ->extraAttributes(['class' => 'jadwal-table'])
+            ->filtersLayout(FiltersLayout::Hidden)
+            ->deferFilters(false)
             ->columns([
                 TextColumn::make('row_index')
                     ->label('No')

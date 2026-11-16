@@ -3,6 +3,7 @@
 namespace App\Providers\Filament;
 
 use App\Filament\Pages\Dashboard;
+use App\Filament\Resources\JadwalPelajarans\Pages\ListJadwalPelajarans;
 use App\Models\SiteSetting;
 use BezhanSalleh\FilamentShield\FilamentShieldPlugin;
 use Filament\Http\Middleware\Authenticate;
@@ -12,6 +13,7 @@ use Filament\Http\Middleware\DispatchServingFilamentEvent;
 use Filament\Panel;
 use Filament\PanelProvider;
 use Filament\Support\Colors\Color;
+use Filament\Tables\View\TablesRenderHook;
 use Filament\View\PanelsRenderHook;
 use Filament\Widgets;
 use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
@@ -23,6 +25,7 @@ use Illuminate\Session\Middleware\StartSession;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\HtmlString;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
+use Illuminate\View\View;
 
 class AdminPanelProvider extends PanelProvider
 {
@@ -48,6 +51,11 @@ class AdminPanelProvider extends PanelProvider
             ->renderHook(
                 PanelsRenderHook::STYLES_AFTER,
                 fn (): HtmlString => app(Vite::class)('resources/css/filament/admin/theme.css'),
+            )
+            ->renderHook(
+                TablesRenderHook::TOOLBAR_START,
+                fn (): View => view('filament.tables.jadwal-filter-bar'),
+                scopes: ListJadwalPelajarans::class,
             )
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\\Filament\\Resources')
             ->discoverPages(in: app_path('Filament/Pages'), for: 'App\\Filament\\Pages')

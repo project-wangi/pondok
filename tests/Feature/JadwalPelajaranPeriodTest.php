@@ -94,6 +94,8 @@ test('filters the schedule table by semester and academic year', function () {
     JadwalPelajaranFactory::new()->create(['kelas_id' => $activeClass->id, 'semester' => 'Ganjil', 'tahun_ajaran' => '2026/2027']);
 
     Livewire::test(ListJadwalPelajarans::class)
+        ->assertSeeHtml('jadwal-filter-bar')
+        ->assertDontSee('Terapkan filter')
         ->assertSee('Kelas Genap Lama')->assertSee('Kelas Ganjil Baru')
         ->filterTable('semester', 'Ganjil')
         ->assertSee('Kelas Ganjil Baru')->assertDontSee('Kelas Genap Lama')
