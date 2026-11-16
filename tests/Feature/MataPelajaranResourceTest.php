@@ -52,11 +52,11 @@ test('shows the unit and the kkm used on the e-report in the subject table', fun
         ->assertSee('78');
 });
 
-test('shows a dash for a subject without an e-report yet', function () {
+test('shows the default kkm before the teacher submits an e-report', function () {
     MataPelajaranFactory::new()->create(['nama_mapel' => 'Bahasa Arab', 'unit' => 'MTs']);
     $this->actingAs(adminPanelUser('ViewAny:MataPelajaran'));
 
     Livewire::test(ListMataPelajarans::class)
         ->assertSee('Bahasa Arab')
-        ->assertSee('—');
+        ->assertSee('75 (default)');
 });

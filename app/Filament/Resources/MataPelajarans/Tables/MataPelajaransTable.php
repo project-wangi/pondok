@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\MataPelajarans\Tables;
 
+use App\Models\ERapor;
 use App\Models\Kelas;
 use App\Models\MataPelajaran;
 use Filament\Actions\DeleteAction;
@@ -34,9 +35,8 @@ class MataPelajaransTable
                     ->sortable(),
                 TextColumn::make('kkm_rapor')
                     ->label('KKM')
-                    ->placeholder('—')
-                    ->tooltip('Diambil dari KKM yang diisi guru pada e-Rapor mata pelajaran ini.')
-                    ->getStateUsing(function (MataPelajaran $record): ?string {
+                    ->tooltip('Diambil dari KKM yang diisi guru pada e-Rapor. Angka bertanda (default) berarti guru belum menyimpan e-Rapor.')
+                    ->getStateUsing(function (MataPelajaran $record): string {
                         $kkms = $record->erapors
                             ->pluck('kkm')
                             ->filter(fn (?int $kkm): bool => $kkm !== null)
@@ -44,7 +44,9 @@ class MataPelajaransTable
                             ->sort()
                             ->values();
 
-                        return $kkms->isEmpty() ? null : $kkms->implode(', ');
+                        return $kkms->isEmpty()
+                            ? ERapor::DEFAULT_KKM.' (default)'
+                            : $kkms->implode(', ');
                     }),
                 TextColumn::make('created_at')
                     ->dateTime()

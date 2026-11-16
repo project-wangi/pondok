@@ -8,6 +8,9 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class ERapor extends Model
 {
+    /** KKM bawaan sebelum guru menyimpan e-Rapor. */
+    public const DEFAULT_KKM = 75;
+
     protected $fillable = [
         'guru_id',
         'kelas_id',
