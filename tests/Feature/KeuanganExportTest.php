@@ -117,6 +117,7 @@ test('exports the salary recap for the selected month', function () {
         'kelas_id' => KelasFactory::new()->create()->id,
         'tanggal' => '2026-10-09',
     ]);
+    DonasiFactory::new()->create(['guru_id' => $guru->id, 'tanggal' => '2026-10-02', 'jumlah_anak' => 2]);
 
     $component = Livewire::test(GajiGuru::class)
         ->set('bulan', 10)
@@ -133,7 +134,7 @@ test('exports the salary recap for the selected month', function () {
     $data = $rows[5];
 
     // 2 sesi × 90 menit = 4,5 JP → Rp45.000; transport 10 km × 4 hari hadir
-    // (mengajar 5 & 6, rapat 8, piket 9) = Rp40.000.
+    // (mengajar 5 & 6, rapat 8, piket 9) = Rp40.000; potongan donasi 2 anak × Rp50.000 = Rp100.000.
     expect($data[1])->toBe('Ust. Ahmad Fauzi')
         ->and((float) $data[2])->toBe(4.5)
         ->and((int) $data[3])->toBe(4)
@@ -143,14 +144,16 @@ test('exports the salary recap for the selected month', function () {
         ->and((int) $data[7])->toBe(20000)
         ->and((int) $data[8])->toBe(0)
         ->and((int) $data[9])->toBe(10000)
-        ->and((int) $data[10])->toBe(615000);
+        ->and((int) $data[10])->toBe(-100000)
+        ->and((int) $data[11])->toBe(515000);
 
     $total = $rows[6];
 
     expect($total[0])->toBe('Total')
         ->and((float) $total[2])->toBe(4.5)
         ->and((int) $total[4])->toBe(45000)
-        ->and((int) $total[10])->toBe(615000);
+        ->and((int) $total[10])->toBe(-100000)
+        ->and((int) $total[11])->toBe(515000);
 });
 
 test('exports the teaching recap as a JP matrix per class', function () {

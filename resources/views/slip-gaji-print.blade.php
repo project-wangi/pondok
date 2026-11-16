@@ -182,6 +182,49 @@
             line-height: 1.6;
         }
 
+        .signatures {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 10mm 18mm;
+            margin-top: 26px;
+            page-break-inside: avoid;
+        }
+
+        .sign-role {
+            margin: 0;
+            color: #374151;
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+        }
+
+        .sign-space {
+            height: 18mm;
+        }
+
+        .sign-name {
+            width: 100%;
+            max-width: 62mm;
+            min-height: 5mm;
+            margin: 0;
+            padding-bottom: 1mm;
+            font-weight: 700;
+            border-bottom: 1px solid #9ca3af;
+        }
+
+        .sr-only {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            margin: -1px;
+            padding: 0;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0);
+            white-space: nowrap;
+            border: 0;
+        }
+
         @media print {
             .toolbar {
                 display: none !important;
@@ -258,9 +301,36 @@
 
         <p class="note">
             Slip ini dihitung otomatis dari sesi mengajar yang sudah ada presensi siswa,
-            kehadiran rapat, hari piket, tunjangan jabatan, dan peminatan pada periode tersebut.
+            kehadiran rapat, hari piket, tunjangan jabatan, dan peminatan, dikurangi potongan
+            donasi pada periode tersebut.
             Dicetak {{ $dicetak->locale('id')->translatedFormat('d F Y H:i') }}.
         </p>
+
+        <div class="signatures">
+            <div>
+                <p class="sign-role">Bendahara</p>
+                <div class="sign-space" aria-hidden="true"></div>
+                <p class="sign-name">
+                    @if (filled($bendahara))
+                        {{ $bendahara }}
+                    @else
+                        <span class="sr-only">Nama dan tanda tangan Bendahara</span>
+                    @endif
+                </p>
+            </div>
+
+            <div>
+                <p class="sign-role">Kepala Yayasan</p>
+                <div class="sign-space" aria-hidden="true"></div>
+                <p class="sign-name">
+                    @if (filled($kepalaYayasan))
+                        {{ $kepalaYayasan }}
+                    @else
+                        <span class="sr-only">Nama dan tanda tangan Kepala Yayasan</span>
+                    @endif
+                </p>
+            </div>
+        </div>
     </div>
 
     <script>

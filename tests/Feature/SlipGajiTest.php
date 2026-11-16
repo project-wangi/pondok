@@ -1,5 +1,6 @@
 <?php
 
+use App\Filament\Pages\GajiGuru;
 use App\Filament\Pages\SlipGaji;
 use App\Models\AbsenPeminatan;
 use App\Models\AbsenRapat;
@@ -9,6 +10,7 @@ use App\Models\JadwalRapat;
 use App\Models\JenisPeminatan;
 use App\Models\User;
 use Database\Factories\AbsenPiketFactory;
+use Database\Factories\DonasiFactory;
 use Database\Factories\GuruFactory;
 use Database\Factories\JadwalPelajaranFactory;
 use Database\Factories\KelasFactory;
@@ -171,6 +173,8 @@ test('a teacher sees their own salary slip for the selected month', function () 
         ->assertSee('4,5 JP × Rp10.000')
         ->assertSee('7 hari hadir')
         ->assertSee('Tahfizh Al-Qur\'an')
+        ->assertSee('Bendahara')
+        ->assertSee('Kepala Yayasan')
         ->assertSeeHtml('href="'.e(route('slip-gaji.print', ['bulan' => 10, 'tahun' => 2026])).'"');
 });
 
@@ -204,9 +208,65 @@ test('renders a standalone printable slip that uses the browser print dialog', f
         ->assertSee('Slip Gaji Guru')
         ->assertSee('Ust. Ahmad Fauzi')
         ->assertSee('Rp 975.000')
+        ->assertSee('Bendahara')
+        ->assertSee('Kepala Yayasan')
         ->assertSee('window.print()', false)
         ->assertSee('color-scheme: light', false)
         ->assertDontSee('fi-sidebar');
+});
+
+test('subtracts the donation component from the slip total', function () {
+    $guru = GuruFactory::new()->create(['jarak_rumah' => 0]);
+    $guru->user->update(['name' => 'Ust. Penerima Donasi']);
+    $guru->jabatans()->attach(Jabatan::create(['nama_jabatan' => 'Wali Kelas', 'gaji' => 500000])->id);
+
+    DonasiFactory::new()->create(['guru_id' => $guru->id, 'tanggal' => '2026-10-04', 'jumlah_anak' => 3]);
+    DonasiFactory::new()->create(['guru_id' => $guru->id, 'tanggal' => '2026-10-18', 'jumlah_anak' => 1]);
+
+    $this->actingAs($guru->user);
+
+    Livewire::test(SlipGaji::class)->set('bulan', 10)->set('tahun', 2026)
+        ->assertSee('Potongan Donasi')
+        ->assertSee('4 anak × Rp50.000')
+        ->assertSee('- Rp 200.000')
+        ->assertSee('Rp 300.000');
+
+    $rincian = GajiGuru::rincianGuru($guru, 10, 2026);
+
+    expect($rincian['donasi_anak'])->toBe(4)
+        ->and($rincian['donasi'])->toBe(200000)
+        ->and($rincian['jabatan'])->toBe(500000)
+        ->and($rincian['total'])->toBe(300000);
+
+    $this->get(route('slip-gaji.print', ['bulan' => 10, 'tahun' => 2026]))
+        ->assertOk()
+        ->assertSee('4 anak × Rp50.000')
+        ->assertSee('- Rp 200.000')
+        ->assertSee('Rp 300.000');
+});
+
+test('prints the names of the teachers holding the treasurer and foundation head positions', function () {
+    $guru = slipGajiScenario();
+
+    $treasurer = GuruFactory::new()->create();
+    $treasurer->user->update(['name' => 'Ust. Abdul Rahman']);
+
+    $foundationHead = GuruFactory::new()->create();
+    $foundationHead->user->update(['name' => 'KH. Ahmad Sholeh']);
+
+    $treasurer->jabatans()->attach(Jabatan::create(['nama_jabatan' => 'Bendahara', 'gaji' => 0])->id);
+    $foundationHead->jabatans()->attach(Jabatan::create(['nama_jabatan' => 'Kepala Yayasan', 'gaji' => 0])->id);
+
+    $this->actingAs($guru->user);
+
+    Livewire::test(SlipGaji::class)->set('bulan', 10)->set('tahun', 2026)
+        ->assertSee('Ust. Abdul Rahman')
+        ->assertSee('KH. Ahmad Sholeh');
+
+    $this->get(route('slip-gaji.print', ['bulan' => 10, 'tahun' => 2026]))
+        ->assertOk()
+        ->assertSee('Ust. Abdul Rahman')
+        ->assertSee('KH. Ahmad Sholeh');
 });
 
 test('protects the printable slip from guests and non-teachers', function () {

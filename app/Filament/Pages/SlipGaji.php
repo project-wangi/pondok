@@ -3,6 +3,7 @@
 namespace App\Filament\Pages;
 
 use App\Models\Guru;
+use App\Models\Jabatan;
 use App\Models\SiteSetting;
 use BackedEnum;
 use Carbon\CarbonImmutable;
@@ -10,6 +11,7 @@ use Closure;
 use Filament\Facades\Filament;
 use Filament\Pages\Page;
 use Filament\Support\Icons\Heroicon;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use UnitEnum;
 
 class SlipGaji extends Page
@@ -78,6 +80,8 @@ class SlipGaji extends Page
     {
         $rincian = $this->rincian();
         $tampilan = self::komponenRincian($rincian);
+        $settings = SiteSetting::current();
+        $penandatangan = self::penandatangan();
         $currentYear = (int) CarbonImmutable::now()->year;
         $years = range($currentYear - 3, $currentYear + 1);
 
@@ -88,12 +92,40 @@ class SlipGaji extends Page
 
         return [
             'rincian' => $rincian,
-            'sekolah' => SiteSetting::current()->school_name,
+            'sekolah' => $settings->school_name,
+            'bendahara' => $penandatangan['bendahara'],
+            'kepalaYayasan' => $penandatangan['kepalaYayasan'],
             'bulanOptions' => GajiGuru::BULAN,
             'tahunOptions' => $years,
             'komponen' => $tampilan['komponen'],
             'angka' => $tampilan['angka'],
             'rupiah' => $tampilan['rupiah'],
+        ];
+    }
+
+    /**
+     * Nama penanda tangan slip diambil dari guru yang memegang jabatan terkait.
+     * Bila jabatan belum punya pemegang, slip hanya menampilkan garis tanda tangan.
+     *
+     * @return array{bendahara: ?string, kepalaYayasan: ?string}
+     */
+    public static function penandatangan(): array
+    {
+        $jabatans = Jabatan::query()
+            ->with(['gurus' => fn (BelongsToMany $query) => $query->with('user:id,name')->orderBy('gurus.id')])
+            ->get(['id', 'nama_jabatan']);
+
+        $nama = function (string $jabatan) use ($jabatans): ?string {
+            $match = $jabatans->first(
+                fn (Jabatan $item): bool => mb_strtolower((string) $item->nama_jabatan) === mb_strtolower($jabatan),
+            );
+
+            return $match?->gurus->first()?->nama;
+        };
+
+        return [
+            'bendahara' => $nama('Bendahara'),
+            'kepalaYayasan' => $nama('Kepala Yayasan'),
         ];
     }
 
@@ -153,6 +185,11 @@ class SlipGaji extends Page
                 'label' => 'Piket',
                 'rincian' => $rincian['piket_count'].' hari × Rp10.000',
                 'jumlah' => $rupiah($rincian['piket']),
+            ],
+            [
+                'label' => 'Potongan Donasi',
+                'rincian' => $rincian['donasi_anak'].' anak × Rp50.000',
+                'jumlah' => '- '.$rupiah($rincian['donasi']),
             ],
         ];
 

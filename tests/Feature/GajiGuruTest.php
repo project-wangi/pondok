@@ -12,6 +12,7 @@ use Database\Factories\AbsenGuruFactory;
 use Database\Factories\AbsenPeminatanFactory;
 use Database\Factories\AbsenPiketFactory;
 use Database\Factories\AbsenRapatFactory;
+use Database\Factories\DonasiFactory;
 use Database\Factories\GuruFactory;
 use Database\Factories\JadwalPelajaranFactory;
 use Database\Factories\KelasFactory;
@@ -303,6 +304,28 @@ test('counts teacher clock in days for transport', function () {
 
     expect($row['hari_hadir'])->toBe(2)
         ->and($row['transport'])->toBe(10000);
+});
+
+test('subtracts donations from the salary recap', function () {
+    $this->actingAs(gajiGuruAdmin());
+
+    $guru = GuruFactory::new()->create(['jarak_rumah' => 0]);
+    $guru->jabatans()->attach(Jabatan::create(['nama_jabatan' => 'Wali Kelas', 'gaji' => 500000])->id);
+
+    DonasiFactory::new()->create(['guru_id' => $guru->id, 'tanggal' => '2026-10-02', 'jumlah_anak' => 2]);
+    DonasiFactory::new()->create(['guru_id' => $guru->id, 'tanggal' => '2026-10-20', 'jumlah_anak' => 1]);
+
+    // Donasi bulan lain tidak ikut mengurangi gaji bulan ini.
+    DonasiFactory::new()->create(['guru_id' => $guru->id, 'tanggal' => '2026-09-30', 'jumlah_anak' => 4]);
+
+    $rekap = Livewire::test(GajiGuru::class)->set('bulan', 10)->set('tahun', 2026)->instance()->rekap();
+    $row = collect($rekap['rows'])->firstWhere('guru_id', $guru->id);
+
+    expect($row['jabatan'])->toBe(500000)
+        ->and($row['donasi'])->toBe(150000)
+        ->and($row['total'])->toBe(350000)
+        ->and($rekap['totals']['donasi'])->toBe(150000)
+        ->and($rekap['totals']['total'])->toBe(350000);
 });
 
 test('the salary page clamps an out of range month and year', function () {

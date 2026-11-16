@@ -22,7 +22,7 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class GajiGuruWorkbook
 {
-    private const LAST_COLUMN = 10;
+    private const LAST_COLUMN = 11;
 
     /** @var list<string> */
     public const HEADERS = [
@@ -36,6 +36,7 @@ class GajiGuruWorkbook
         'Rapat',
         'Peminatan',
         'Piket',
+        'Potongan Donasi',
         'Total',
     ];
 
@@ -82,7 +83,7 @@ class GajiGuruWorkbook
             $sheet->setColumnWidth(32, 2);
             $sheet->setColumnWidth(8, 3);
             $sheet->setColumnWidth(10, 4);
-            $sheet->setColumnWidthForRange(14, 5, 11);
+            $sheet->setColumnWidthForRange(14, 5, self::LAST_COLUMN);
 
             $base = (new Style)
                 ->setFontName('Arial')
@@ -138,8 +139,9 @@ class GajiGuruWorkbook
                     (int) $row['rapat'],
                     (int) $row['peminatan'],
                     (int) $row['piket'],
+                    -(int) $row['donasi'],
                     (int) $row['total'],
-                ], [$cell, $cellLeft, $quantity, $count, $money, $money, $money, $money, $money, $money, $money], 20);
+                ], [$cell, $cellLeft, $quantity, $count, $money, $money, $money, $money, $money, $money, $money, $money], 20);
             }
 
             $totals = $rekap['totals'];
@@ -155,14 +157,16 @@ class GajiGuruWorkbook
                 $totals['rapat'],
                 $totals['peminatan'],
                 $totals['piket'],
+                -$totals['donasi'],
                 $totals['total'],
-            ], [$totalLabel, $totalLabel, $totalQuantity, $totalLabel, $totalMoney, $totalMoney, $totalMoney, $totalMoney, $totalMoney, $totalMoney, $totalMoney], 22, [[0, 1]]);
+            ], [$totalLabel, $totalLabel, $totalQuantity, $totalLabel, $totalMoney, $totalMoney, $totalMoney, $totalMoney, $totalMoney, $totalMoney, $totalMoney, $totalMoney], 22, [[0, 1]]);
 
             $add([], $base, 8);
             $add([
                 'JP mengajar dihitung dari sesi yang sudah memiliki presensi siswa (1 JP = 40 menit). '
                 .'Transport dihitung dari hari hadir: tanggal unik mengajar yang sudah berpresensi siswa, '
-                .'piket, peminatan, atau rapat.',
+                .'absensi guru, piket, peminatan, atau rapat. Potongan donasi dihitung dari jumlah anak × Rp50.000 '
+                .'dan mengurangi total gaji.',
             ], $leftWrap, 32, [[0, self::LAST_COLUMN]]);
         } finally {
             $writer->close();

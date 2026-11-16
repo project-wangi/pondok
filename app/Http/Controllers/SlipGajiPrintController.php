@@ -22,13 +22,17 @@ class SlipGajiPrintController extends Controller
         $tahun = min(2100, max(2000, (int) $request->query('tahun', $now->year)));
         $rincian = GajiGuru::rincianGuru($guru, $bulan, $tahun);
         $tampilan = SlipGaji::komponenRincian($rincian);
+        $settings = SiteSetting::current();
+        $penandatangan = SlipGaji::penandatangan();
 
         return view('slip-gaji-print', [
             'rincian' => $rincian,
             'komponen' => $tampilan['komponen'],
             'angka' => $tampilan['angka'],
             'rupiah' => $tampilan['rupiah'],
-            'sekolah' => SiteSetting::current()->school_name,
+            'sekolah' => $settings->school_name,
+            'bendahara' => $penandatangan['bendahara'],
+            'kepalaYayasan' => $penandatangan['kepalaYayasan'],
             'dicetak' => $now,
         ]);
     }

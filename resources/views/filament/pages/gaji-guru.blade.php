@@ -21,8 +21,8 @@
 
             <p class="gaji-note">
                 Honor mengajar Rp10.000/JP (40 menit) · transport Rp1.000/km/hari hadir · rapat Rp20.000 ·
-                piket Rp10.000. Peminatan memakai nominal jenis × jumlah absensi peminatan. Hari hadir dihitung dari
-                sesi mengajar berpresensi, absensi guru (masuk), piket, peminatan, dan rapat.
+                piket Rp10.000 · potongan donasi Rp50.000/anak. Peminatan memakai nominal jenis × jumlah absensi peminatan.
+                Hari hadir dihitung dari sesi mengajar berpresensi, absensi guru (masuk), piket, peminatan, dan rapat.
             </p>
 
             <div class="gaji-export">
@@ -66,6 +66,7 @@
                             <th scope="col" class="gaji-money">Rapat</th>
                             <th scope="col" class="gaji-money">Peminatan</th>
                             <th scope="col" class="gaji-money">Piket</th>
+                            <th scope="col" class="gaji-money">Potongan Donasi</th>
                             <th scope="col" class="gaji-money">Total</th>
                         </tr>
                     </thead>
@@ -80,6 +81,7 @@
                                 <td class="gaji-money presensi-numeric">{{ $row['rapat'] > 0 ? $rupiah($row['rapat']) : '-' }}</td>
                                 <td class="gaji-money presensi-numeric">{{ $row['peminatan'] > 0 ? $rupiah($row['peminatan']) : '-' }}</td>
                                 <td class="gaji-money presensi-numeric">{{ $row['piket'] > 0 ? $rupiah($row['piket']) : '-' }}</td>
+                                <td class="gaji-money presensi-numeric">{{ $row['donasi'] > 0 ? '- '.$rupiah($row['donasi']) : '-' }}</td>
                                 <td class="gaji-money presensi-numeric gaji-total">{{ $row['total'] > 0 ? $rupiah($row['total']) : '-' }}</td>
                             </tr>
                         @endforeach
@@ -93,6 +95,7 @@
                             <td class="gaji-money presensi-numeric">{{ $rupiah($rekap['totals']['rapat']) }}</td>
                             <td class="gaji-money presensi-numeric">{{ $rupiah($rekap['totals']['peminatan']) }}</td>
                             <td class="gaji-money presensi-numeric">{{ $rupiah($rekap['totals']['piket']) }}</td>
+                            <td class="gaji-money presensi-numeric">{{ $rekap['totals']['donasi'] > 0 ? '- '.$rupiah($rekap['totals']['donasi']) : $rupiah(0) }}</td>
                             <td class="gaji-money presensi-numeric">{{ $rupiah($rekap['totals']['total']) }}</td>
                         </tr>
                     </tfoot>
@@ -103,9 +106,10 @@
                 JP mengajar hanya dihitung dari sesi yang sudah memiliki presensi siswa
                 (durasi jam mulai sampai jam selesai, 1 JP = 40 menit). Transport = jarak rumah × Rp1.000 ×
                 jumlah hari hadir, yaitu tanggal unik saat guru mengajar yang sudah berpresensi siswa,
-                piket, peminatan, atau rapat. Piket dihitung dari jumlah hari piket yang dicatat.
-                Peminatan = nominal jenis × jumlah absensi peminatan pada bulan berjalan. Jabatan
-                bersifat bulanan, jadi tetap muncul pada bulan tanpa kegiatan.
+                absensi guru (masuk), piket, peminatan, atau rapat. Piket dihitung dari jumlah hari piket yang dicatat.
+                Peminatan = nominal jenis × jumlah absensi peminatan pada bulan berjalan. Potongan donasi = jumlah anak pada
+                donasi bulan berjalan × Rp50.000 dan mengurangi total gaji. Jabatan bersifat bulanan, jadi tetap muncul pada
+                bulan tanpa kegiatan.
             </p>
         @endif
     </div>

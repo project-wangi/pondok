@@ -94,9 +94,36 @@
 
             <p class="slip-gaji-note">
                 Slip ini dihitung otomatis dari sesi mengajar yang sudah ada presensi siswa,
-                kehadiran rapat, hari piket, tunjangan jabatan, dan peminatan pada periode tersebut.
+                kehadiran rapat, hari piket, tunjangan jabatan, dan peminatan, dikurangi potongan
+                donasi pada periode tersebut.
                 Dicetak {{ now()->locale('id')->translatedFormat('d F Y H:i') }}.
             </p>
+
+            <footer class="slip-gaji-signatures">
+                <div class="slip-gaji-signature">
+                    <p class="slip-gaji-sign-role">Bendahara</p>
+                    <div class="slip-gaji-sign-space" aria-hidden="true"></div>
+                    <p class="slip-gaji-sign-name">
+                        @if (filled($bendahara))
+                            {{ $bendahara }}
+                        @else
+                            <span class="presensi-sr-only">Nama dan tanda tangan Bendahara</span>
+                        @endif
+                    </p>
+                </div>
+
+                <div class="slip-gaji-signature">
+                    <p class="slip-gaji-sign-role">Kepala Yayasan</p>
+                    <div class="slip-gaji-sign-space" aria-hidden="true"></div>
+                    <p class="slip-gaji-sign-name">
+                        @if (filled($kepalaYayasan))
+                            {{ $kepalaYayasan }}
+                        @else
+                            <span class="presensi-sr-only">Nama dan tanda tangan Kepala Yayasan</span>
+                        @endif
+                    </p>
+                </div>
+            </footer>
         </section>
     </div>
 </x-filament-panels::page>

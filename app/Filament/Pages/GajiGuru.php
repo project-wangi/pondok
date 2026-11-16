@@ -7,6 +7,7 @@ use App\Models\AbsenGuru;
 use App\Models\AbsenPeminatan;
 use App\Models\AbsenPiket;
 use App\Models\AbsenRapat;
+use App\Models\Donasi;
 use App\Models\Guru;
 use App\Models\SesiMengajar;
 use BackedEnum;
@@ -145,6 +146,15 @@ class GajiGuru extends Page
             ->pluck('total', 'guru_id')
             ->all();
 
+        $donationChildren = Donasi::query()
+            ->where('tanggal', '>=', $from)
+            ->where('tanggal', '<', $until)
+            ->whereNotNull('guru_id')
+            ->selectRaw('guru_id, sum(jumlah_anak) as total')
+            ->groupBy('guru_id')
+            ->pluck('total', 'guru_id')
+            ->all();
+
         $positionTotals = DB::table('guru_jabatan')
             ->join('jabatans', 'jabatans.id', '=', 'guru_jabatan.jabatan_id')
             ->selectRaw('guru_jabatan.guru_id as guru_id, sum(jabatans.gaji) as total')
@@ -175,6 +185,7 @@ class GajiGuru extends Page
             'rapat' => 0,
             'peminatan' => 0,
             'piket' => 0,
+            'donasi' => 0,
             'total' => 0,
         ];
 
@@ -190,7 +201,8 @@ class GajiGuru extends Page
             $rapat = (int) ($meetingCounts[$guru->id] ?? 0) * self::HONOR_RAPAT;
             $peminatan = (int) ($specializationTotals[$guru->id] ?? 0);
             $piket = (int) ($picketCounts[$guru->id] ?? 0) * self::HONOR_PIKET;
-            $total = $mengajar + $transport + $jabatan + $rapat + $peminatan + $piket;
+            $donasi = (int) ($donationChildren[$guru->id] ?? 0) * Donasi::NOMINAL_PER_ANAK;
+            $total = $mengajar + $transport + $jabatan + $rapat + $peminatan + $piket - $donasi;
 
             $rows[] = [
                 'guru_id' => $guru->id,
@@ -203,6 +215,7 @@ class GajiGuru extends Page
                 'rapat' => $rapat,
                 'peminatan' => $peminatan,
                 'piket' => $piket,
+                'donasi' => $donasi,
                 'total' => $total,
             ];
 
@@ -212,6 +225,7 @@ class GajiGuru extends Page
             $totals['rapat'] += $rapat;
             $totals['peminatan'] += $peminatan;
             $totals['piket'] += $piket;
+            $totals['donasi'] += $donasi;
             $totals['total'] += $total;
         }
 
@@ -267,6 +281,14 @@ class GajiGuru extends Page
             ->distinct()
             ->count('tanggal');
 
+        $donations = Donasi::query()
+            ->where('tanggal', '>=', $from)
+            ->where('tanggal', '<', $until)
+            ->where('guru_id', $guru->id)
+            ->get(['jumlah_anak']);
+
+        $donationChildren = (int) $donations->sum('jumlah_anak');
+
         $positions = DB::table('guru_jabatan')
             ->join('jabatans', 'jabatans.id', '=', 'guru_jabatan.jabatan_id')
             ->where('guru_jabatan.guru_id', $guru->id)
@@ -298,6 +320,7 @@ class GajiGuru extends Page
         $rapat = $meetingCount * self::HONOR_RAPAT;
         $peminatan = array_sum(array_column($specializationItems, 'total'));
         $piket = $picketCount * self::HONOR_PIKET;
+        $donasi = $donationChildren * Donasi::NOMINAL_PER_ANAK;
 
         return [
             'guru_id' => $guru->id,
@@ -320,7 +343,10 @@ class GajiGuru extends Page
             'peminatan_count' => $specializationMeetings->count(),
             'piket_count' => $picketCount,
             'piket' => $piket,
-            'total' => $mengajar + $transport + $jabatan + $rapat + $peminatan + $piket,
+            'donasi_count' => $donations->count(),
+            'donasi_anak' => $donationChildren,
+            'donasi' => $donasi,
+            'total' => $mengajar + $transport + $jabatan + $rapat + $peminatan + $piket - $donasi,
         ];
     }
 
