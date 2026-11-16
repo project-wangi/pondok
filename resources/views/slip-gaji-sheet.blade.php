@@ -74,13 +74,13 @@
     </div>
 
     <div>
-        <p class="sign-role">Kepala Yayasan</p>
+        <p class="sign-role">Kepala Sekolah</p>
         <div class="sign-space" aria-hidden="true"></div>
         <p class="sign-name">
-            @if (filled($kepalaYayasan))
-                {{ $kepalaYayasan }}
+            @if (filled($kepalaSekolah))
+                {{ $kepalaSekolah }}
             @else
-                <span class="sr-only">Nama dan tanda tangan Kepala Yayasan</span>
+                <span class="sr-only">Nama dan tanda tangan Kepala Sekolah</span>
             @endif
         </p>
     </div>

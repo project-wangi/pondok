@@ -23,7 +23,7 @@ class SlipGajiPrintAllController extends Controller
         $bulan = min(12, max(1, (int) $request->query('bulan', $now->month)));
         $tahun = min(2100, max(2000, (int) $request->query('tahun', $now->year)));
 
-        $penandatangan = SlipGaji::penandatangan();
+        $penandatangan = GajiGuru::penandatangan();
         $sekolah = SiteSetting::current()->school_name;
 
         $slips = Guru::query()
@@ -42,7 +42,7 @@ class SlipGajiPrintAllController extends Controller
                     'rupiah' => $tampilan['rupiah'],
                     'sekolah' => $sekolah,
                     'bendahara' => $penandatangan['bendahara'],
-                    'kepalaYayasan' => $penandatangan['kepalaYayasan'],
+                    'kepalaSekolah' => $penandatangan['kepalaSekolah'],
                     'dicetak' => $now,
                 ];
             })

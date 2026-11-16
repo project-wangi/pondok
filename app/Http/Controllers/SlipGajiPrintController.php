@@ -23,7 +23,7 @@ class SlipGajiPrintController extends Controller
         $rincian = GajiGuru::rincianGuru($guru, $bulan, $tahun);
         $tampilan = SlipGaji::komponenRincian($rincian);
         $settings = SiteSetting::current();
-        $penandatangan = SlipGaji::penandatangan();
+        $penandatangan = GajiGuru::penandatangan();
 
         return view('slip-gaji-print', [
             'rincian' => $rincian,
@@ -32,7 +32,7 @@ class SlipGajiPrintController extends Controller
             'rupiah' => $tampilan['rupiah'],
             'sekolah' => $settings->school_name,
             'bendahara' => $penandatangan['bendahara'],
-            'kepalaYayasan' => $penandatangan['kepalaYayasan'],
+            'kepalaSekolah' => $penandatangan['kepalaSekolah'],
             'dicetak' => $now,
         ]);
     }

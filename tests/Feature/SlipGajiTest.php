@@ -174,7 +174,7 @@ test('a teacher sees their own salary slip for the selected month', function () 
         ->assertSee('7 hari hadir')
         ->assertSee('Tahfizh Al-Qur\'an')
         ->assertSee('Bendahara')
-        ->assertSee('Kepala Yayasan')
+        ->assertSee('Kepala Sekolah')
         ->assertSeeHtml('href="'.e(route('slip-gaji.print', ['bulan' => 10, 'tahun' => 2026])).'"');
 });
 
@@ -209,7 +209,7 @@ test('renders a standalone printable slip that uses the browser print dialog', f
         ->assertSee('Ust. Ahmad Fauzi')
         ->assertSee('Rp 975.000')
         ->assertSee('Bendahara')
-        ->assertSee('Kepala Yayasan')
+        ->assertSee('Kepala Sekolah')
         ->assertSee('window.print()', false)
         ->assertSee('color-scheme: light', false)
         ->assertDontSee('fi-sidebar');
@@ -245,26 +245,28 @@ test('subtracts the donation component from the slip total', function () {
         ->assertSee('Rp 300.000');
 });
 
-test('prints the names of the teachers holding the treasurer and foundation head positions', function () {
+test('prints the names of the teachers holding the treasurer and headmaster positions', function () {
     $guru = slipGajiScenario();
 
     $treasurer = GuruFactory::new()->create();
     $treasurer->user->update(['name' => 'Ust. Abdul Rahman']);
 
-    $foundationHead = GuruFactory::new()->create();
-    $foundationHead->user->update(['name' => 'KH. Ahmad Sholeh']);
+    $headmaster = GuruFactory::new()->create();
+    $headmaster->user->update(['name' => 'KH. Ahmad Sholeh']);
 
     $treasurer->jabatans()->attach(Jabatan::create(['nama_jabatan' => 'Bendahara', 'gaji' => 0])->id);
-    $foundationHead->jabatans()->attach(Jabatan::create(['nama_jabatan' => 'Kepala Yayasan', 'gaji' => 0])->id);
+    $headmaster->jabatans()->attach(Jabatan::create(['nama_jabatan' => 'Kepala Sekolah', 'gaji' => 0])->id);
 
     $this->actingAs($guru->user);
 
     Livewire::test(SlipGaji::class)->set('bulan', 10)->set('tahun', 2026)
+        ->assertSee('Kepala Sekolah')
         ->assertSee('Ust. Abdul Rahman')
         ->assertSee('KH. Ahmad Sholeh');
 
     $this->get(route('slip-gaji.print', ['bulan' => 10, 'tahun' => 2026]))
         ->assertOk()
+        ->assertSee('Kepala Sekolah')
         ->assertSee('Ust. Abdul Rahman')
         ->assertSee('KH. Ahmad Sholeh');
 });

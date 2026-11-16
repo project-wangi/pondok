@@ -113,13 +113,13 @@
                 </div>
 
                 <div class="slip-gaji-signature">
-                    <p class="slip-gaji-sign-role">Kepala Yayasan</p>
+                    <p class="slip-gaji-sign-role">Kepala Sekolah</p>
                     <div class="slip-gaji-sign-space" aria-hidden="true"></div>
                     <p class="slip-gaji-sign-name">
-                        @if (filled($kepalaYayasan))
-                            {{ $kepalaYayasan }}
+                        @if (filled($kepalaSekolah))
+                            {{ $kepalaSekolah }}
                         @else
-                            <span class="presensi-sr-only">Nama dan tanda tangan Kepala Yayasan</span>
+                            <span class="presensi-sr-only">Nama dan tanda tangan Kepala Sekolah</span>
                         @endif
                     </p>
                 </div>

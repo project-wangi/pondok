@@ -3,7 +3,6 @@
 namespace App\Filament\Pages;
 
 use App\Models\Guru;
-use App\Models\Jabatan;
 use App\Models\SiteSetting;
 use BackedEnum;
 use Carbon\CarbonImmutable;
@@ -80,7 +79,7 @@ class SlipGaji extends Page
         $rincian = $this->rincian();
         $tampilan = self::komponenRincian($rincian);
         $settings = SiteSetting::current();
-        $penandatangan = self::penandatangan();
+        $penandatangan = GajiGuru::penandatangan();
         $currentYear = (int) CarbonImmutable::now()->year;
         $years = range($currentYear - 3, $currentYear + 1);
 
@@ -93,26 +92,12 @@ class SlipGaji extends Page
             'rincian' => $rincian,
             'sekolah' => $settings->school_name,
             'bendahara' => $penandatangan['bendahara'],
-            'kepalaYayasan' => $penandatangan['kepalaYayasan'],
+            'kepalaSekolah' => $penandatangan['kepalaSekolah'],
             'bulanOptions' => GajiGuru::BULAN,
             'tahunOptions' => $years,
             'komponen' => $tampilan['komponen'],
             'angka' => $tampilan['angka'],
             'rupiah' => $tampilan['rupiah'],
-        ];
-    }
-
-    /**
-     * Nama penanda tangan slip diambil dari guru yang memegang jabatan terkait.
-     * Bila jabatan belum punya pemegang, slip hanya menampilkan garis tanda tangan.
-     *
-     * @return array{bendahara: ?string, kepalaYayasan: ?string}
-     */
-    public static function penandatangan(): array
-    {
-        return [
-            'bendahara' => Jabatan::namaPemegang('Bendahara'),
-            'kepalaYayasan' => Jabatan::namaPemegang('Kepala Yayasan'),
         ];
     }
 
