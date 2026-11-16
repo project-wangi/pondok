@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\JadwalPelajarans\Schemas;
 
+use App\Filament\Forms\Components\JamPicker;
 use App\Models\Guru;
 use App\Models\JadwalPelajaran;
 use App\Models\Kelas;
@@ -9,7 +10,6 @@ use Carbon\CarbonImmutable;
 use Closure;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
-use Filament\Forms\Components\TimePicker;
 use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Schema;
 use Illuminate\Database\Eloquent\Builder;
@@ -61,14 +61,12 @@ class JadwalPelajaranForm
                     ->required()
                     ->searchable()
                     ->preload(),
-                TimePicker::make('jam_mulai')
-                    ->seconds(false)
-                    ->displayFormat('H:i')
+                JamPicker::make('jam_mulai')
+                    ->label('Jam mulai')
                     ->required()
                     ->live(),
-                TimePicker::make('jam_selesai')
-                    ->seconds(false)
-                    ->displayFormat('H:i')
+                JamPicker::make('jam_selesai')
+                    ->label('Jam selesai')
                     ->required()
                     ->live()
                     ->rules([

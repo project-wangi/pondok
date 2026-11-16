@@ -2,12 +2,12 @@
 
 namespace App\Filament\Resources\JadwalRapats\Schemas;
 
+use App\Filament\Forms\Components\JamPicker;
+use Carbon\Carbon;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Hidden;
-use Filament\Forms\Components\TextInput;
-use Filament\Forms\Components\TimePicker;
 use Filament\Forms\Components\Select;
-use Carbon\Carbon;
+use Filament\Forms\Components\TextInput;
 use Filament\Schemas\Schema;
 
 class JadwalRapatForm
@@ -39,13 +39,11 @@ class JadwalRapatForm
                 Hidden::make('hari')
                     ->required(),
 
-                TimePicker::make('jam_mulai')
-                    ->seconds(false)
-                    ->displayFormat('H:i')
+                JamPicker::make('jam_mulai')
+                    ->label('Jam mulai')
                     ->required(),
-                TimePicker::make('jam_selesai')
-                    ->seconds(false)
-                    ->displayFormat('H:i')
+                JamPicker::make('jam_selesai')
+                    ->label('Jam selesai')
                     ->required(),
 
                 TextInput::make('agenda')

@@ -1,6 +1,7 @@
 <?php
 
 use App\Filament\Resources\JadwalPelajarans\Pages\CreateJadwalPelajaran;
+use App\Filament\Resources\JadwalPelajarans\Pages\EditJadwalPelajaran;
 use App\Filament\Resources\JadwalPelajarans\Pages\ListJadwalPelajarans;
 use App\Models\JadwalPelajaran;
 use App\Models\User;
@@ -85,6 +86,35 @@ test('rejects an invalid academic year', function (array $data) {
     'not consecutive' => [['tahun_ajaran' => '2025/2027']],
     'wrong format' => [['tahun_ajaran' => '2025-2026']],
 ]);
+
+test('uses the 24 hour jam picker for schedule times', function () {
+    $this->actingAs(jadwalPeriodUser('ViewAny:JadwalPelajaran', 'Create:JadwalPelajaran'));
+
+    Livewire::test(CreateJadwalPelajaran::class)
+        ->assertSeeHtml('jam-picker')
+        ->assertSeeHtml('aria-label="Jam"')
+        ->assertSeeHtml('aria-label="Menit"')
+        ->assertDontSeeHtml('type="time"');
+});
+
+test('stores schedule times with seconds and shows them back as HH:MM', function () {
+    $this->actingAs(jadwalPeriodUser('ViewAny:JadwalPelajaran', 'Create:JadwalPelajaran', 'Update:JadwalPelajaran'));
+
+    Livewire::test(CreateJadwalPelajaran::class)
+        ->fillForm(jadwalPeriodFormData())
+        ->call('create')
+        ->assertHasNoFormErrors();
+
+    $schedule = JadwalPelajaran::query()->sole();
+    expect($schedule->jam_mulai)->toBe('07:00:00')
+        ->and($schedule->jam_selesai)->toBe('09:00:00');
+
+    Livewire::test(EditJadwalPelajaran::class, ['record' => $schedule->getKey()])
+        ->assertFormSet([
+            'jam_mulai' => '07:00',
+            'jam_selesai' => '09:00',
+        ]);
+});
 
 test('filters the schedule table by semester and academic year', function () {
     $this->actingAs(jadwalPeriodUser('ViewAny:JadwalPelajaran'));
