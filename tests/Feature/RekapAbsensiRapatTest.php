@@ -37,8 +37,8 @@ function rapatRecapTeacher(): Guru
     return GuruFactory::new()->create();
 }
 
-/** @return list<array<int, mixed>> */
-function rapatWorkbookRows(array $download): array
+/** @return array<string, list<array<int, mixed>>> */
+function rapatWorkbookSheets(array $download): array
 {
     $path = tempnam(sys_get_temp_dir(), 'rapat-export-');
     file_put_contents($path, base64_decode($download['content']));
@@ -47,13 +47,17 @@ function rapatWorkbookRows(array $download): array
     $options->SHOULD_PRESERVE_EMPTY_ROWS = true;
     $reader = new Reader($options);
     $reader->open($path);
-    $rows = [];
+    $sheets = [];
 
     try {
         foreach ($reader->getSheetIterator() as $sheet) {
+            $rows = [];
+
             foreach ($sheet->getRowIterator() as $row) {
                 $rows[] = $row->toArray();
             }
+
+            $sheets[$sheet->getName()] = $rows;
         }
     } finally {
         $reader->close();
@@ -63,7 +67,7 @@ function rapatWorkbookRows(array $download): array
         }
     }
 
-    return $rows;
+    return $sheets;
 }
 
 /** @param array<string, mixed> $attributes */
@@ -128,12 +132,14 @@ test('filters the recap by month', function () {
 
 test('exports the meeting recap following the active month filter', function () {
     $teacher = rapatRecapTeacher();
-    rapatRecapRecord($teacher, [
+    $october = rapatRecapRecord($teacher, [
         'agenda' => 'Rapat Oktober',
         'tanggal' => '2026-10-05',
         'jam_mulai' => '08:00:00',
         'jam_selesai' => '10:00:00',
     ]);
+    $october->jadwalRapat->update(['notulensi' => "## Keputusan\n\n- Menambah jam tahfiz"]);
+
     rapatRecapRecord($teacher, ['agenda' => 'Rapat November', 'tanggal' => '2026-11-10']);
     $this->actingAs($teacher->user);
 
@@ -142,7 +148,8 @@ test('exports the meeting recap following the active month filter', function () 
         ->callAction(TestAction::make('eksporExcel')->table())
         ->assertFileDownloaded('rekap-absensi-rapat-2026-10-19.xlsx');
 
-    $rows = rapatWorkbookRows($component->effects['download']);
+    $sheets = rapatWorkbookSheets($component->effects['download']);
+    $rows = $sheets['Rekap Absensi Rapat'];
 
     expect($rows[1][0])->toBe('REKAP ABSENSI RAPAT')
         ->and($rows[4])->toBe(AbsenRapatWorkbook::HEADERS)
@@ -152,6 +159,14 @@ test('exports the meeting recap following the active month filter', function () 
         ->and($rows[5][5])->toBe('10:00');
 
     expect(collect($rows)->skip(5)->pluck(2)->filter()->all())->toBe(['Rapat Oktober']);
+
+    $notulensi = $sheets['Notulensi Rapat'];
+
+    expect($notulensi[1][0])->toBe('NOTULENSI RAPAT')
+        ->and($notulensi[3])->toBe(AbsenRapatWorkbook::NOTULENSI_HEADERS)
+        ->and($notulensi[4][2])->toBe('Rapat Oktober')
+        ->and($notulensi[4][5])->toBe("## Keputusan\n\n- Menambah jam tahfiz")
+        ->and(collect($notulensi)->skip(4)->pluck(2)->filter()->all())->toBe(['Rapat Oktober']);
 });
 
 test('provides a photo preview and a view photo action with a temporary url', function () {

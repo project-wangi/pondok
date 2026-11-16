@@ -97,7 +97,9 @@ class AbsenRapatsTable
                     ->action(function (HasTable $livewire): StreamedResponse {
                         $query = $livewire->getFilteredSortedTableQuery() ?? AbsenRapatResource::getEloquentQuery();
 
-                        return app(AbsenRapatWorkbook::class)->download($query->get());
+                        return app(AbsenRapatWorkbook::class)->download(
+                            $query->with('jadwalRapat:id,notulensi')->get(),
+                        );
                     }),
             ])
             ->recordActions([

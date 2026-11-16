@@ -25,6 +25,8 @@ class AbsenRapatWorkbook
 {
     private const LAST_COLUMN = 6;
 
+    private const NOTULENSI_LAST_COLUMN = 5;
+
     /** @var list<string> */
     public const HEADERS = [
         'No',
@@ -34,6 +36,16 @@ class AbsenRapatWorkbook
         'Jam Mulai',
         'Jam Selesai',
         'Dicatat',
+    ];
+
+    /** @var list<string> */
+    public const NOTULENSI_HEADERS = [
+        'No',
+        'Tanggal',
+        'Agenda',
+        'Jam Mulai',
+        'Jam Selesai',
+        'Notulensi',
     ];
 
     /** @param Collection<int, AbsenRapat> $rapats */
@@ -97,6 +109,7 @@ class AbsenRapatWorkbook
             $headerLeft = (clone $header)->setCellAlignment(CellAlignment::LEFT);
             $cell = (clone $base)->setBorder($border);
             $cellLeft = (clone $left)->setBorder($border);
+            $cellLeftWrap = (clone $leftWrap)->setBorder($border);
 
             $rowNumber = 0;
             $add = function (array $values, Style|array $styles, float $height, array $merges = []) use ($writer, $options, $sheet, &$rowNumber): void {
@@ -128,21 +141,92 @@ class AbsenRapatWorkbook
 
             $add([], $base, 8);
             $add(['Data mengikuti pencarian dan filter yang aktif saat ekspor.'], $leftWrap, 24, [[0, self::LAST_COLUMN]]);
+
+            $this->writeNotulensiSheet($writer, $rapats);
         } finally {
             $writer->close();
         }
     }
 
     /**
+     * Lembar kedua berisi notulensi setiap rapat yang muncul pada rekap.
+     *
+     * @param  Collection<int, AbsenRapat>  $rapats
+     */
+    private function writeNotulensiSheet(Writer $writer, Collection $rapats): void
+    {
+        $sheet = $writer->addNewSheetAndMakeItCurrent();
+        $sheet->setName('Notulensi Rapat');
+        $sheet->setColumnWidth(5, 1);
+        $sheet->setColumnWidth(14, 2);
+        $sheet->setColumnWidth(40, 3);
+        $sheet->setColumnWidth(10, 4);
+        $sheet->setColumnWidth(10, 5);
+        $sheet->setColumnWidth(90, 6);
+
+        $base = (new Style)
+            ->setFontName('Arial')
+            ->setFontSize(10)
+            ->setCellAlignment(CellAlignment::CENTER)
+            ->setCellVerticalAlignment(CellVerticalAlignment::CENTER);
+        $left = (clone $base)->setCellAlignment(CellAlignment::LEFT);
+        $leftWrap = (clone $left)->setShouldWrapText();
+        $bold = (clone $base)->setFontBold();
+        $title = (clone $bold)->setFontSize(14);
+
+        $border = new Border(...array_map(
+            fn (string $side): BorderPart => new BorderPart($side, width: Border::WIDTH_THIN),
+            [Border::TOP, Border::BOTTOM, Border::LEFT, Border::RIGHT],
+        ));
+
+        $header = (clone $bold)->setBorder($border);
+        $headerLeft = (clone $header)->setCellAlignment(CellAlignment::LEFT);
+        $cell = (clone $base)->setBorder($border);
+        $cellLeft = (clone $left)->setBorder($border);
+        $cellLeftWrap = (clone $leftWrap)->setBorder($border);
+
+        $add = fn (array $values, Style|array $styles, float $height): mixed => $writer->addRow(
+            $this->row($values, $styles, $height, self::NOTULENSI_LAST_COLUMN),
+        );
+
+        $add([(string) SiteSetting::current()->school_name], $title, 26);
+        $add(['NOTULENSI RAPAT'], $title, 24);
+        $add([], $base, 8);
+        $add(self::NOTULENSI_HEADERS, [$header, $header, $headerLeft, $header, $header, $headerLeft], 24);
+
+        $meetings = $rapats
+            ->filter(fn (AbsenRapat $rapat): bool => $rapat->jadwal_rapat_id !== null)
+            ->unique('jadwal_rapat_id')
+            ->sortBy([['tanggal', 'asc'], ['jam_mulai', 'asc']])
+            ->values();
+
+        foreach ($meetings as $index => $rapat) {
+            $notulensi = (string) ($rapat->jadwalRapat?->notulensi ?? '');
+
+            $add([
+                $index + 1,
+                $rapat->tanggal?->format('d/m/Y') ?? '',
+                (string) $rapat->agenda,
+                substr((string) $rapat->jam_mulai, 0, 5),
+                substr((string) $rapat->jam_selesai, 0, 5),
+                $notulensi,
+            ], [$cell, $cell, $cellLeft, $cell, $cell, $cellLeftWrap], $notulensi === '' ? 20 : 90);
+        }
+
+        $add([], $base, 8);
+        $add(['Notulensi mengikuti isi yang diisi pada jadwal rapat.'], $leftWrap, 20);
+    }
+
+    /**
      * @param  list<mixed>  $values
      * @param  Style|array<int, Style>  $styles
      */
-    private function row(array $values, Style|array $styles, float $height): Row
+    private function row(array $values, Style|array $styles, float $height, int $lastColumn = self::LAST_COLUMN): Row
     {
-        $values = array_pad(array_values($values), self::LAST_COLUMN + 1, '');
+        $values = array_pad(array_values($values), $lastColumn + 1, '');
         $cells = [];
 
-        foreach (array_slice($values, 0, self::LAST_COLUMN + 1) as $index => $value) {
+        foreach (array_slice($values, 0, $lastColumn + 1) as $index => $value) {
             $style = is_array($styles) ? ($styles[$index] ?? $styles[0]) : $styles;
 
             if ($value === null || $value === '') {
