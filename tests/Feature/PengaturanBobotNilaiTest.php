@@ -44,22 +44,30 @@ function bobotSubject(string $name = 'Matematika'): MataPelajaran
     return MataPelajaranFactory::new()->create(['nama_mapel' => $name]);
 }
 
-test('restricts the weight page to the curriculum role', function () {
+test('restricts the weight page to the view permission', function () {
     $teacher = GuruFactory::new()->create();
     $this->actingAs($teacher->user);
 
     Livewire::test(PengaturanBobotNilai::class)->assertForbidden();
 
-    $this->actingAs(bobotKurikulumUser());
+    $role = Role::findOrCreate('kurikulum', 'web');
+    $role->revokePermissionTo(Permission::findOrCreate('View:PengaturanBobotNilai', 'web'));
+    $user = User::factory()->create()->assignRole($role);
+    $this->actingAs($user);
+
+    Livewire::test(PengaturanBobotNilai::class)->assertForbidden();
+
+    $role->givePermissionTo('View:PengaturanBobotNilai');
+
     Livewire::test(PengaturanBobotNilai::class)->assertOk();
 
-    $this->actingAs(adminPanelUser());
+    $this->actingAs(adminPanelUser('View:PengaturanBobotNilai'));
     Livewire::test(PengaturanBobotNilai::class)->assertOk();
 });
 
 test('shows default weights and stores them for the active period', function () {
     $subject = bobotSubject();
-    $this->actingAs(bobotKurikulumUser());
+    $this->actingAs(bobotKurikulumUser('View:PengaturanBobotNilai'));
 
     Livewire::test(PengaturanBobotNilai::class)
         ->assertSee('Matematika')
@@ -89,7 +97,7 @@ test('shows default weights and stores them for the active period', function () 
 
 test('rejects weights that do not total one hundred percent', function () {
     $subject = bobotSubject();
-    $this->actingAs(bobotKurikulumUser());
+    $this->actingAs(bobotKurikulumUser('View:PengaturanBobotNilai'));
 
     Livewire::test(PengaturanBobotNilai::class)
         ->set('bobot.'.$subject->id.'.asas', '30')
@@ -102,7 +110,7 @@ test('rejects weights that do not total one hundred percent', function () {
 
 test('rejects invalid weight values', function (string $component, string $value, string $message) {
     $subject = bobotSubject();
-    $this->actingAs(bobotKurikulumUser());
+    $this->actingAs(bobotKurikulumUser('View:PengaturanBobotNilai'));
 
     Livewire::test(PengaturanBobotNilai::class)
         ->set('bobot.'.$subject->id.'.'.$component, $value)
@@ -126,7 +134,7 @@ test('syncs the stored report snapshots when weights change', function () {
         'semester' => 'Ganjil',
         'tahun_ajaran' => '2026/2027',
     ]);
-    $this->actingAs(bobotKurikulumUser());
+    $this->actingAs(bobotKurikulumUser('View:PengaturanBobotNilai'));
 
     Livewire::test(PengaturanBobotNilai::class)
         ->set('bobot.'.$subject->id.'.formatif', '5')

@@ -853,6 +853,18 @@
     outline-offset: 2px;
 }
 
+.rapor-page .rapor-input-readonly {
+    border-style: dashed;
+    background-color: var(--presensi-stripe);
+    color: var(--presensi-muted);
+    cursor: default;
+}
+
+.fi.dark .rapor-page .rapor-input-readonly {
+    background-color: var(--gray-800, #1f2937);
+    color: var(--gray-400, #9ca3af);
+}
+
 .rapor-page .rapor-bobot-summary {
     display: flex;
     align-items: baseline;

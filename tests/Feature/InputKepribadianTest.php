@@ -11,6 +11,8 @@ use Database\Factories\MuridFactory;
 use Filament\Facades\Filament;
 use Illuminate\Foundation\Testing\LazilyRefreshDatabase;
 use Livewire\Livewire;
+use Spatie\Permission\Models\Permission;
+use Spatie\Permission\Models\Role;
 
 uses(LazilyRefreshDatabase::class);
 
@@ -27,6 +29,9 @@ afterEach(function () {
 
 function kepribadianWaliKelas(int $kelasId): Guru
 {
+    Role::findOrCreate('wali_kelas', 'web')
+        ->givePermissionTo(Permission::findOrCreate('View:InputKepribadian', 'web'));
+
     return GuruFactory::new()->create(['kelas_id' => $kelasId]);
 }
 
@@ -35,19 +40,25 @@ function kepribadianStudent(int $kelasId, string $nama): Murid
     return MuridFactory::new()->create(['kelas_id' => $kelasId, 'nama' => $nama]);
 }
 
-test('restricts the personality page to homeroom teachers', function () {
+test('restricts the personality page to the view permission', function () {
     $teacher = GuruFactory::new()->create();
     $this->actingAs($teacher->user);
 
     Livewire::test(InputKepribadian::class)->assertForbidden();
 
     $kelas = KelasFactory::new()->create();
-    $waliKelas = kepribadianWaliKelas($kelas->id);
+    $role = Role::findOrCreate('wali_kelas', 'web');
+    $role->revokePermissionTo(Permission::findOrCreate('View:InputKepribadian', 'web'));
+    $waliKelas = GuruFactory::new()->create(['kelas_id' => $kelas->id]);
     $this->actingAs($waliKelas->user);
+
+    Livewire::test(InputKepribadian::class)->assertForbidden();
+
+    $role->givePermissionTo('View:InputKepribadian');
 
     Livewire::test(InputKepribadian::class)->assertOk();
 
-    $this->actingAs(adminPanelUser());
+    $this->actingAs(adminPanelUser('View:InputKepribadian'));
     Livewire::test(InputKepribadian::class)->assertOk();
 });
 
@@ -135,7 +146,7 @@ test('rejects personality scores outside the allowed range', function () {
 });
 
 test('shows a notice when the account has no homeroom class', function () {
-    $this->actingAs(adminPanelUser());
+    $this->actingAs(adminPanelUser('View:InputKepribadian'));
 
     Livewire::test(InputKepribadian::class)
         ->assertSee('Akun ini belum ditetapkan sebagai wali kelas.');

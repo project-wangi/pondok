@@ -43,13 +43,7 @@ class InputKepribadian extends Page
 
     public static function canAccess(): bool
     {
-        $user = Filament::auth()->user();
-
-        return $user !== null
-            && ($user->hasRole('wali_kelas')
-                || $user->guru()->whereNotNull('kelas_id')->exists()
-                || $user->isAdministrator()
-                || $user->can('View:InputKepribadian'));
+        return Filament::auth()->user()?->can('View:InputKepribadian') ?? false;
     }
 
     public function mount(): void

@@ -274,6 +274,7 @@ class IsiERapor extends Page
             'rows' => $rows,
             'components' => $ujian['components'],
             'bobot' => $bobot,
+            'komponenBobot' => BobotNilai::KOMPONEN,
             'totalBobot' => $totalBobot,
             'kkm' => $kkm,
             'maleCount' => $male,

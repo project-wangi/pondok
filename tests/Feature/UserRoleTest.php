@@ -7,6 +7,7 @@ use App\Models\User;
 use Filament\Facades\Filament;
 use Illuminate\Foundation\Testing\LazilyRefreshDatabase;
 use Livewire\Livewire;
+use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 
 uses(LazilyRefreshDatabase::class);
@@ -62,8 +63,15 @@ test('updates a user to multiple roles and shows every badge', function () {
 });
 
 test('allows the curriculum and homeroom roles into the admin panel', function () {
-    foreach (['kurikulum', 'wali_kelas'] as $roleName) {
-        $user = User::factory()->create()->assignRole(Role::findOrCreate($roleName, 'web'));
+    $roles = [
+        'kurikulum' => 'View:PengaturanBobotNilai',
+        'wali_kelas' => 'View:InputKepribadian',
+    ];
+
+    foreach ($roles as $roleName => $permission) {
+        $role = Role::findOrCreate($roleName, 'web');
+        $role->givePermissionTo(Permission::findOrCreate($permission, 'web'));
+        $user = User::factory()->create()->assignRole($role);
 
         expect($user->canAccessPanel(Filament::getPanel('admin')))->toBeTrue();
     }

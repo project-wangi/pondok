@@ -47,8 +47,6 @@ class User extends Authenticatable implements FilamentUser
         return $this->guru()->exists()
             || $this->hasAnyRole([
                 'admin',
-                'kurikulum',
-                'wali_kelas',
                 config('filament-shield.super_admin.name', 'super_admin'),
                 config('filament-shield.panel_user.name', 'panel_user'),
             ])

@@ -363,6 +363,22 @@ test('loads curriculum weights kkm and manual scores then uses them for the fina
         ->and($page->viewData('totalBobot'))->toBe(100);
 });
 
+test('shows the curriculum weights as read only for the teacher', function () {
+    $teacher = raporTeacher();
+    $subject = MataPelajaranFactory::new()->create();
+    $class = KelasFactory::new()->create();
+    raporSchedule($teacher, $subject, $class->id);
+    MuridFactory::new()->create(['kelas_id' => $class->id]);
+    $this->actingAs($teacher->user);
+
+    raporPage($class->id, $subject->id)
+        ->assertSee('Bobot nilai diatur oleh kurikulum')
+        ->assertSee('rapor-input-readonly', false)
+        ->assertDontSee('wire:model.live.debounce.500ms="bobotFormatif"', false)
+        ->assertDontSee('wire:model.live.debounce.500ms="bobotAsas"', false)
+        ->assertSee('wire:model.live.debounce.500ms="kkm"', false);
+});
+
 test('saves manual scores with snapshots and default weights', function () {
     $teacher = raporTeacher(['user_id' => User::factory()->create(['name' => 'Guru Rapor'])->id]);
     $subject = MataPelajaranFactory::new()->create(['nama_mapel' => 'Matematika']);

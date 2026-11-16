@@ -71,8 +71,22 @@
             </div>
         @else
             <form wire:submit="simpan" class="asesmen-form">
-                <x-filament::section heading="Batas nilai ketuntasan" description="KKM ditetapkan guru pengampu. Bobot nilai rapor diatur oleh kurikulum.">
+                <x-filament::section heading="Pengaturan bobot nilai rapor" description="Bobot nilai diatur oleh kurikulum. Guru hanya dapat melihat bobot dan mengatur batas ketuntasan.">
                     <div class="rapor-bobot">
+                        @foreach ($komponenBobot as $key => $label)
+                            <div class="rapor-bobot-item">
+                                <span class="rapor-bobot-label">{{ $label }}</span>
+                                <input
+                                    id="rapor-bobot-{{ $key }}"
+                                    type="text"
+                                    class="rapor-input rapor-input-readonly"
+                                    value="{{ $bobot[$key] }}%"
+                                    readonly
+                                    tabindex="-1"
+                                    aria-readonly="true"
+                                >
+                            </div>
+                        @endforeach
                         <div class="rapor-bobot-item">
                             <label class="rapor-bobot-label" for="rapor-bobot-kkm">Batas Nilai Ketuntasan (KKM)</label>
                             <input id="rapor-bobot-kkm" type="number" class="rapor-input" min="0" max="100" step="1" inputmode="numeric" wire:model.live.debounce.500ms="kkm" aria-describedby="rapor-bobot-kkm-error">
@@ -88,11 +102,8 @@
                     </div>
 
                     <p class="presensi-help">
-                        Bobot saat ini: formatif {{ $bobot['formatif'] }}%, sumatif lingkup materi {{ $bobot['sumatif'] }}%,
-                        ASTS {{ $bobot['asts'] }}%, ASAS {{ $bobot['asas'] }}%, kehadiran {{ $bobot['kehadiran'] }}%,
-                        sikap {{ $bobot['sikap'] }}%, dan keaktifan {{ $bobot['keaktifan'] }}%.
+                        Bobot hanya bisa diubah melalui halaman Bobot Nilai pada akun kurikulum.
                         Nilai akhir = jumlah (bobot × nilai komponen) ÷ 100. Nilai yang belum tersedia dihitung 0.
-                        Ubah bobot melalui halaman Bobot Nilai pada akun kurikulum.
                     </p>
                 </x-filament::section>
 

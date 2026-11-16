@@ -46,12 +46,7 @@ class PengaturanBobotNilai extends Page
 
     public static function canAccess(): bool
     {
-        $user = Filament::auth()->user();
-
-        return $user !== null
-            && ($user->hasRole('kurikulum')
-                || $user->isAdministrator()
-                || $user->can('View:PengaturanBobotNilai'));
+        return Filament::auth()->user()?->can('View:PengaturanBobotNilai') ?? false;
     }
 
     public function mount(): void
