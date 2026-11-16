@@ -5,6 +5,7 @@ namespace App\Filament\Resources\Posts\Schemas;
 use App\Models\Post;
 use Filament\Forms\Components\DateTimePicker;
 use Filament\Forms\Components\FileUpload;
+use Filament\Forms\Components\MarkdownEditor;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
@@ -31,8 +32,11 @@ class PostForm
                 ->helperText('Huruf kecil, angka, dan tanda hubung. Mengubah slug akan mengubah tautan artikel.'),
             Select::make('category')->label('Kategori')->options(Post::categoryLabels())->required()->default('berita'),
             Textarea::make('excerpt')->label('Ringkasan')->rows(3)->maxLength(2000)->columnSpanFull(),
-            Textarea::make('body')->label('Isi Artikel')->required()->rows(12)->maxLength(100000)
-                ->helperText('Teks biasa, bukan HTML.')->columnSpanFull(),
+            MarkdownEditor::make('body')->label('Isi Artikel')->required()->maxLength(100000)
+                ->helperText('Mendukung Markdown: **tebal**, *miring*, judul, daftar, tabel, kutipan, dan tautan.')
+                ->fileAttachmentsDisk('public')
+                ->fileAttachmentsDirectory('website/artikel')
+                ->minHeight('20rem')->columnSpanFull(),
             FileUpload::make('image')->label('Gambar')->image()
                 ->acceptedFileTypes(['image/jpeg', 'image/png', 'image/webp'])
                 ->maxSize(4096)->disk('public')->directory('website')->visibility('public'),

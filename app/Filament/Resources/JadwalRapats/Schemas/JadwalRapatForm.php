@@ -6,6 +6,7 @@ use App\Filament\Forms\Components\JamPicker;
 use Carbon\Carbon;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Hidden;
+use Filament\Forms\Components\MarkdownEditor;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Schemas\Schema;
@@ -50,6 +51,14 @@ class JadwalRapatForm
                     ->maxLength(255)
                     ->columnSpanFull()
                     ->required(),
+
+                MarkdownEditor::make('notulensi')
+                    ->label('Notulensi')
+                    ->helperText('Catatan hasil rapat. Mendukung Markdown: **tebal**, *miring*, daftar, tabel, dan tautan.')
+                    ->fileAttachmentsDisk('public')
+                    ->fileAttachmentsDirectory('rapat/notulensi')
+                    ->minHeight('12rem')
+                    ->columnSpanFull(),
 
                 Select::make('gurus')
                     ->label('Anggota Rapat')

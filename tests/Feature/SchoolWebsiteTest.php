@@ -319,7 +319,7 @@ test('public cards escape post titles and excerpts', function (string $routeName
         ->assertSee($excerpt)->assertDontSee($excerpt, false);
 })->with(['homepage' => 'home', 'article list' => 'posts.index']);
 
-test('post detail escapes its title and plain text body', function () {
+test('post detail escapes its title and strips html from the markdown body', function () {
     $this->freezeTime();
     $title = '<script>alert("title-xss")</script>';
     $body = '<script>alert("body-xss")</script>';
@@ -327,7 +327,8 @@ test('post detail escapes its title and plain text body', function () {
 
     $this->get(route('posts.show', ['post' => $post->slug]))->assertOk()
         ->assertSee($title)->assertDontSee($title, false)
-        ->assertSee($body)->assertDontSee($body, false);
+        ->assertDontSee($body, false)
+        ->assertDontSee('body-xss');
 });
 
 test('guests are redirected from website administration to the admin login', function (string $routeName) {
@@ -414,6 +415,31 @@ test('the post form requires a title slug category and body', function () {
     ]);
 
     $this->assertDatabaseCount('posts', 0);
+});
+
+test('the post form edits the article body with the markdown editor', function () {
+    $this->actingAs(schoolWebsiteAdmin());
+
+    Livewire::test(CreatePost::class)->assertSeeHtml('fi-fo-markdown-editor');
+});
+
+test('the article page renders the markdown body and strips unsafe html', function () {
+    $this->freezeTime();
+    SiteSetting::factory()->create();
+
+    $post = Post::factory()->published()->create([
+        'published_at' => now(),
+        'body' => "## Keputusan Rapat\n\n- Menambah jam tahfiz\n- Menyusun piket baru\n\nBaris pertama\nBaris kedua\n\nSelesai.\n\n<script>alert('xss')</script>",
+    ]);
+
+    $this->get(route('posts.show', ['post' => $post->slug]))
+        ->assertOk()
+        ->assertSee('<h2>Keputusan Rapat</h2>', false)
+        ->assertSee('<li>Menambah jam tahfiz</li>', false)
+        ->assertSee('<br>', false)
+        ->assertSee('Selesai.')
+        ->assertDontSee('<script>', false)
+        ->assertDontSee("alert('xss')");
 });
 
 test('the post form rejects a duplicate slug on creation', function () {

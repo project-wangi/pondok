@@ -6,6 +6,8 @@ use Database\Factories\PostFactory;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\HtmlString;
+use Illuminate\Support\Str;
 
 class Post extends Model
 {
@@ -35,6 +37,21 @@ class Post extends Model
             'is_published' => 'boolean',
             'published_at' => 'datetime',
         ];
+    }
+
+    /**
+     * Isi artikel disimpan sebagai Markdown dan dirender menjadi HTML yang aman.
+     *
+     * `soft_break` menjaga baris tunggal tetap tampil sebagai baris baru, seperti
+     * artikel lama yang dulu disimpan sebagai teks biasa.
+     */
+    public function bodyHtml(): HtmlString
+    {
+        return new HtmlString(Str::markdown($this->body ?? '', [
+            'html_input' => 'strip',
+            'allow_unsafe_links' => false,
+            'renderer' => ['soft_break' => "<br>\n"],
+        ]));
     }
 
     /** @return array<string, string> */

@@ -2,11 +2,12 @@
 
 namespace App\Filament\Resources\JadwalRapats\Tables;
 
+use App\Models\JadwalRapat;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\EditAction;
-use Filament\Tables\Table;
-use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Columns\TagsColumn;
+use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Table;
 
 class JadwalRapatsTable
 {
@@ -27,6 +28,11 @@ class JadwalRapatsTable
                     ->time('H:i'),
                 TextColumn::make('agenda')
                     ->sortable(),
+                TextColumn::make('notulensi')
+                    ->label('Notulensi')
+                    ->badge()
+                    ->state(fn (JadwalRapat $record): string => filled($record->notulensi) ? 'Ada' : 'Belum ada')
+                    ->color(fn (string $state): string => $state === 'Ada' ? 'success' : 'gray'),
                 TagsColumn::make('gurus.nama')
                     ->label('Guru')
                     ->searchable(query: function ($query, string $search) {

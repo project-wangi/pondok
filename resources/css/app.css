@@ -1540,7 +1540,109 @@
     color: var(--school-ink);
     font-size: 1rem;
     line-height: 1.95;
-    white-space: pre-line;
+}
+
+.school-article-body > * + * {
+    margin-block-start: 1.25rem;
+}
+
+.school-article-body :is(h2, h3, h4) {
+    color: var(--school-primary-deep);
+    line-height: 1.35;
+}
+
+.school-article-body h2 {
+    margin-block-start: 2.25rem;
+    font-size: 1.375rem;
+    font-weight: 600;
+}
+
+.school-article-body :is(h3, h4) {
+    margin-block-start: 1.75rem;
+    font-size: 1.125rem;
+    font-weight: 600;
+}
+
+.school-article-body :is(ul, ol) {
+    padding-inline-start: 1.5rem;
+}
+
+.school-article-body ul {
+    list-style: disc;
+}
+
+.school-article-body ol {
+    list-style: decimal;
+}
+
+.school-article-body li + li {
+    margin-block-start: 0.5rem;
+}
+
+.school-article-body blockquote {
+    border-inline-start: 3px solid var(--school-gold);
+    padding-inline-start: 1.25rem;
+    color: var(--school-muted);
+}
+
+.school-article-body a {
+    color: var(--school-primary);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+}
+
+.school-article-body code {
+    border-radius: 0.25rem;
+    padding: 0.15rem 0.35rem;
+    background: var(--school-gold-soft);
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 0.9em;
+}
+
+.school-article-body pre {
+    overflow-x: auto;
+    border-radius: 0.5rem;
+    padding: 1rem;
+    background: var(--school-primary-deep);
+    color: var(--school-white);
+    line-height: 1.6;
+}
+
+.school-article-body pre code {
+    padding: 0;
+    background: none;
+    color: inherit;
+}
+
+.school-article-body img {
+    max-width: 100%;
+    height: auto;
+    border-radius: 0.75rem;
+}
+
+/* Tabel panjang bisa digeser sendiri agar halaman tidak melebar. */
+.school-article-body table {
+    display: block;
+    max-width: 100%;
+    overflow-x: auto;
+    border-collapse: collapse;
+    font-size: 0.95rem;
+}
+
+.school-article-body :is(th, td) {
+    border: 1px solid var(--school-line);
+    padding: 0.5rem 0.75rem;
+    text-align: start;
+}
+
+.school-article-body th {
+    background: var(--school-gold-soft);
+    font-weight: 600;
+}
+
+.school-article-body hr {
+    border: 0;
+    border-block-start: 1px solid var(--school-line);
 }
 
 .school-article-footer {

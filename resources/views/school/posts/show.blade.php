@@ -30,7 +30,7 @@
                 <p class="school-article-excerpt">{{ $post->excerpt }}</p>
             @endif
 
-            <div class="school-article-body">{{ $post->body }}</div>
+            <div class="school-article-body">{!! $post->bodyHtml() !!}</div>
 
             <div class="school-article-footer">
                 <a href="{{ route('posts.index') }}" class="school-text-link">

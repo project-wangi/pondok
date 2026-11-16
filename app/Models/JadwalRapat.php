@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class JadwalRapat extends Model
 {
-    protected $fillable = ['tanggal', 'hari', 'jam_mulai', 'jam_selesai', 'agenda'];
+    protected $fillable = ['tanggal', 'hari', 'jam_mulai', 'jam_selesai', 'agenda', 'notulensi'];
 
     public function gurus()
     {
