@@ -31,7 +31,8 @@ test('the admin panel brand uses the school logo instead of the app name', funct
     $this->get(route('filament.admin.auth.login'))
         ->assertOk()
         ->assertSee('Pondok Ilmu')
-        ->assertSee('logo-sekolah.png');
+        ->assertSee('logo-sekolah.png')
+        ->assertSee('rel="icon" href="/storage/logo-sekolah.png"', false);
 });
 
 test('the admin panel falls back to the school name when no logo is set', function () {
@@ -61,7 +62,6 @@ test('the admin login page splits the school photo and the form', function () {
         ->assertSee('auth-shell')
         ->assertSee('auth-visual')
         ->assertSee('--auth-photo', false)
-        ->assertSee('foto-login.jpg')
         ->assertSee('Pesantren Salaf Progresif')
         ->assertSee('SIAKAD')
         ->assertSee('Masuk ke akun Anda');

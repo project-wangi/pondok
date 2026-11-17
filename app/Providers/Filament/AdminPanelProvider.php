@@ -24,7 +24,6 @@ use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
 use Illuminate\Foundation\Vite;
 use Illuminate\Routing\Middleware\SubstituteBindings;
 use Illuminate\Session\Middleware\StartSession;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\HtmlString;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
 use Illuminate\View\View;
@@ -38,12 +37,9 @@ class AdminPanelProvider extends PanelProvider
             ->id('admin')
             ->path('admin')
             ->brandName(fn (): string => SiteSetting::current()->school_name ?: config('app.name'))
-            ->brandLogo(function (): ?string {
-                $logo = SiteSetting::current()->logo;
-
-                return filled($logo) ? Storage::disk('public')->url($logo) : null;
-            })
+            ->brandLogo(fn (): ?string => SiteSetting::current()->logoUrl())
             ->brandLogoHeight('2.5rem')
+            ->favicon(fn (): ?string => SiteSetting::current()->logoUrl())
             ->topNavigation()
             ->globalSearch(false)
             ->login(Login::class)

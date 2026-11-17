@@ -15,6 +15,7 @@ use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\Sequence;
 use Illuminate\Foundation\Testing\LazilyRefreshDatabase;
 use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Facades\Storage;
 use Livewire\Livewire;
 
 uses(LazilyRefreshDatabase::class);
@@ -120,6 +121,7 @@ test('the homepage clearly labels missing photography without inventing a school
     $this->get(route('home'))->assertOk()
         ->assertSee('Ruang untuk foto sekolah')
         ->assertSee('Foto belum ditambahkan.')
+        ->assertSee('rel="icon" href="data:,"', false)
         ->assertDontSee('<svg viewBox="0 0 640 480"', false);
 });
 
@@ -129,9 +131,12 @@ test('the homepage uses uploaded school photography and logo with image error fe
         'logo' => 'website/school-logo.png',
     ]);
 
+    $logoUrl = Storage::disk('public')->url('website/school-logo.png');
+
     $this->get(route('home'))->assertOk()
         ->assertSee('/storage/website/school-photo.webp', false)
         ->assertSee('/storage/website/school-logo.png', false)
+        ->assertSee('rel="icon" href="'.$logoUrl.'"', false)
         ->assertSee('Foto sekolah tidak dapat ditampilkan.')
         ->assertDontSee('Ruang untuk foto sekolah');
 });

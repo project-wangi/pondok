@@ -5,6 +5,7 @@ namespace App\Models;
 use Database\Factories\SiteSettingFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\ValidationException;
 
 class SiteSetting extends Model
@@ -100,6 +101,14 @@ class SiteSetting extends Model
     public static function current(): self
     {
         return static::query()->orderBy('id')->first() ?? new static;
+    }
+
+    /**
+     * URL logo sekolah yang sedang diatur, dipakai untuk merek panel dan favicon.
+     */
+    public function logoUrl(): ?string
+    {
+        return filled($this->logo) ? Storage::disk('public')->url($this->logo) : null;
     }
 
     public static function isSafeUrl(string $url): bool
