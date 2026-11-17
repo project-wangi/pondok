@@ -131,6 +131,7 @@ class SiteSettingForm
         return FileUpload::make($name)->label($label)->image()
             ->acceptedFileTypes(['image/jpeg', 'image/png', 'image/webp'])
             ->maxSize(10240)->disk(SiteSetting::IMAGE_DISK)->directory('website')->visibility('public')
+            ->fetchFileInformation(false)
             ->deleteUploadedFileUsing(fn (string $file): bool => Storage::disk(SiteSetting::IMAGE_DISK)->delete($file));
     }
 
@@ -139,6 +140,7 @@ class SiteSettingForm
         return FileUpload::make($name)->label($label)->image()
             ->acceptedFileTypes(['image/jpeg', 'image/png', 'image/webp'])
             ->maxSize(4096)->disk('public')->directory('website/partners')->visibility('public')
+            ->fetchFileInformation(false)
             ->required();
     }
 
