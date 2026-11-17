@@ -44,3 +44,25 @@ test('the admin panel falls back to the school name when no logo is set', functi
         ->assertSee('Pondok Tanpa Logo')
         ->assertDontSee('>Laravel<', false);
 });
+
+test('the admin login page splits the school photo and the form', function () {
+    $this->withoutVite();
+    Storage::fake('public');
+    Storage::disk('public')->put('foto-login.jpg', 'fake-image');
+
+    SiteSetting::create([
+        'school_name' => 'Pondok Ilmu',
+        'hero_image' => 'foto-login.jpg',
+        'tagline' => 'Pesantren Salaf Progresif',
+    ]);
+
+    $this->get(route('filament.admin.auth.login'))
+        ->assertOk()
+        ->assertSee('auth-shell')
+        ->assertSee('auth-visual')
+        ->assertSee('--auth-photo', false)
+        ->assertSee('foto-login.jpg')
+        ->assertSee('Pesantren Salaf Progresif')
+        ->assertSee('SIAKAD')
+        ->assertSee('Masuk ke akun Anda');
+});

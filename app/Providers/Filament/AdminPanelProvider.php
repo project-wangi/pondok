@@ -2,6 +2,7 @@
 
 namespace App\Providers\Filament;
 
+use App\Filament\Pages\Auth\Login;
 use App\Filament\Pages\Dashboard;
 use App\Filament\Resources\JadwalPelajarans\Pages\ListJadwalPelajarans;
 use App\Filament\Resources\Murids\Pages\ListMurids;
@@ -45,7 +46,7 @@ class AdminPanelProvider extends PanelProvider
             ->brandLogoHeight('2.5rem')
             ->topNavigation()
             ->globalSearch(false)
-            ->login()
+            ->login(Login::class)
             ->colors([
                 'primary' => Color::hex('#0f6b6b'),
                 'gray' => Color::Stone,
