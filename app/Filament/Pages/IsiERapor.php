@@ -96,7 +96,6 @@ class IsiERapor extends Page
 
         $period = JadwalPelajaran::activePeriod();
         $bobot = BobotNilai::untuk(
-            (int) $this->mataPelajaranId,
             $period['semester'],
             $period['tahun_ajaran'],
         );
@@ -344,7 +343,6 @@ class IsiERapor extends Page
 
         $period = JadwalPelajaran::activePeriod();
         $bobot = BobotNilai::untuk(
-            (int) $this->mataPelajaranId,
             $period['semester'],
             $period['tahun_ajaran'],
         );

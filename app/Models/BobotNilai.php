@@ -5,12 +5,10 @@ namespace App\Models;
 use Database\Factories\BobotNilaiFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 /**
- * Bobot nilai rapor per mata pelajaran dan periode, diatur oleh role kurikulum.
+ * Bobot nilai rapor per periode, berlaku untuk seluruh mata pelajaran.
  *
- * @property int $mata_pelajaran_id
  * @property string $semester
  * @property string $tahun_ajaran
  * @property int $bobot_formatif
@@ -49,7 +47,6 @@ class BobotNilai extends Model
     ];
 
     protected $fillable = [
-        'mata_pelajaran_id',
         'semester',
         'tahun_ajaran',
         'bobot_formatif',
@@ -76,14 +73,13 @@ class BobotNilai extends Model
     }
 
     /**
-     * Bobot efektif untuk satu mata pelajaran dan periode.
+     * Bobot efektif untuk satu periode. Satu bobot dipakai semua mata pelajaran.
      *
      * @return array<string, int>
      */
-    public static function untuk(int $mataPelajaranId, string $semester, string $tahunAjaran): array
+    public static function untuk(string $semester, string $tahunAjaran): array
     {
         $record = static::query()
-            ->where('mata_pelajaran_id', $mataPelajaranId)
             ->where('semester', $semester)
             ->where('tahun_ajaran', $tahunAjaran)
             ->first();
@@ -120,11 +116,5 @@ class BobotNilai extends Model
             'bobot_sikap' => $bobot['sikap'],
             'bobot_keaktifan' => $bobot['keaktifan'],
         ];
-    }
-
-    /** @return BelongsTo<MataPelajaran, $this> */
-    public function mataPelajaran(): BelongsTo
-    {
-        return $this->belongsTo(MataPelajaran::class);
     }
 }

@@ -31,89 +31,63 @@
             </label>
 
             <p class="rapor-period-help">
-                Bobot berlaku untuk semua kelas dan guru pengampu pada semester
-                {{ $period['semester'] }} tahun ajaran {{ $period['tahun_ajaran'] }}.
+                Satu set bobot dipakai semua mata pelajaran, kelas, dan guru pengampu
+                pada semester {{ $period['semester'] }} tahun ajaran {{ $period['tahun_ajaran'] }}.
             </p>
         </div>
 
         <x-filament::section
-            heading="Bobot nilai per mata pelajaran"
-            description="Isi persentase tiap komponen. Total setiap mata pelajaran harus 100%. Guru tetap mengatur KKM masing-masing."
+            heading="Bobot nilai semua mata pelajaran"
+            description="Isi persentase tiap komponen. Total seluruh komponen harus 100%. Guru tetap mengatur KKM masing-masing."
         >
-            @if ($mapels->isEmpty())
-                <div class="presensi-notice">
-                    <p class="presensi-label">Belum ada mata pelajaran.</p>
-                    <p class="presensi-help">Tambahkan mata pelajaran terlebih dahulu melalui menu Mata Pelajaran.</p>
+            <form wire:submit="simpan" class="bobot-form">
+                <div class="bobot-grid">
+                    @foreach ($komponen as $key => $label)
+                        <div class="bobot-field" wire:key="bobot-field-{{ $key }}">
+                            <label for="bobot-{{ $key }}">{{ $label }}</label>
+                            <input
+                                id="bobot-{{ $key }}"
+                                type="number"
+                                class="rapor-input bobot-input"
+                                min="0"
+                                max="100"
+                                step="1"
+                                inputmode="numeric"
+                                wire:model.live.debounce.400ms="bobot.{{ $key }}"
+                                aria-describedby="bobot-{{ $key }}-error"
+                            >
+                            <div id="bobot-{{ $key }}-error">
+                                @error('bobot.'.$key)
+                                    <p class="presensi-error">{{ $message }}</p>
+                                @enderror
+                            </div>
+                        </div>
+                    @endforeach
                 </div>
-            @else
-                <form wire:submit="simpan" class="asesmen-form">
-                    <div class="presensi-table-scroll" role="region" aria-label="Bobot nilai per mata pelajaran" tabindex="0">
-                        <table class="presensi-table bobot-table">
-                            <caption class="presensi-sr-only">
-                                Bobot nilai mata pelajaran semester {{ $period['semester'] }} {{ $period['tahun_ajaran'] }}
-                            </caption>
-                            <thead>
-                                <tr>
-                                    <th scope="col" class="bobot-number-col">No</th>
-                                    <th scope="col" class="bobot-subject-col">Mata Pelajaran</th>
-                                    @foreach ($komponen as $label)
-                                        <th scope="col" class="bobot-value-col">{{ $label }}</th>
-                                    @endforeach
-                                    <th scope="col" class="bobot-total-col">Total</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @foreach ($mapels as $mapel)
-                                    @php
-                                        $total = array_sum(array_map('intval', $bobot[$mapel->id] ?? []));
-                                    @endphp
-                                    <tr wire:key="bobot-mapel-{{ $mapel->id }}">
-                                        <td class="bobot-number-col presensi-numeric">{{ $loop->iteration }}</td>
-                                        <td class="bobot-subject-col">{{ $mapel->nama_mapel }}</td>
-                                        @foreach ($komponen as $key => $label)
-                                            <td class="bobot-value-col">
-                                                <label class="presensi-sr-only" for="bobot-{{ $mapel->id }}-{{ $key }}">
-                                                    {{ $label }} {{ $mapel->nama_mapel }}
-                                                </label>
-                                                <input
-                                                    id="bobot-{{ $mapel->id }}-{{ $key }}"
-                                                    type="number"
-                                                    class="rapor-input bobot-input"
-                                                    min="0"
-                                                    max="100"
-                                                    step="1"
-                                                    inputmode="numeric"
-                                                    wire:model.live.debounce.400ms="bobot.{{ $mapel->id }}.{{ $key }}"
-                                                >
-                                            </td>
-                                        @endforeach
-                                        <td @class(['bobot-total-col', 'presensi-numeric', 'rapor-total-invalid' => $total !== 100])>
-                                            {{ $total }}%
-                                        </td>
-                                    </tr>
-                                    @error('bobot.'.$mapel->id)
-                                        <tr wire:key="bobot-error-{{ $mapel->id }}">
-                                            <td colspan="{{ 3 + count($komponen) }}">
-                                                <p class="presensi-error">{{ $message }}</p>
-                                            </td>
-                                        </tr>
-                                    @enderror
-                                @endforeach
-                            </tbody>
-                        </table>
-                    </div>
 
-                    <div class="asesmen-footer">
-                        <p class="presensi-help">
-                            Perubahan bobot langsung dipakai saat guru membuka halaman e-Rapor.
-                            Nilai akhir = jumlah (bobot × nilai komponen) ÷ 100.
-                        </p>
-                        <x-filament::button type="submit">
-                            Simpan bobot
-                        </x-filament::button>
-                    </div>
-                </form>
-            @endif
+                @php
+                    $total = array_sum(array_map('intval', $bobot));
+                @endphp
+
+                <div class="bobot-summary">
+                    <span>Total bobot</span>
+                    <strong @class(['rapor-total-invalid' => $total !== 100])>{{ $total }}%</strong>
+                </div>
+
+                @error('bobot')
+                    <p class="presensi-error">{{ $message }}</p>
+                @enderror
+
+                <div class="bobot-actions">
+                    <p class="presensi-help">
+                        Perubahan bobot langsung dipakai saat guru membuka halaman e-Rapor.
+                        Nilai akhir = jumlah (bobot × nilai komponen) ÷ 100.
+                    </p>
+                    <x-filament::button type="submit">
+                        Simpan bobot
+                    </x-filament::button>
+                </div>
+            </form>
         </x-filament::section>
     </div>
 </x-filament-panels::page>

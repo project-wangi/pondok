@@ -13,7 +13,6 @@ class BobotNilaiFactory extends Factory
 
     /**
      * @return array{
-     *     mata_pelajaran_id: MataPelajaranFactory,
      *     semester: string,
      *     tahun_ajaran: string,
      *     bobot_formatif: int,
@@ -30,7 +29,6 @@ class BobotNilaiFactory extends Factory
         $period = JadwalPelajaran::activePeriod();
 
         return [
-            'mata_pelajaran_id' => MataPelajaranFactory::new(),
             'semester' => $period['semester'],
             'tahun_ajaran' => $period['tahun_ajaran'],
             ...BobotNilai::kolomRapor(BobotNilai::BAWAAN),

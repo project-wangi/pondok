@@ -65,29 +65,29 @@ test('restricts the weight page to the view permission', function () {
     Livewire::test(PengaturanBobotNilai::class)->assertOk();
 });
 
-test('shows default weights and stores them for the active period', function () {
-    $subject = bobotSubject();
+test('shows default weights and stores one global setting for the active period', function () {
     $this->actingAs(bobotKurikulumUser('View:PengaturanBobotNilai'));
 
     Livewire::test(PengaturanBobotNilai::class)
-        ->assertSee('Matematika')
-        ->assertSet('bobot.'.$subject->id.'.formatif', '10')
-        ->assertSet('bobot.'.$subject->id.'.sumatif', '15')
-        ->assertSet('bobot.'.$subject->id.'.asts', '20')
-        ->assertSet('bobot.'.$subject->id.'.asas', '35')
-        ->set('bobot.'.$subject->id.'.formatif', '0')
-        ->set('bobot.'.$subject->id.'.sumatif', '0')
-        ->set('bobot.'.$subject->id.'.asts', '0')
-        ->set('bobot.'.$subject->id.'.asas', '100')
-        ->set('bobot.'.$subject->id.'.kehadiran', '0')
-        ->set('bobot.'.$subject->id.'.sikap', '0')
-        ->set('bobot.'.$subject->id.'.keaktifan', '0')
+        ->assertSee('Bobot nilai semua mata pelajaran')
+        ->assertSet('bobot.formatif', '10')
+        ->assertSet('bobot.sumatif', '15')
+        ->assertSet('bobot.asts', '20')
+        ->assertSet('bobot.asas', '35')
+        ->set('bobot.formatif', '0')
+        ->set('bobot.sumatif', '0')
+        ->set('bobot.asts', '0')
+        ->set('bobot.asas', '100')
+        ->set('bobot.kehadiran', '0')
+        ->set('bobot.sikap', '0')
+        ->set('bobot.keaktifan', '0')
         ->call('simpan')
         ->assertHasNoErrors()
         ->assertNotified('Bobot nilai tersimpan');
 
+    $this->assertDatabaseCount('bobot_nilais', 1);
     $this->assertDatabaseHas('bobot_nilais', [
-        'mata_pelajaran_id' => $subject->id,
+        'mata_pelajaran_id' => null,
         'semester' => 'Ganjil',
         'tahun_ajaran' => '2026/2027',
         'bobot_formatif' => 0,
@@ -96,40 +96,45 @@ test('shows default weights and stores them for the active period', function () 
 });
 
 test('rejects weights that do not total one hundred percent', function () {
-    $subject = bobotSubject();
     $this->actingAs(bobotKurikulumUser('View:PengaturanBobotNilai'));
 
     Livewire::test(PengaturanBobotNilai::class)
-        ->set('bobot.'.$subject->id.'.asas', '30')
+        ->set('bobot.asas', '30')
         ->call('simpan')
-        ->assertHasErrors(['bobot.'.$subject->id])
-        ->assertSee('Total bobot Matematika harus 100%. Saat ini 95%.');
+        ->assertHasErrors(['bobot'])
+        ->assertSee('Total bobot harus 100%. Saat ini 95%.');
 
     expect(BobotNilai::query()->count())->toBe(0);
 });
 
 test('rejects invalid weight values', function (string $component, string $value, string $message) {
-    $subject = bobotSubject();
     $this->actingAs(bobotKurikulumUser('View:PengaturanBobotNilai'));
 
     Livewire::test(PengaturanBobotNilai::class)
-        ->set('bobot.'.$subject->id.'.'.$component, $value)
+        ->set('bobot.'.$component, $value)
         ->call('simpan')
-        ->assertHasErrors(['bobot.'.$subject->id.'.'.$component])
+        ->assertHasErrors(['bobot.'.$component])
         ->assertSee($message);
 
     expect(BobotNilai::query()->count())->toBe(0);
 })->with([
-    'text' => ['formatif', 'abc', 'Bobot Nilai Formatif Matematika harus berupa bilangan bulat.'],
-    'above 100' => ['asas', '101', 'Bobot Sumatif Akhir Semester (ASAS) Matematika harus berada antara 0 dan 100.'],
-    'blank' => ['sikap', '', 'Bobot Nilai Sikap Matematika wajib diisi.'],
+    'text' => ['formatif', 'abc', 'Bobot Nilai Formatif harus berupa bilangan bulat.'],
+    'above 100' => ['asas', '101', 'Bobot Sumatif Akhir Semester (ASAS) harus berada antara 0 dan 100.'],
+    'blank' => ['sikap', '', 'Bobot Nilai Sikap wajib diisi.'],
 ]);
 
-test('syncs the stored report snapshots when weights change', function () {
-    $subject = bobotSubject();
+test('syncs the stored report snapshots for every subject when weights change', function () {
+    $matematika = bobotSubject();
+    $bahasaArab = bobotSubject('Bahasa Arab');
     $kelas = KelasFactory::new()->create();
-    $rapor = ERaporFactory::new()->create([
-        'mata_pelajaran_id' => $subject->id,
+    $raporMatematika = ERaporFactory::new()->create([
+        'mata_pelajaran_id' => $matematika->id,
+        'kelas_id' => $kelas->id,
+        'semester' => 'Ganjil',
+        'tahun_ajaran' => '2026/2027',
+    ]);
+    $raporBahasaArab = ERaporFactory::new()->create([
+        'mata_pelajaran_id' => $bahasaArab->id,
         'kelas_id' => $kelas->id,
         'semester' => 'Ganjil',
         'tahun_ajaran' => '2026/2027',
@@ -137,14 +142,37 @@ test('syncs the stored report snapshots when weights change', function () {
     $this->actingAs(bobotKurikulumUser('View:PengaturanBobotNilai'));
 
     Livewire::test(PengaturanBobotNilai::class)
-        ->set('bobot.'.$subject->id.'.formatif', '5')
-        ->set('bobot.'.$subject->id.'.asas', '40')
+        ->set('bobot.formatif', '5')
+        ->set('bobot.asas', '40')
         ->call('simpan')
         ->assertHasNoErrors();
 
     $this->assertDatabaseHas('e_rapors', [
-        'id' => $rapor->id,
+        'id' => $raporMatematika->id,
         'bobot_formatif' => 5,
         'bobot_asas' => 40,
     ]);
+    $this->assertDatabaseHas('e_rapors', [
+        'id' => $raporBahasaArab->id,
+        'bobot_formatif' => 5,
+        'bobot_asas' => 40,
+    ]);
+});
+
+test('keeps the saved weights when another period is opened', function () {
+    $this->actingAs(bobotKurikulumUser('View:PengaturanBobotNilai'));
+
+    Livewire::test(PengaturanBobotNilai::class)
+        ->set('bobot.formatif', '20')
+        ->set('bobot.asas', '25')
+        ->call('simpan')
+        ->assertHasNoErrors();
+
+    expect(BobotNilai::untuk('Ganjil', '2026/2027'))
+        ->toMatchArray(['formatif' => 20, 'asas' => 25]);
+
+    Livewire::test(PengaturanBobotNilai::class)
+        ->set('semester', 'Genap')
+        ->assertSet('bobot.formatif', '10')
+        ->assertSet('bobot.asas', '35');
 });

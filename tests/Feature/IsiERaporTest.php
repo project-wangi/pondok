@@ -321,7 +321,6 @@ test('loads curriculum weights kkm and manual scores then uses them for the fina
     raporSchedule($teacher, $subject, $class->id);
     $student = MuridFactory::new()->create(['kelas_id' => $class->id]);
     BobotNilai::query()->create([
-        'mata_pelajaran_id' => $subject->id,
         'semester' => 'Ganjil',
         'tahun_ajaran' => '2026/2027',
         'bobot_formatif' => 0,
@@ -473,7 +472,6 @@ test('ignores weight overrides because curriculum owns the weights', function ()
     raporSchedule($teacher, $subject, $class->id);
     $student = MuridFactory::new()->create(['kelas_id' => $class->id]);
     BobotNilai::query()->create([
-        'mata_pelajaran_id' => $subject->id,
         'semester' => 'Ganjil',
         'tahun_ajaran' => '2026/2027',
         'bobot_asas' => 100,

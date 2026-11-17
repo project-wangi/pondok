@@ -5,21 +5,19 @@ namespace App\Filament\Pages;
 use App\Models\BobotNilai;
 use App\Models\ERapor;
 use App\Models\JadwalPelajaran;
-use App\Models\MataPelajaran;
 use BackedEnum;
 use Filament\Facades\Filament;
 use Filament\Notifications\Notification;
 use Filament\Pages\Page;
 use Filament\Support\Icons\Heroicon;
-use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 use UnitEnum;
 
 /**
  * Bobot nilai rapor diatur oleh role kurikulum, bukan oleh masing-masing guru.
- * Bobot berlaku untuk satu mata pelajaran pada periode tertentu sehingga semua
- * guru pengampu mata pelajaran tersebut memakai persentase yang sama.
+ * Satu set bobot berlaku untuk semua mata pelajaran pada periode tertentu agar
+ * seluruh guru pengampu memakai persentase yang sama.
  */
 class PengaturanBobotNilai extends Page
 {
@@ -41,7 +39,7 @@ class PengaturanBobotNilai extends Page
 
     public string $tahunAjaran = '';
 
-    /** @var array<int, array<string, string>> */
+    /** @var array<string, string> */
     public array $bobot = [];
 
     public static function canAccess(): bool
@@ -87,55 +85,42 @@ class PengaturanBobotNilai extends Page
     {
         abort_unless(static::canAccess(), 403);
 
-        $mapels = $this->mapels();
         $rules = [];
         $attributes = [];
 
-        foreach ($mapels as $mapel) {
-            foreach (BobotNilai::KOMPONEN as $key => $label) {
-                $rules['bobot.'.$mapel->id.'.'.$key] = ['required', 'integer', 'between:0,100'];
-                $attributes['bobot.'.$mapel->id.'.'.$key] = $label.' '.$mapel->nama_mapel;
-            }
+        foreach (BobotNilai::KOMPONEN as $key => $label) {
+            $rules['bobot.'.$key] = ['required', 'integer', 'between:0,100'];
+            $attributes['bobot.'.$key] = $label;
         }
 
         $validated = $this->validate($rules, [
-            'bobot.*.*.required' => 'Bobot :attribute wajib diisi.',
-            'bobot.*.*.integer' => 'Bobot :attribute harus berupa bilangan bulat.',
-            'bobot.*.*.between' => 'Bobot :attribute harus berada antara 0 dan 100.',
+            'bobot.*.required' => 'Bobot :attribute wajib diisi.',
+            'bobot.*.integer' => 'Bobot :attribute harus berupa bilangan bulat.',
+            'bobot.*.between' => 'Bobot :attribute harus berada antara 0 dan 100.',
         ], $attributes);
 
-        $values = [];
+        $values = array_map('intval', $validated['bobot']);
+        $total = array_sum($values);
 
-        foreach ($mapels as $mapel) {
-            $row = array_map('intval', $validated['bobot'][$mapel->id] ?? []);
-            $total = array_sum($row);
-
-            if ($total !== 100) {
-                throw ValidationException::withMessages([
-                    'bobot.'.$mapel->id => 'Total bobot '.$mapel->nama_mapel.' harus 100%. Saat ini '.$total.'%.',
-                ]);
-            }
-
-            $values[$mapel->id] = $row;
+        if ($total !== 100) {
+            throw ValidationException::withMessages([
+                'bobot' => 'Total bobot harus 100%. Saat ini '.$total.'%.',
+            ]);
         }
 
         DB::transaction(function () use ($values): void {
-            foreach ($values as $mapelId => $row) {
-                BobotNilai::query()->updateOrCreate(
-                    [
-                        'mata_pelajaran_id' => $mapelId,
-                        'semester' => $this->semester,
-                        'tahun_ajaran' => $this->tahunAjaran,
-                    ],
-                    BobotNilai::kolomRapor($row),
-                );
+            BobotNilai::query()->updateOrCreate(
+                [
+                    'semester' => $this->semester,
+                    'tahun_ajaran' => $this->tahunAjaran,
+                ],
+                BobotNilai::kolomRapor($values),
+            );
 
-                ERapor::query()
-                    ->where('mata_pelajaran_id', $mapelId)
-                    ->where('semester', $this->semester)
-                    ->where('tahun_ajaran', $this->tahunAjaran)
-                    ->update(BobotNilai::kolomRapor($row));
-            }
+            ERapor::query()
+                ->where('semester', $this->semester)
+                ->where('tahun_ajaran', $this->tahunAjaran)
+                ->update(BobotNilai::kolomRapor($values));
         });
 
         $this->muatBobot();
@@ -143,7 +128,7 @@ class PengaturanBobotNilai extends Page
         Notification::make()
             ->success()
             ->title('Bobot nilai tersimpan')
-            ->body('Bobot berlaku untuk seluruh guru pengampu pada '.$this->semester.' '.$this->tahunAjaran.'.')
+            ->body('Bobot berlaku untuk semua mata pelajaran pada '.$this->semester.' '.$this->tahunAjaran.'.')
             ->send();
     }
 
@@ -153,7 +138,6 @@ class PengaturanBobotNilai extends Page
         abort_unless(static::canAccess(), 403);
 
         return [
-            'mapels' => $this->mapels(),
             'bobot' => $this->bobot,
             'komponen' => BobotNilai::KOMPONEN,
             'semesterOptions' => JadwalPelajaran::SEMESTERS,
@@ -162,23 +146,14 @@ class PengaturanBobotNilai extends Page
         ];
     }
 
-    /** @return Collection<int, MataPelajaran> */
-    private function mapels(): Collection
-    {
-        return MataPelajaran::query()->orderBy('nama_mapel')->get();
-    }
-
     private function muatBobot(): void
     {
-        $this->bobot = [];
+        $values = BobotNilai::untuk($this->semester, $this->tahunAjaran);
 
-        foreach ($this->mapels() as $mapel) {
-            $values = BobotNilai::untuk($mapel->id, $this->semester, $this->tahunAjaran);
-            $this->bobot[$mapel->id] = array_map(
-                fn (int $value): string => (string) $value,
-                $values,
-            );
-        }
+        $this->bobot = array_map(
+            fn (int $value): string => (string) $value,
+            $values,
+        );
     }
 
     /** @return list<string> */
