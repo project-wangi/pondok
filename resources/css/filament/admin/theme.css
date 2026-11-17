@@ -4274,3 +4274,31 @@ body:has(.slip-gaji-page),
         display: block;
     }
 }
+
+/* Rekap kehadiran guru ---------------------------------------- */
+
+.guru-rekap-page .guru-rekap-cell {
+    min-width: 4.5rem;
+    padding: 0.25rem;
+    text-align: center;
+    vertical-align: middle;
+}
+
+.guru-rekap-page .guru-rekap-mark {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.5rem;
+    height: 1.5rem;
+    border-radius: 999px;
+    background-color: var(--presensi-stripe);
+    color: var(--pondok-accent);
+    font-size: 0.75rem;
+    font-weight: 700;
+    line-height: 1;
+}
+
+.guru-rekap-page .rekap-count {
+    font-size: 0.75rem;
+    white-space: normal;
+}

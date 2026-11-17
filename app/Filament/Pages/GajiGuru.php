@@ -354,21 +354,22 @@ class GajiGuru extends Page
     /**
      * Tanggal unik kehadiran guru pada rentang tanggal: mengajar yang sudah
      * berpresensi siswa, absensi guru harian, piket, peminatan, dan rapat.
-     * Dipakai sebagai dasar hari hadir untuk transport.
+     * Satu tanggal bisa berasal dari lebih dari satu sumber, tetapi dihitung
+     * sekali sebagai hari hadir untuk transport.
      *
-     * @return array<int, array<string, true>>
+     * @return array<int, array<string, list<string>>>
      */
-    private static function attendanceDates(string $from, string $until, ?int $guruId = null): array
+    public static function attendanceDateSources(string $from, string $until, ?int $guruId = null): array
     {
-        $dates = [];
+        $sources = [];
 
-        $collect = function (iterable $rows) use (&$dates): void {
+        $collect = function (iterable $rows, string $source) use (&$sources): void {
             foreach ($rows as $row) {
                 $id = (int) $row->guru_id;
                 $tanggal = $row->tanggal?->toDateString();
 
                 if ($id > 0 && $tanggal !== null) {
-                    $dates[$id][$tanggal] = true;
+                    $sources[$id][$tanggal][] = $source;
                 }
             }
         };
@@ -379,7 +380,7 @@ class GajiGuru extends Page
             ->whereNotNull('guru_id')
             ->whereHas('presensiMurids')
             ->when($guruId !== null, fn (Builder $query): Builder => $query->where('guru_id', $guruId))
-            ->get(['guru_id', 'tanggal']));
+            ->get(['guru_id', 'tanggal']), 'Mengajar');
 
         $collect(AbsenGuru::query()
             ->where('tanggal', '>=', $from)
@@ -387,28 +388,44 @@ class GajiGuru extends Page
             ->whereNotNull('guru_id')
             ->whereNotNull('masuk_pada')
             ->when($guruId !== null, fn (Builder $query): Builder => $query->where('guru_id', $guruId))
-            ->get(['guru_id', 'tanggal']));
+            ->get(['guru_id', 'tanggal']), 'Absensi');
 
         $collect(AbsenPiket::query()
             ->where('tanggal', '>=', $from)
             ->where('tanggal', '<', $until)
             ->whereNotNull('guru_id')
             ->when($guruId !== null, fn (Builder $query): Builder => $query->where('guru_id', $guruId))
-            ->get(['guru_id', 'tanggal']));
+            ->get(['guru_id', 'tanggal']), 'Piket');
 
         $collect(AbsenPeminatan::query()
             ->where('tanggal', '>=', $from)
             ->where('tanggal', '<', $until)
             ->whereNotNull('guru_id')
             ->when($guruId !== null, fn (Builder $query): Builder => $query->where('guru_id', $guruId))
-            ->get(['guru_id', 'tanggal']));
+            ->get(['guru_id', 'tanggal']), 'Peminatan');
 
         $collect(AbsenRapat::query()
             ->where('tanggal', '>=', $from)
             ->where('tanggal', '<', $until)
             ->whereNotNull('guru_id')
             ->when($guruId !== null, fn (Builder $query): Builder => $query->where('guru_id', $guruId))
-            ->get(['guru_id', 'tanggal']));
+            ->get(['guru_id', 'tanggal']), 'Rapat');
+
+        return $sources;
+    }
+
+    /**
+     * @return array<int, array<string, true>>
+     */
+    private static function attendanceDates(string $from, string $until, ?int $guruId = null): array
+    {
+        $dates = [];
+
+        foreach (self::attendanceDateSources($from, $until, $guruId) as $id => $rows) {
+            foreach (array_keys($rows) as $tanggal) {
+                $dates[$id][$tanggal] = true;
+            }
+        }
 
         return $dates;
     }
