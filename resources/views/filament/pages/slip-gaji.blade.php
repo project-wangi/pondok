@@ -25,7 +25,8 @@
                     :href="route('slip-gaji.print', ['bulan' => $bulan, 'tahun' => $tahun])"
                     target="_blank"
                     rel="noopener"
-                    color="gray"
+                    color="primary"
+                    size="lg"
                     icon="heroicon-o-printer"
                 >
                     Cetak slip
