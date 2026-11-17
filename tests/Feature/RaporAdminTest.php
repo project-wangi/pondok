@@ -28,6 +28,7 @@ use Illuminate\Support\Facades\Storage;
 use Livewire\Livewire;
 use OpenSpout\Reader\XLSX\Reader;
 use Spatie\Permission\Models\Permission;
+use Spatie\Permission\Models\Role;
 use ZipArchive;
 
 uses(LazilyRefreshDatabase::class);
@@ -46,6 +47,20 @@ afterEach(function () {
 function raporAdminUser(): User
 {
     return adminPanelUser('View:RaporAdmin');
+}
+
+/**
+ * Guru yang menjadi wali kelas sekaligus punya akses halaman rapor.
+ */
+function raporWaliKelasUser(Kelas $kelas): User
+{
+    $guru = Guru::query()->where('kelas_id', $kelas->id)->first()
+        ?? GuruFactory::new()->create(['kelas_id' => $kelas->id]);
+
+    $user = $guru->user;
+    $user->givePermissionTo(Permission::findOrCreate('View:RaporAdmin', 'web'));
+
+    return $user;
 }
 
 /**
@@ -222,6 +237,72 @@ test('the student report page exposes navigation and restricts access', function
 
     $this->actingAs(raporAdminUser());
     $this->get(RaporAdmin::getUrl())->assertOk()->assertSee('Rapor Siswa');
+});
+
+test('opens a homeroom teacher directly on their own class', function () {
+    $scenario = raporAdminScenario();
+    $other = KelasFactory::new()->create(['nama_kelas' => 'VIII']);
+    MuridFactory::new()->create(['kelas_id' => $other->id, 'nama' => 'Murid Kelas Lain']);
+
+    $user = raporWaliKelasUser($scenario['kelas']);
+    expect($user->hasRole('wali_kelas'))->toBeTrue();
+    $this->actingAs($user);
+
+    Livewire::test(RaporAdmin::class)
+        ->assertOk()
+        ->assertSet('kelasId', $scenario['kelas']->id)
+        ->assertSee('Ahmad')
+        ->assertDontSee('Murid Kelas Lain');
+});
+
+test('forbids a homeroom teacher from opening another class', function () {
+    $scenario = raporAdminScenario();
+    $other = KelasFactory::new()->create(['nama_kelas' => 'VIII']);
+
+    $this->actingAs(raporWaliKelasUser($scenario['kelas']));
+
+    Livewire::test(RaporAdmin::class)
+        ->call('pilihKelas', $other->id)
+        ->assertForbidden();
+});
+
+test('shows only the homeroom class in the class list', function () {
+    $scenario = raporAdminScenario();
+    $other = KelasFactory::new()->create(['nama_kelas' => 'VIII']);
+
+    $this->actingAs(raporWaliKelasUser($scenario['kelas']));
+
+    Livewire::test(RaporAdmin::class)
+        ->call('kembaliKeDaftarKelas')
+        ->assertSeeHtml('rapor-kelas-'.$scenario['kelas']->id)
+        ->assertDontSeeHtml('rapor-kelas-'.$other->id);
+});
+
+test('keeps every class visible for an administrator', function () {
+    $scenario = raporAdminScenario();
+    $other = KelasFactory::new()->create(['nama_kelas' => 'VIII']);
+
+    $this->actingAs(raporAdminUser());
+
+    Livewire::test(RaporAdmin::class)
+        ->assertSet('kelasId', null)
+        ->assertSeeHtml('rapor-kelas-'.$scenario['kelas']->id)
+        ->assertSeeHtml('rapor-kelas-'.$other->id);
+});
+
+test('tells a homeroom teacher without an assigned class that none is set', function () {
+    raporAdminScenario();
+
+    $user = GuruFactory::new()->create()->user;
+    $user->assignRole(Role::findOrCreate('wali_kelas', 'web'));
+    $user->givePermissionTo(Permission::findOrCreate('View:RaporAdmin', 'web'));
+
+    $this->actingAs($user);
+
+    Livewire::test(RaporAdmin::class)
+        ->assertOk()
+        ->assertSee('Anda belum ditetapkan sebagai wali kelas.')
+        ->assertDontSee('Tambahkan kelas terlebih dahulu melalui menu Kelas.');
 });
 
 test('orders classes by grade instead of alphabetically', function () {

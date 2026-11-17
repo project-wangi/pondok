@@ -74,6 +74,11 @@ class RaporAdmin extends Page
         $period = JadwalPelajaran::activePeriod();
         $this->semester = $period['semester'];
         $this->tahunAjaran = $period['tahun_ajaran'];
+
+        // Wali kelas langsung dibuka pada kelas yang ia walikan.
+        if ($this->dibatasiKeKelasWali()) {
+            $this->kelasId = $this->kelasWaliId();
+        }
     }
 
     public function updatedSemester(string $value): void
@@ -103,6 +108,7 @@ class RaporAdmin extends Page
     public function pilihKelas(int $kelasId): void
     {
         abort_unless(static::canAccess(), 403);
+        abort_unless($this->bolehPilihKelas($kelasId), 403);
         abort_unless(Kelas::query()->whereKey($kelasId)->exists(), 404);
 
         $this->kelasId = $kelasId;
@@ -204,6 +210,7 @@ class RaporAdmin extends Page
             'tahunAjaranOptions' => $this->tahunAjaranOptions(),
             'aspekKepribadian' => RaporKepribadian::ASPEK,
             'hurufKepribadian' => $this->hurufKepribadian(),
+            'terbatasKeKelasWali' => $this->dibatasiKeKelasWali(),
         ];
 
         if ($this->kelasId === null) {
@@ -214,6 +221,7 @@ class RaporAdmin extends Page
 
         $kelas = Kelas::query()->find($this->kelasId);
         abort_if($kelas === null, 404);
+        abort_unless($this->bolehPilihKelas($kelas->id), 403);
 
         $matrix = $this->scoreMatrix($kelas->id, $period);
         $ranked = $this->rankedStudents($kelas->id, $matrix);
@@ -243,6 +251,18 @@ class RaporAdmin extends Page
      */
     private function kelasList(array $period): Collection
     {
+        $query = Kelas::query();
+
+        if ($this->dibatasiKeKelasWali()) {
+            $kelasWaliId = $this->kelasWaliId();
+
+            if ($kelasWaliId === null) {
+                return collect();
+            }
+
+            $query->whereKey($kelasWaliId);
+        }
+
         $muridCounts = Murid::query()
             ->aktif()
             ->whereNotNull('kelas_id')
@@ -262,7 +282,7 @@ class RaporAdmin extends Page
             ->groupBy('kelas_id')
             ->pluck('total', 'kelas_id');
 
-        return Kelas::query()
+        return $query
             ->get()
             ->sortBy(fn (Kelas $kelas): array => [self::tingkatKelas($kelas->nama_kelas), $kelas->nama_kelas])
             ->values()
@@ -271,6 +291,33 @@ class RaporAdmin extends Page
                 'jumlah_murid' => (int) ($muridCounts[$kelas->id] ?? 0),
                 'jumlah_mapel' => (int) ($mapelCounts[$kelas->id] ?? 0),
             ]);
+    }
+
+    /**
+     * Wali kelas non-admin hanya boleh membuka rapor kelas yang ia walikan.
+     */
+    private function dibatasiKeKelasWali(): bool
+    {
+        $user = Filament::auth()->user();
+
+        return $user !== null
+            && ! $user->isAdministrator()
+            && $user->hasRole('wali_kelas');
+    }
+
+    /**
+     * Kelas yang diwalikan pengguna saat ini, null bila belum ditetapkan.
+     */
+    private function kelasWaliId(): ?int
+    {
+        $kelasId = Filament::auth()->user()?->guru()->value('kelas_id');
+
+        return $kelasId === null ? null : (int) $kelasId;
+    }
+
+    private function bolehPilihKelas(int $kelasId): bool
+    {
+        return ! $this->dibatasiKeKelasWali() || $this->kelasWaliId() === $kelasId;
     }
 
     /**

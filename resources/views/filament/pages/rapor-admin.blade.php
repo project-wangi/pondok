@@ -42,8 +42,13 @@
             >
                 @if ($kelasList->isEmpty())
                     <div class="presensi-notice">
-                        <p class="presensi-label">Belum ada kelas.</p>
-                        <p class="presensi-help">Tambahkan kelas terlebih dahulu melalui menu Kelas.</p>
+                        @if ($terbatasKeKelasWali)
+                            <p class="presensi-label">Anda belum ditetapkan sebagai wali kelas.</p>
+                            <p class="presensi-help">Rapor hanya dapat dibuka untuk kelas yang Anda walikan. Hubungi admin untuk menetapkan kelas wali Anda.</p>
+                        @else
+                            <p class="presensi-label">Belum ada kelas.</p>
+                            <p class="presensi-help">Tambahkan kelas terlebih dahulu melalui menu Kelas.</p>
+                        @endif
                     </div>
                 @else
                     <div class="rapor-class-grid">
