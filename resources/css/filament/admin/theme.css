@@ -3587,6 +3587,12 @@ body:has(.slip-gaji-page),
     border-top: 1px dashed var(--pondok-border);
 }
 
+.rapor-admin-page .rapor-export-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
 /* Bobot nilai (kurikulum) dan kepribadian (wali kelas) -------- */
 
 :is(.bobot-page, .kepribadian-page) .rapor-period {
@@ -3749,6 +3755,54 @@ body:has(.slip-gaji-page),
 
     .rapor-admin-page .rapor-export {
         justify-content: flex-start;
+    }
+}
+
+@media print {
+    /* Rapor dicetak sebagai lembar bersih tanpa kontrol halaman. */
+    .rapor-admin-page .rapor-period,
+    .rapor-admin-page .rapor-back,
+    .rapor-admin-page .rapor-kepribadian-section,
+    .rapor-admin-page .rapor-export {
+        display: none !important;
+    }
+
+    .rapor-admin-page,
+    .fi.dark .rapor-admin-page {
+        --presensi-text: #111827;
+        --presensi-muted: #374151;
+        --presensi-surface: #ffffff;
+        --presensi-stripe: #f3f4f6;
+        --presensi-heading: #0f6b6b;
+        --pondok-border: #d1d5db;
+        background: #ffffff !important;
+        color: #111827 !important;
+    }
+
+    .rapor-admin-page .rapor-sheet {
+        gap: 0.75rem;
+        padding: 0 !important;
+        border: 0 !important;
+        border-radius: 0 !important;
+        background: #ffffff !important;
+        color: #111827 !important;
+    }
+
+    .rapor-admin-page .rapor-sheet-table :is(th, td) {
+        border: 1px solid #9ca3af !important;
+        color: #111827 !important;
+    }
+
+    .rapor-admin-page .rapor-sheet-table thead th {
+        background-color: #f3f4f6 !important;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+    }
+
+    .rapor-admin-page .rapor-sheet-table tr,
+    .rapor-admin-page .rapor-signatures {
+        break-inside: avoid;
+        page-break-inside: avoid;
     }
 }
 

@@ -353,7 +353,14 @@ test('shows every subject while only filling scores that were submitted', functi
         ->assertSee('NISM')
         ->assertSee('Ust. Wali')
         ->assertSee('Ust. Kepala')
-        ->assertSee('Bapak Ahmad');
+        ->assertSee('Bapak Ahmad')
+        ->assertSee('Cetak / Simpan PDF')
+        ->assertSee(route('rapor.print', [
+            'kelas' => $data['kelas']->id,
+            'murid' => $data['siswa']['ahmad']->id,
+            'semester' => 'Ganjil',
+            'tahun_ajaran' => '2026/2027',
+        ]));
 
     $rapor = $component->viewData('rapor');
     $subjects = collect($rapor['subjects']);
@@ -392,6 +399,67 @@ test('shows every subject while only filling scores that were submitted', functi
         ->and($empty['rata_rata'])->toBeNull()
         ->and($empty['peringkat'])->toBeNull()
         ->and($empty['orang_tua'])->toBe('Bapak Cholid');
+});
+
+test('prints the report from a standalone page with its own print action', function () {
+    $this->actingAs(raporAdminUser());
+    $data = raporAdminScenario();
+
+    $this->get(route('rapor.print', [
+        'kelas' => $data['kelas']->id,
+        'murid' => $data['siswa']['ahmad']->id,
+        'semester' => 'Ganjil',
+        'tahun_ajaran' => '2026/2027',
+    ]))
+        ->assertOk()
+        ->assertSee('LAPORAN HASIL BELAJAR')
+        ->assertSee('UJIAN AKHIR SEMESTER GANJIL 2026/2027')
+        ->assertSee('Ahmad')
+        ->assertSee('Ust. Wali')
+        ->assertSee('Ust. Kepala')
+        ->assertSee('Bapak Ahmad')
+        ->assertSee('Pilih ukuran kertas di dialog cetak')
+        ->assertSee('Cetak / Simpan PDF')
+        ->assertDontSee('rapor-kepribadian-section');
+});
+
+test('the standalone report page rejects users without report access', function () {
+    $data = raporAdminScenario();
+
+    $params = [
+        'kelas' => $data['kelas']->id,
+        'murid' => $data['siswa']['ahmad']->id,
+        'semester' => 'Ganjil',
+        'tahun_ajaran' => '2026/2027',
+    ];
+
+    $this->get(route('rapor.print', $params))->assertForbidden();
+
+    $this->actingAs(adminPanelUser());
+
+    $this->get(route('rapor.print', $params))->assertForbidden();
+});
+
+test('the standalone report page keeps a homeroom teacher inside their class', function () {
+    $data = raporAdminScenario();
+    $other = KelasFactory::new()->create(['nama_kelas' => 'VIII']);
+    $muridLain = MuridFactory::new()->create(['kelas_id' => $other->id, 'nama' => 'Murid Kelas Lain']);
+
+    $this->actingAs(raporWaliKelasUser($data['kelas']));
+
+    $this->get(route('rapor.print', [
+        'kelas' => $data['kelas']->id,
+        'murid' => $data['siswa']['ahmad']->id,
+        'semester' => 'Ganjil',
+        'tahun_ajaran' => '2026/2027',
+    ]))->assertOk()->assertSee('Ahmad');
+
+    $this->get(route('rapor.print', [
+        'kelas' => $other->id,
+        'murid' => $muridLain->id,
+        'semester' => 'Ganjil',
+        'tahun_ajaran' => '2026/2027',
+    ]))->assertForbidden();
 });
 
 test('converts scores into report letters', function () {

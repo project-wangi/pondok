@@ -197,6 +197,21 @@ class RaporAdmin extends Page
         return app(RaporWorkbook::class)->download($report);
     }
 
+    /**
+     * Data rapor untuk halaman cetak yang dibuka di tab baru.
+     *
+     * @param  array{semester: string, tahun_ajaran: string}  $period
+     * @return array<string, mixed>
+     */
+    public function laporanCetak(Kelas $kelas, Murid $murid, array $period): array
+    {
+        $laporan = $this->laporanSiswa($kelas, $murid, $period);
+
+        abort_if($laporan === null, 404);
+
+        return $laporan;
+    }
+
     /** @return array<string, mixed> */
     protected function getViewData(): array
     {
