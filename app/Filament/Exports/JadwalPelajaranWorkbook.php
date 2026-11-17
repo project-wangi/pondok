@@ -148,8 +148,28 @@ class JadwalPelajaranWorkbook
             $writer->close();
         }
 
-        if ($settings->logo && Storage::disk('public')->exists($settings->logo)) {
-            app(JadwalPelajaranLogo::class)->embed($path, Storage::disk('public')->path($settings->logo));
+        if ($settings->logo) {
+            try {
+                $disk = Storage::disk(SiteSetting::IMAGE_DISK);
+
+                if ($disk->exists($settings->logo)) {
+                    $binary = $disk->get($settings->logo);
+                    $temp = $binary !== null ? tempnam(sys_get_temp_dir(), 'jadwal-logo-') : false;
+
+                    if ($binary !== null && $temp !== false) {
+                        try {
+                            file_put_contents($temp, $binary);
+                            app(JadwalPelajaranLogo::class)->embed($path, $temp);
+                        } finally {
+                            if (is_file($temp)) {
+                                unlink($temp);
+                            }
+                        }
+                    }
+                }
+            } catch (\Throwable) {
+                // Logo opsional; kegagalan unduh tidak boleh menggagalkan ekspor.
+            }
         }
     }
 

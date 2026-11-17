@@ -23,8 +23,8 @@ test('the admin login page includes the green theme stylesheet', function () {
 
 test('the admin panel brand uses the school logo instead of the app name', function () {
     $this->withoutVite();
-    Storage::fake('public');
-    Storage::disk('public')->put('logo-sekolah.png', 'fake-image');
+    Storage::fake(SiteSetting::IMAGE_DISK);
+    Storage::disk(SiteSetting::IMAGE_DISK)->put('logo-sekolah.png', 'fake-image');
 
     SiteSetting::create(['school_name' => 'Pondok Ilmu', 'logo' => 'logo-sekolah.png']);
 

@@ -23,7 +23,6 @@ use Filament\Pages\Page;
 use Filament\Support\Icons\Heroicon;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\Storage;
 use Livewire\Attributes\Locked;
 use UnitEnum;
 
@@ -541,9 +540,7 @@ class RaporAdmin extends Page
             'school_name' => (string) $school->school_name,
             'school_address' => (string) ($school->address ?? ''),
             'school_logo' => (string) ($school->logo ?? ''),
-            'school_logo_url' => filled($school->logo)
-                ? Storage::disk('public')->url($school->logo)
-                : null,
+            'school_logo_url' => $school->logoUrl(),
             'semester' => $period['semester'],
             'tahun_ajaran' => $period['tahun_ajaran'],
             'class' => (string) $kelas->nama_kelas,

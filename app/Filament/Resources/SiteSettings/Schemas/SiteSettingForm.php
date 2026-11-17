@@ -11,6 +11,7 @@ use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
+use Illuminate\Support\Facades\Storage;
 
 class SiteSettingForm
 {
@@ -129,7 +130,8 @@ class SiteSettingForm
     {
         return FileUpload::make($name)->label($label)->image()
             ->acceptedFileTypes(['image/jpeg', 'image/png', 'image/webp'])
-            ->maxSize(4096)->disk('public')->directory('website')->visibility('public');
+            ->maxSize(10240)->disk(SiteSetting::IMAGE_DISK)->directory('website')->visibility('public')
+            ->deleteUploadedFileUsing(fn (string $file): bool => Storage::disk(SiteSetting::IMAGE_DISK)->delete($file));
     }
 
     private static function partnerLogoUpload(string $name, string $label): FileUpload

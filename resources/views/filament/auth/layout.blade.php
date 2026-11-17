@@ -1,6 +1,5 @@
 @php
     use App\Models\SiteSetting;
-    use Illuminate\Support\Facades\Storage;
 
     $settings = SiteSetting::current();
     $schoolName = (string) ($settings->school_name ?: config('app.name'));
@@ -17,7 +16,7 @@
 
     $photo = $photoPath !== null
         ? asset($photoPath)
-        : (filled($settings->hero_image) ? Storage::disk('public')->url($settings->hero_image) : null);
+        : $settings->heroImageUrl();
 @endphp
 
 <x-filament-panels::layout.base :livewire="$livewire">

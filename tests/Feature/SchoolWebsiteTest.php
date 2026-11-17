@@ -15,7 +15,6 @@ use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\Sequence;
 use Illuminate\Foundation\Testing\LazilyRefreshDatabase;
 use Illuminate\Pagination\LengthAwarePaginator;
-use Illuminate\Support\Facades\Storage;
 use Livewire\Livewire;
 
 uses(LazilyRefreshDatabase::class);
@@ -126,17 +125,17 @@ test('the homepage clearly labels missing photography without inventing a school
 });
 
 test('the homepage uses uploaded school photography and logo with image error feedback', function () {
+    config(['filesystems.disks.r2.url' => 'https://cdn.example.com']);
+
     SiteSetting::factory()->create([
         'hero_image' => 'website/school-photo.webp',
         'logo' => 'website/school-logo.png',
     ]);
 
-    $logoUrl = Storage::disk('public')->url('website/school-logo.png');
-
     $this->get(route('home'))->assertOk()
-        ->assertSee('/storage/website/school-photo.webp', false)
-        ->assertSee('/storage/website/school-logo.png', false)
-        ->assertSee('rel="icon" href="'.$logoUrl.'"', false)
+        ->assertSee('https://cdn.example.com/website/school-photo.webp', false)
+        ->assertSee('https://cdn.example.com/website/school-logo.png', false)
+        ->assertSee('rel="icon" href="https://cdn.example.com/website/school-logo.png"', false)
         ->assertSee('Foto sekolah tidak dapat ditampilkan.')
         ->assertDontSee('Ruang untuk foto sekolah');
 });

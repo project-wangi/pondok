@@ -19,7 +19,7 @@
 
             <div class="school-hero-visual">
                 @if ($settings->hero_image)
-                    <img src="{{ Illuminate\Support\Facades\Storage::disk('public')->url($settings->hero_image) }}" alt="Lingkungan {{ $settings->school_name }}" fetchpriority="high" width="1600" height="1000" class="school-hero-media" data-school-image>
+                    <img src="{{ $settings->heroImageUrl() }}" alt="Lingkungan {{ $settings->school_name }}" fetchpriority="high" width="1600" height="1000" class="school-hero-media" data-school-image>
                 @else
                     <div class="school-hero-placeholder">
                         <x-heroicon-o-photo class="size-8" />

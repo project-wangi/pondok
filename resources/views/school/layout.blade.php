@@ -39,7 +39,7 @@
         <div class="school-container school-header-inner">
             <a href="{{ route('home') }}" class="school-brand" aria-label="{{ $settings->school_name }}, beranda">
                 @if ($settings->logo)
-                    <img src="{{ Illuminate\Support\Facades\Storage::disk('public')->url($settings->logo) }}" alt="Logo {{ $settings->school_name }}" class="school-brand-logo">
+                    <img src="{{ $settings->logoUrl() }}" alt="Logo {{ $settings->school_name }}" class="school-brand-logo">
                 @endif
                 <span class="min-w-0">
                     <span class="school-brand-name">{{ $settings->school_name }}</span>

@@ -162,9 +162,9 @@ test('handles missing subject references and null times without losing the lesso
 });
 
 test('embeds the configured logo on every class worksheet with valid XML relationships', function () {
-    Storage::fake('public');
+    Storage::fake(SiteSetting::IMAGE_DISK);
     $image = base64_decode('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+jRZkAAAAASUVORK5CYII=');
-    Storage::disk('public')->put('logo.png', $image);
+    Storage::disk(SiteSetting::IMAGE_DISK)->put('logo.png', $image);
     SiteSetting::factory()->create(['logo' => 'logo.png']);
     JadwalPelajaranFactory::new()->count(2)->create();
     app(JadwalPelajaranWorkbook::class)->write($this->exportPath, JadwalPelajaran::query(), 'Ganjil', '2026/2027');
@@ -251,13 +251,13 @@ test('converts configured WebP logos to PNG when GD supports WebP', function () 
         $this->markTestSkipped('WebP conversion requires GD with WebP support.');
     }
 
-    Storage::fake('public');
+    Storage::fake(SiteSetting::IMAGE_DISK);
     $image = imagecreatetruecolor(10, 10);
     ob_start();
     imagewebp($image);
     $bytes = ob_get_clean();
     imagedestroy($image);
-    Storage::disk('public')->put('logo.webp', $bytes);
+    Storage::disk(SiteSetting::IMAGE_DISK)->put('logo.webp', $bytes);
     SiteSetting::factory()->create(['logo' => 'logo.webp']);
     app(JadwalPelajaranWorkbook::class)->write($this->exportPath, JadwalPelajaran::query(), 'Ganjil', '2026/2027');
     $zip = new ZipArchive;

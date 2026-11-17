@@ -575,8 +575,8 @@ test('downloads an excel report with identity, scores, and personality', functio
 });
 
 test('embeds the school logo on the report sheet and in the excel export', function () {
-    Storage::fake('public');
-    Storage::disk('public')->put(
+    Storage::fake(SiteSetting::IMAGE_DISK);
+    Storage::disk(SiteSetting::IMAGE_DISK)->put(
         'website/school-logo.png',
         base64_decode('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg=='),
     );

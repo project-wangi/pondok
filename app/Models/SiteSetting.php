@@ -43,6 +43,11 @@ class SiteSetting extends Model
         'heroicon-o-information-circle' => 'Informasi Umum',
     ];
 
+    /**
+     * Disk R2 untuk logo dan gambar utama website, sama seperti foto absensi.
+     */
+    public const IMAGE_DISK = 'r2';
+
     public $incrementing = false;
 
     protected $fillable = [
@@ -84,6 +89,18 @@ class SiteSetting extends Model
                 ]);
             }
         });
+
+        // Ganti atau kosongkan logo/gambar utama: berkas lama di R2 ikut dihapus
+        // supaya tidak menumpuk sebagai berkas yatim.
+        static::updating(function (self $settings): void {
+            foreach (['logo', 'hero_image'] as $attribute) {
+                $original = $settings->getOriginal($attribute);
+
+                if (filled($original) && $original !== $settings->getAttribute($attribute)) {
+                    Storage::disk(self::IMAGE_DISK)->delete($original);
+                }
+            }
+        });
     }
 
     protected function casts(): array
@@ -103,12 +120,26 @@ class SiteSetting extends Model
         return static::query()->orderBy('id')->first() ?? new static;
     }
 
+    public function imageUrl(?string $path): ?string
+    {
+        if (blank($path)) {
+            return null;
+        }
+
+        return Storage::disk(self::IMAGE_DISK)->url($path);
+    }
+
     /**
      * URL logo sekolah yang sedang diatur, dipakai untuk merek panel dan favicon.
      */
     public function logoUrl(): ?string
     {
-        return filled($this->logo) ? Storage::disk('public')->url($this->logo) : null;
+        return $this->imageUrl($this->logo);
+    }
+
+    public function heroImageUrl(): ?string
+    {
+        return $this->imageUrl($this->hero_image);
     }
 
     public static function isSafeUrl(string $url): bool

@@ -2,6 +2,7 @@
 
 namespace App\Filament\Exports;
 
+use App\Models\SiteSetting;
 use Illuminate\Support\Facades\Storage;
 use OpenSpout\Common\Entity\Cell\EmptyCell;
 use OpenSpout\Common\Entity\Cell\NumericCell;
@@ -224,13 +225,19 @@ class RaporWorkbook
             return;
         }
 
-        $disk = Storage::disk('public');
+        try {
+            $disk = Storage::disk(SiteSetting::IMAGE_DISK);
 
-        if (! $disk->exists($logo)) {
+            if (! $disk->exists($logo)) {
+                return;
+            }
+
+            $binary = $disk->get($logo);
+        } catch (\Throwable) {
+            // Logo opsional; kegagalan unduh tidak boleh menggagalkan ekspor.
             return;
         }
 
-        $binary = $disk->get($logo);
         $zip = new ZipArchive;
 
         if ($binary === null || $zip->open($path) !== true) {
