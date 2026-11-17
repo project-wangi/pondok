@@ -1,5 +1,6 @@
 @php
     use App\Models\JadwalPelajaran;
+    use App\Models\Kelas;
 
     $table = \Livewire\Livewire::current();
     $filters = is_array(data_get($table, 'tableFilters')) ? data_get($table, 'tableFilters') : [];
@@ -16,6 +17,15 @@
         ->sortDesc()
         ->values()
         ->all();
+    $kelasOptions = Kelas::query()
+        ->orderBy('nama_kelas')
+        ->get()
+        ->map(fn (Kelas $kelas): array => [
+            'id' => $kelas->id,
+            'label' => filled($kelas->unit)
+                ? $kelas->nama_kelas.' ('.$kelas->unit.')'
+                : (string) $kelas->nama_kelas,
+        ]);
 @endphp
 
 <div class="table-filter-bar jadwal-filter-bar" role="group" aria-label="Filter jadwal pelajaran">
@@ -43,6 +53,20 @@
             <option value="">Semua</option>
             @foreach ($tahunOptions as $tahun)
                 <option value="{{ $tahun }}">{{ $tahun }}</option>
+            @endforeach
+        </select>
+    </label>
+
+    <label class="table-filter-field" for="jadwal-filter-kelas">
+        <span>Kelas</span>
+        <select
+            id="jadwal-filter-kelas"
+            wire:model.live="tableFilters.kelas_id.value"
+            wire:loading.attr="disabled"
+        >
+            <option value="">Semua</option>
+            @foreach ($kelasOptions as $kelas)
+                <option value="{{ $kelas['id'] }}">{{ $kelas['label'] }}</option>
             @endforeach
         </select>
     </label>

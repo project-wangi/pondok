@@ -71,11 +71,16 @@
             </div>
         @else
             <form wire:submit="simpan" class="asesmen-form">
-                <x-filament::section heading="Komponen ujian" description="Tambahkan jenis ujian untuk kelas dan mata pelajaran ini, misalnya UTS atau UAS.">
+                <x-filament::section heading="Komponen ujian" description="Tambahkan jenis ujian untuk kelas dan mata pelajaran ini, misalnya UTS atau UAS. Ujian yang sudah disimpan hanya bisa diedit dalam 24 jam sejak diisi; admin tetap bisa mengoreksi kapan saja.">
                     <div class="ujian-komponen-list">
                         @foreach ($komponens as $index => $komponen)
                             <div class="ujian-komponen-row" wire:key="ujian-komponen-{{ $index }}">
-                                <label class="ujian-komponen-label" for="ujian-nama-{{ $index }}">Nama ujian {{ $loop->iteration }}</label>
+                                <label class="ujian-komponen-label" for="ujian-nama-{{ $index }}">
+                                    Nama ujian {{ $loop->iteration }}
+                                    @if ($komponenTerkunci[$index] ?? false)
+                                        <span class="ujian-lock-badge">Terkunci</span>
+                                    @endif
+                                </label>
                                 <input
                                     id="ujian-nama-{{ $index }}"
                                     type="text"
@@ -83,11 +88,12 @@
                                     wire:model.blur="komponens.{{ $index }}.nama"
                                     maxlength="100"
                                     required
+                                    @disabled($komponenTerkunci[$index] ?? false)
                                     aria-describedby="ujian-nama-error-{{ $index }}"
                                     aria-invalid="{{ $errors->has('komponens.'.$index.'.nama') ? 'true' : 'false' }}"
                                 >
                                 <div class="ujian-komponen-action">
-                                    @if (count($komponens) > 1)
+                                    @if (count($komponens) > 1 && ! ($komponenTerkunci[$index] ?? false))
                                         <x-filament::button
                                             type="button"
                                             color="danger"
@@ -108,6 +114,9 @@
                                         <p class="presensi-error">{{ $message }}</p>
                                     @enderror
                                 </div>
+                                @if (($batasEdit[$index] ?? null) !== null)
+                                    <p class="ujian-komponen-note">Dapat diedit sampai {{ $batasEdit[$index] }}.</p>
+                                @endif
                             </div>
                         @endforeach
 
@@ -152,6 +161,9 @@
                                     @foreach ($komponens as $index => $komponen)
                                         <th scope="col" colspan="2" class="ujian-component">
                                             {{ trim((string) ($komponen['nama'] ?? '')) !== '' ? $komponen['nama'] : 'Ujian '.($index + 1) }}
+                                            @if ($komponenTerkunci[$index] ?? false)
+                                                <span class="ujian-lock-badge">Terkunci</span>
+                                            @endif
                                         </th>
                                     @endforeach
                                     <th scope="col" rowspan="2">Rata-rata</th>
@@ -182,6 +194,7 @@
                                                     inputmode="numeric"
                                                     placeholder="-"
                                                     wire:model.blur="nilai.{{ $index }}.{{ $student->id }}"
+                                                    @disabled($komponenTerkunci[$index] ?? false)
                                                     aria-describedby="ujian-nilai-error-{{ $index }}-{{ $student->id }}"
                                                 >
                                                 <div id="ujian-nilai-error-{{ $index }}-{{ $student->id }}">
@@ -199,6 +212,7 @@
                                                     maxlength="500"
                                                     placeholder="Catatan (opsional)"
                                                     wire:model.blur="catatan.{{ $index }}.{{ $student->id }}"
+                                                    @disabled($komponenTerkunci[$index] ?? false)
                                                     aria-describedby="ujian-catatan-error-{{ $index }}-{{ $student->id }}"
                                                 >
                                                 <div id="ujian-catatan-error-{{ $index }}-{{ $student->id }}">
@@ -218,7 +232,7 @@
                     </div>
 
                     <div class="asesmen-footer">
-                        <p class="presensi-help">Rata-rata dihitung dari nilai yang terisi saja. Perubahan baru tersimpan setelah menekan Simpan nilai.</p>
+                        <p class="presensi-help">Rata-rata dihitung dari nilai yang terisi saja. Ujian yang sudah disimpan terkunci 24 jam setelah diisi, kecuali untuk admin. Ujian baru tetap bisa ditambahkan.</p>
                         <x-filament::button
                             type="submit"
                             :loading-indicator="false"

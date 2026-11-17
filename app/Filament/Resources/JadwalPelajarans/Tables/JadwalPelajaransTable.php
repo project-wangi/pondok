@@ -74,6 +74,17 @@ class JadwalPelajaransTable
                     ->options(fn (): array => JadwalPelajaran::query()
                         ->distinct()->orderByDesc('tahun_ajaran')
                         ->pluck('tahun_ajaran', 'tahun_ajaran')->all()),
+                SelectFilter::make('kelas_id')
+                    ->label('Kelas')
+                    ->options(fn (): array => Kelas::query()
+                        ->orderBy('nama_kelas')
+                        ->get()
+                        ->mapWithKeys(fn (Kelas $kelas): array => [
+                            $kelas->id => filled($kelas->unit)
+                                ? $kelas->nama_kelas.' ('.$kelas->unit.')'
+                                : $kelas->nama_kelas,
+                        ])
+                        ->all()),
             ])
             ->recordActions([
                 EditAction::make(),

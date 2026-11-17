@@ -12,13 +12,15 @@ class NilaiUjianKomponen extends Model
         'nilai_ujian_id',
         'nama',
         'urutan',
+        'dicatat_pada',
     ];
 
-    /** @return array{urutan: string} */
+    /** @return array{urutan: string, dicatat_pada: string} */
     protected function casts(): array
     {
         return [
             'urutan' => 'integer',
+            'dicatat_pada' => 'datetime',
         ];
     }
 

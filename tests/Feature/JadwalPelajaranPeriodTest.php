@@ -116,20 +116,39 @@ test('stores schedule times with seconds and shows them back as HH:MM', function
         ]);
 });
 
+test('filters the schedule table by class', function () {
+    $this->actingAs(jadwalPeriodUser('ViewAny:JadwalPelajaran'));
+    $mtsClass = KelasFactory::new()->create(['nama_kelas' => 'VII A', 'unit' => 'MTs']);
+    $maClass = KelasFactory::new()->create(['nama_kelas' => 'X IPA', 'unit' => 'MA']);
+    $mtsSchedule = JadwalPelajaranFactory::new()->create(['kelas_id' => $mtsClass->id]);
+    $maSchedule = JadwalPelajaranFactory::new()->create(['kelas_id' => $maClass->id]);
+
+    Livewire::test(ListJadwalPelajarans::class)
+        ->assertSee('VII A (MTs)')
+        ->assertSee('X IPA (MA)')
+        ->filterTable('kelas_id', $mtsClass->id)
+        ->assertCanSeeTableRecords([$mtsSchedule])
+        ->assertCanNotSeeTableRecords([$maSchedule])
+        ->filterTable('kelas_id', null)
+        ->assertCanSeeTableRecords([$mtsSchedule, $maSchedule]);
+});
+
 test('filters the schedule table by semester and academic year', function () {
     $this->actingAs(jadwalPeriodUser('ViewAny:JadwalPelajaran'));
     $oldClass = KelasFactory::new()->create(['nama_kelas' => 'Kelas Genap Lama']);
     $activeClass = KelasFactory::new()->create(['nama_kelas' => 'Kelas Ganjil Baru']);
-    JadwalPelajaranFactory::new()->create(['kelas_id' => $oldClass->id, 'semester' => 'Genap', 'tahun_ajaran' => '2025/2026']);
-    JadwalPelajaranFactory::new()->create(['kelas_id' => $activeClass->id, 'semester' => 'Ganjil', 'tahun_ajaran' => '2026/2027']);
+    $oldSchedule = JadwalPelajaranFactory::new()->create(['kelas_id' => $oldClass->id, 'semester' => 'Genap', 'tahun_ajaran' => '2025/2026']);
+    $activeSchedule = JadwalPelajaranFactory::new()->create(['kelas_id' => $activeClass->id, 'semester' => 'Ganjil', 'tahun_ajaran' => '2026/2027']);
 
     Livewire::test(ListJadwalPelajarans::class)
         ->assertSeeHtml('jadwal-filter-bar')
         ->assertDontSee('Terapkan filter')
-        ->assertSee('Kelas Genap Lama')->assertSee('Kelas Ganjil Baru')
+        ->assertCanSeeTableRecords([$oldSchedule, $activeSchedule])
         ->filterTable('semester', 'Ganjil')
-        ->assertSee('Kelas Ganjil Baru')->assertDontSee('Kelas Genap Lama')
+        ->assertCanSeeTableRecords([$activeSchedule])
+        ->assertCanNotSeeTableRecords([$oldSchedule])
         ->filterTable('semester', null)
         ->filterTable('tahun_ajaran', '2025/2026')
-        ->assertSee('Kelas Genap Lama')->assertDontSee('Kelas Ganjil Baru');
+        ->assertCanSeeTableRecords([$oldSchedule])
+        ->assertCanNotSeeTableRecords([$activeSchedule]);
 });

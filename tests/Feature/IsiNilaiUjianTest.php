@@ -19,6 +19,7 @@ use Illuminate\Foundation\Testing\LazilyRefreshDatabase;
 use Livewire\Features\SupportLockedProperties\CannotUpdateLockedPropertyException;
 use Livewire\Features\SupportTesting\Testable;
 use Livewire\Livewire;
+use Spatie\Permission\Models\Role;
 
 uses(LazilyRefreshDatabase::class);
 
@@ -267,9 +268,12 @@ test('updates scores without duplicates and keeps the first recorded time', func
         ->set('nilai.0.'.$student->id, 70)
         ->call('simpan')->assertHasNoErrors();
     $exam = NilaiUjian::query()->sole();
+    $komponen = $exam->komponens()->sole();
     $this->travelTo(CarbonImmutable::parse('2026-10-19 11:30:00', 'Asia/Jakarta'));
 
     nilaiUjianPage($class->id, $subject->id)
+        ->assertSet('komponenTerkunci.0', false)
+        ->assertSee('Dapat diedit sampai 20 Oktober 2026, 10.00.')
         ->set('nilai.0.'.$student->id, 95)
         ->call('simpan')->assertHasNoErrors();
 
@@ -279,9 +283,168 @@ test('updates scores without duplicates and keeps the first recorded time', func
     $this->assertDatabaseHas('nilai_ujians', [
         'id' => $exam->id, 'revisi' => 2, 'dicatat_pada' => '2026-10-19 10:00:00',
     ]);
+    $this->assertDatabaseHas('nilai_ujian_komponens', [
+        'id' => $komponen->id, 'dicatat_pada' => '2026-10-19 10:00:00',
+    ]);
     $this->assertDatabaseHas('nilai_ujian_nilais', [
         'murid_id' => $student->id, 'nilai' => 95,
     ]);
+});
+
+test('locks a component after 24 hours but still allows a new component', function () {
+    $teacher = nilaiUjianTeacher();
+    $subject = MataPelajaranFactory::new()->create();
+    $class = KelasFactory::new()->create();
+    nilaiUjianSchedule($teacher, $subject, $class->id);
+    $student = MuridFactory::new()->create(['kelas_id' => $class->id]);
+    $this->actingAs($teacher->user);
+    nilaiUjianPage($class->id, $subject->id)
+        ->set('komponens.0.nama', 'UTS')
+        ->set('nilai.0.'.$student->id, 70)
+        ->call('simpan')->assertHasNoErrors();
+    $exam = NilaiUjian::query()->sole();
+    $uts = $exam->komponens()->sole();
+    $this->travelTo(CarbonImmutable::parse('2026-10-20 10:00:01', 'Asia/Jakarta'));
+
+    nilaiUjianPage($class->id, $subject->id)
+        ->assertSet('komponenTerkunci.0', true)
+        ->assertSee('Terkunci')
+        ->assertDontSee('Dapat diedit sampai');
+
+    nilaiUjianPage($class->id, $subject->id)
+        ->call('tambahKomponen')
+        ->assertSet('komponenIds.1', null)
+        ->assertSet('komponenTerkunci.1', false)
+        ->set('komponens.1.nama', 'UAS')
+        ->set('nilai.1.'.$student->id, 90)
+        ->call('simpan')
+        ->assertHasNoErrors()
+        ->assertNotified('Nilai ujian tersimpan');
+
+    $this->assertDatabaseCount('nilai_ujian_komponens', 2);
+    $this->assertDatabaseHas('nilai_ujian_komponens', [
+        'id' => $uts->id, 'nama' => 'UTS', 'urutan' => 1, 'dicatat_pada' => '2026-10-19 10:00:00',
+    ]);
+    $this->assertDatabaseHas('nilai_ujian_komponens', [
+        'nama' => 'UAS', 'urutan' => 2, 'dicatat_pada' => '2026-10-20 10:00:01',
+    ]);
+    $this->assertDatabaseHas('nilai_ujian_nilais', ['murid_id' => $student->id, 'nilai' => 70]);
+    $this->assertDatabaseHas('nilai_ujian_nilais', ['murid_id' => $student->id, 'nilai' => 90]);
+});
+
+test('rejects changes to a locked component', function () {
+    $teacher = nilaiUjianTeacher();
+    $subject = MataPelajaranFactory::new()->create();
+    $class = KelasFactory::new()->create();
+    nilaiUjianSchedule($teacher, $subject, $class->id);
+    $student = MuridFactory::new()->create(['kelas_id' => $class->id]);
+    $exam = nilaiUjianExam($teacher, $subject, $class->id);
+    $komponen = $exam->komponens()->create([
+        'nama' => 'UTS',
+        'urutan' => 1,
+        'dicatat_pada' => now()->subDays(2),
+    ]);
+    NilaiUjianNilai::query()->create([
+        'nilai_ujian_komponen_id' => $komponen->id,
+        'murid_id' => $student->id,
+        'nama_murid' => $student->nama,
+        'nis' => $student->nis,
+        'nilai' => 70,
+    ]);
+    $this->actingAs($teacher->user);
+
+    nilaiUjianPage($class->id, $subject->id)
+        ->assertSet('komponenTerkunci.0', true)
+        ->set('nilai.0.'.$student->id, 95)
+        ->call('simpan')
+        ->assertHasErrors(['komponens'])
+        ->assertSee('sudah terkunci karena melewati 24 jam.')
+        ->assertNotNotified();
+
+    $this->assertDatabaseHas('nilai_ujian_nilais', ['murid_id' => $student->id, 'nilai' => 70]);
+    $this->assertDatabaseMissing('nilai_ujian_nilais', ['murid_id' => $student->id, 'nilai' => 95]);
+});
+
+test('rejects deleting a locked component', function () {
+    $teacher = nilaiUjianTeacher();
+    $subject = MataPelajaranFactory::new()->create();
+    $class = KelasFactory::new()->create();
+    nilaiUjianSchedule($teacher, $subject, $class->id);
+    MuridFactory::new()->create(['kelas_id' => $class->id]);
+    $this->actingAs($teacher->user);
+    nilaiUjianPage($class->id, $subject->id)
+        ->set('komponens', [['nama' => 'UTS'], ['nama' => 'UAS']])
+        ->call('simpan')->assertHasNoErrors();
+    $this->travelTo(CarbonImmutable::parse('2026-10-20 10:00:01', 'Asia/Jakarta'));
+
+    nilaiUjianPage($class->id, $subject->id)
+        ->call('hapusKomponen', 0)
+        ->assertHasErrors(['komponens'])
+        ->assertSee('tidak dapat dihapus.');
+
+    $this->assertDatabaseCount('nilai_ujian_komponens', 2);
+});
+
+test('lets an administrator edit a locked component', function () {
+    $teacher = nilaiUjianTeacher();
+    $teacher->user->assignRole(Role::findOrCreate('admin', 'web'));
+    $subject = MataPelajaranFactory::new()->create();
+    $class = KelasFactory::new()->create();
+    nilaiUjianSchedule($teacher, $subject, $class->id);
+    $student = MuridFactory::new()->create(['kelas_id' => $class->id]);
+    $exam = nilaiUjianExam($teacher, $subject, $class->id);
+    $dicatat = now()->subDays(2)->startOfSecond();
+    $komponen = $exam->komponens()->create([
+        'nama' => 'UTS',
+        'urutan' => 1,
+        'dicatat_pada' => $dicatat,
+    ]);
+    NilaiUjianNilai::query()->create([
+        'nilai_ujian_komponen_id' => $komponen->id,
+        'murid_id' => $student->id,
+        'nama_murid' => $student->nama,
+        'nis' => $student->nis,
+        'nilai' => 70,
+    ]);
+    $this->actingAs($teacher->user);
+
+    nilaiUjianPage($class->id, $subject->id)
+        ->assertSet('komponenTerkunci.0', false)
+        ->assertDontSee('Terkunci')
+        ->assertDontSee('Dapat diedit sampai')
+        ->set('nilai.0.'.$student->id, 95)
+        ->call('simpan')->assertHasNoErrors();
+
+    $this->assertDatabaseHas('nilai_ujian_nilais', ['murid_id' => $student->id, 'nilai' => 95]);
+    $this->assertDatabaseHas('nilai_ujian_komponens', [
+        'id' => $komponen->id,
+        'dicatat_pada' => $dicatat->toDateTimeString(),
+    ]);
+});
+
+test('lets an administrator delete a locked component', function () {
+    $teacher = nilaiUjianTeacher();
+    $teacher->user->assignRole(Role::findOrCreate('admin', 'web'));
+    $subject = MataPelajaranFactory::new()->create();
+    $class = KelasFactory::new()->create();
+    nilaiUjianSchedule($teacher, $subject, $class->id);
+    MuridFactory::new()->create(['kelas_id' => $class->id]);
+    $exam = nilaiUjianExam($teacher, $subject, $class->id);
+    $exam->komponens()->create(['nama' => 'UTS', 'urutan' => 1, 'dicatat_pada' => now()->subDays(2)]);
+    $uas = $exam->komponens()->create(['nama' => 'UAS', 'urutan' => 2, 'dicatat_pada' => now()->subDays(2)]);
+    $this->actingAs($teacher->user);
+
+    nilaiUjianPage($class->id, $subject->id)
+        ->call('hapusKomponen', 0)
+        ->assertHasNoErrors()
+        ->assertSet('komponens.0.nama', 'UAS')
+        ->call('simpan')->assertHasNoErrors();
+
+    $this->assertDatabaseCount('nilai_ujian_komponens', 1);
+    $this->assertDatabaseHas('nilai_ujian_komponens', [
+        'id' => $uas->id, 'nama' => 'UAS', 'urutan' => 1,
+    ]);
+    $this->assertDatabaseMissing('nilai_ujian_komponens', ['nama' => 'UTS']);
 });
 
 test('rejects a blank exam name without saving', function () {
@@ -300,6 +463,61 @@ test('rejects a blank exam name without saving', function () {
         ->assertNotNotified();
 
     $this->assertDatabaseCount('nilai_ujians', 0);
+});
+
+test('lets an administrator without a teacher profile correct a locked exam', function () {
+    $teacher = nilaiUjianTeacher(['user_id' => User::factory()->create(['name' => 'Guru Pemilik'])->id]);
+    $subject = MataPelajaranFactory::new()->create();
+    $class = KelasFactory::new()->create();
+    nilaiUjianSchedule($teacher, $subject, $class->id);
+    $student = MuridFactory::new()->create(['kelas_id' => $class->id]);
+    $exam = nilaiUjianExam($teacher, $subject, $class->id);
+    $komponen = $exam->komponens()->create([
+        'nama' => 'UTS',
+        'urutan' => 1,
+        'dicatat_pada' => now()->subDays(2),
+    ]);
+    NilaiUjianNilai::query()->create([
+        'nilai_ujian_komponen_id' => $komponen->id,
+        'murid_id' => $student->id,
+        'nama_murid' => $student->nama,
+        'nis' => $student->nis,
+        'nilai' => 70,
+    ]);
+    $this->actingAs(adminPanelUser('View:InputNilaiUjian'));
+
+    nilaiUjianPage($class->id, $subject->id)
+        ->assertOk()
+        ->assertSet('komponenTerkunci.0', false)
+        ->assertSee('Guru Pemilik')
+        ->set('nilai.0.'.$student->id, 95)
+        ->call('simpan')->assertHasNoErrors();
+
+    $this->assertDatabaseHas('nilai_ujian_nilais', ['murid_id' => $student->id, 'nilai' => 95]);
+    $this->assertDatabaseHas('nilai_ujians', [
+        'id' => $exam->id,
+        'guru_id' => $teacher->id,
+        'pencatat_id' => $teacher->user_id,
+    ]);
+});
+
+test('records an administrator created exam under the teacher', function () {
+    $teacher = nilaiUjianTeacher();
+    $subject = MataPelajaranFactory::new()->create();
+    $class = KelasFactory::new()->create();
+    nilaiUjianSchedule($teacher, $subject, $class->id);
+    $student = MuridFactory::new()->create(['kelas_id' => $class->id]);
+    $this->actingAs(adminPanelUser('View:InputNilaiUjian'));
+
+    nilaiUjianPage($class->id, $subject->id)
+        ->set('komponens.0.nama', 'UTS')
+        ->set('nilai.0.'.$student->id, 88)
+        ->call('simpan')->assertHasNoErrors();
+
+    $exam = NilaiUjian::query()->sole();
+
+    expect($exam->guru_id)->toBe($teacher->id)
+        ->and($exam->pencatat_id)->toBe($teacher->user_id);
 });
 
 test('rejects an exam name longer than 100 characters', function () {

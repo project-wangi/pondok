@@ -7,6 +7,7 @@ use App\Models\Kelas;
 use App\Models\MataPelajaran;
 use App\Models\Murid;
 use App\Models\NilaiUjian;
+use App\Models\NilaiUjianKomponen;
 use BackedEnum;
 use Filament\Facades\Filament;
 use Filament\Notifications\Notification;
@@ -23,6 +24,8 @@ use Livewire\Attributes\Locked;
 class IsiNilaiUjian extends Page
 {
     private const MAX_KOMPONEN = 10;
+
+    private const BATAS_EDIT_JAM = 24;
 
     protected static bool $shouldRegisterNavigation = false;
 
@@ -47,6 +50,14 @@ class IsiNilaiUjian extends Page
     /** @var array<int, array{nama: string}> */
     public array $komponens = [];
 
+    /** @var array<int, int|null> */
+    #[Locked]
+    public array $komponenIds = [];
+
+    /** @var array<int, bool> */
+    #[Locked]
+    public array $komponenTerkunci = [];
+
     /** @var array<int, array<int, int|string|null>> */
     public array $nilai = [];
 
@@ -62,7 +73,9 @@ class IsiNilaiUjian extends Page
     {
         $user = Filament::auth()->user();
 
-        return $user !== null && $user->guru()->exists() && $user->can('View:InputNilaiUjian');
+        return $user !== null
+            && $user->can('View:InputNilaiUjian')
+            && ($user->isAdministrator() || $user->guru()->exists());
     }
 
     public function mount(int $kelas, int $mapel): void
@@ -85,6 +98,8 @@ class IsiNilaiUjian extends Page
 
         $index = count($this->komponens);
         $this->komponens[$index] = ['nama' => ''];
+        $this->komponenIds[$index] = null;
+        $this->komponenTerkunci[$index] = false;
 
         foreach ($this->students() as $student) {
             $this->nilai[$index][$student->id] = null;
@@ -97,14 +112,25 @@ class IsiNilaiUjian extends Page
     public function hapusKomponen(int $index): void
     {
         $this->assertTeachesClassSubject();
-        unset($this->komponens[$index], $this->nilai[$index], $this->catatan[$index]);
+
+        if ($this->komponenTerkunci[$index] ?? false) {
+            throw ValidationException::withMessages([
+                'komponens' => $this->namaKomponen($index).' sudah terkunci karena melewati '.self::BATAS_EDIT_JAM.' jam sehingga tidak dapat dihapus.',
+            ]);
+        }
+
+        unset($this->komponens[$index], $this->komponenIds[$index], $this->komponenTerkunci[$index], $this->nilai[$index], $this->catatan[$index]);
         $this->komponens = array_values($this->komponens);
+        $this->komponenIds = array_values($this->komponenIds);
+        $this->komponenTerkunci = array_values($this->komponenTerkunci);
         $this->nilai = array_values($this->nilai);
         $this->catatan = array_values($this->catatan);
 
         if ($this->komponens === []) {
             $students = $this->students();
             $this->komponens = [['nama' => '']];
+            $this->komponenIds = [null];
+            $this->komponenTerkunci = [false];
 
             foreach ($students as $student) {
                 $this->nilai[0][$student->id] = null;
@@ -129,7 +155,7 @@ class IsiNilaiUjian extends Page
             }
 
             $exam = $this->examFor(lock: true);
-            abort_if($exam !== null && $exam->pencatat_id !== Filament::auth()->id(), 403);
+            abort_if(! $this->isAdmin() && $exam !== null && $exam->pencatat_id !== Filament::auth()->id(), 403);
 
             if ($exam?->revisi !== $this->revisi) {
                 throw ValidationException::withMessages(['komponens' => 'Nilai telah diperbarui dari halaman lain. Muat ulang halaman sebelum menyimpan.']);
@@ -168,7 +194,9 @@ class IsiNilaiUjian extends Page
                     'guru_id' => $schedule->guru_id,
                     'kelas_id' => $schedule->kelas_id,
                     'mata_pelajaran_id' => (int) $schedule->mata_pelajaran,
-                    'pencatat_id' => Filament::auth()->id(),
+                    'pencatat_id' => $this->isAdmin()
+                        ? $schedule->guru->user_id
+                        : Filament::auth()->id(),
                     'revisi' => 1,
                     'semester' => $schedule->semester,
                     'tahun_ajaran' => $schedule->tahun_ajaran,
@@ -181,41 +209,7 @@ class IsiNilaiUjian extends Page
                 $exam->increment('revisi');
             }
 
-            $exam->komponens()->delete();
-            $now = now();
-
-            foreach ($components['komponens'] as $index => $component) {
-                $komponen = $exam->komponens()->create([
-                    'nama' => $component['nama'],
-                    'urutan' => $index + 1,
-                ]);
-
-                $records = [];
-
-                foreach ($students as $student) {
-                    $score = $scores['nilai'][$index][$student->id] ?? null;
-                    $note = $scores['catatan'][$index][$student->id] ?? null;
-
-                    if ($score === null && $note === null) {
-                        continue;
-                    }
-
-                    $records[] = [
-                        'nilai_ujian_komponen_id' => $komponen->id,
-                        'murid_id' => $student->id,
-                        'nama_murid' => $student->nama,
-                        'nis' => $student->nis,
-                        'nilai' => $score,
-                        'catatan' => $note,
-                        'created_at' => $now,
-                        'updated_at' => $now,
-                    ];
-                }
-
-                if ($records !== []) {
-                    $komponen->nilais()->insert($records);
-                }
-            }
+            $this->simpanKomponen($exam, $students, $components['komponens'], $scores['nilai'], $scores['catatan']);
         }, attempts: 3);
 
         $this->loadNilai();
@@ -242,10 +236,11 @@ class IsiNilaiUjian extends Page
             'averages' => $this->averages($students),
             'maleCount' => $male,
             'femaleCount' => $female,
-            'guruName' => Filament::auth()->user()?->name,
+            'guruName' => $this->namaGuruPenilai(),
             'period' => $period,
             'componentCount' => count($this->komponens),
             'maxKomponen' => self::MAX_KOMPONEN,
+            'batasEdit' => $this->batasEdit(),
             'backUrl' => InputNilaiUjian::getUrl(),
         ];
     }
@@ -262,11 +257,24 @@ class IsiNilaiUjian extends Page
         $period = JadwalPelajaran::activePeriod();
 
         return JadwalPelajaran::query()
-            ->where('guru_id', Filament::auth()->user()?->guru()->value('id'))
+            ->when(! $this->isAdmin(), fn (Builder $query): Builder => $query->where(
+                'guru_id', Filament::auth()->user()?->guru()->value('id'),
+            ))
             ->forPeriod($period['semester'], $period['tahun_ajaran'])
             ->where('kelas_id', $this->kelasId)
             ->where('mata_pelajaran', $this->mataPelajaranId)
             ->with(['kelas', 'mataPelajaran', 'guru.user']);
+    }
+
+    private function guruUjianId(): ?int
+    {
+        if (! $this->isAdmin()) {
+            return Filament::auth()->user()?->guru()->value('id');
+        }
+
+        $guruId = $this->scheduleQuery()->value('guru_id');
+
+        return $guruId === null ? null : (int) $guruId;
     }
 
     private function examFor(bool $lock = false): ?NilaiUjian
@@ -274,7 +282,7 @@ class IsiNilaiUjian extends Page
         $period = JadwalPelajaran::activePeriod();
 
         return NilaiUjian::query()
-            ->where('guru_id', Filament::auth()->user()?->guru()->value('id'))
+            ->where('guru_id', $this->guruUjianId())
             ->where('kelas_id', $this->kelasId)
             ->where('mata_pelajaran_id', $this->mataPelajaranId)
             ->where('semester', $period['semester'])
@@ -294,16 +302,20 @@ class IsiNilaiUjian extends Page
     {
         $students = $this->students();
         $exam = $this->examFor();
-        abort_if($exam !== null && $exam->pencatat_id !== Filament::auth()->id(), 403);
+        abort_if(! $this->isAdmin() && $exam !== null && $exam->pencatat_id !== Filament::auth()->id(), 403);
         $this->nilaiUjianId = $exam?->id;
         $this->revisi = $exam?->revisi;
         $this->komponens = [];
+        $this->komponenIds = [];
+        $this->komponenTerkunci = [];
         $this->nilai = [];
         $this->catatan = [];
 
         foreach ($exam?->komponens ?? [] as $komponen) {
             $index = count($this->komponens);
             $this->komponens[$index] = ['nama' => $komponen->nama];
+            $this->komponenIds[$index] = $komponen->id;
+            $this->komponenTerkunci[$index] = $this->sudahTerkunci($komponen);
 
             foreach ($students as $student) {
                 $this->nilai[$index][$student->id] = null;
@@ -320,6 +332,8 @@ class IsiNilaiUjian extends Page
 
         if ($this->komponens === []) {
             $this->komponens = [['nama' => '']];
+            $this->komponenIds = [null];
+            $this->komponenTerkunci = [false];
 
             foreach ($students as $student) {
                 $this->nilai[0][$student->id] = null;
@@ -390,5 +404,195 @@ class IsiNilaiUjian extends Page
         }
 
         return $averages;
+    }
+
+    /**
+     * Simpan komponen sesuai batas 24 jam: komponen terkunci tidak disentuh,
+     * komponen baru tetap boleh ditambahkan.
+     *
+     * @param  array<int, array{nama: string}>  $komponens
+     * @param  array<int, array<int, int|null>>  $nilai
+     * @param  array<int, array<int, string|null>>  $catatan
+     */
+    private function simpanKomponen(
+        NilaiUjian $exam,
+        Collection $students,
+        array $komponens,
+        array $nilai,
+        array $catatan,
+    ): void {
+        $existing = $exam->komponens()->with('nilais')->get()->keyBy('id');
+        $ids = [];
+
+        foreach (array_keys($komponens) as $index) {
+            $id = $this->komponenIds[$index] ?? null;
+            abort_unless($id === null || $existing->has((int) $id), 403);
+            $ids[$index] = $id === null ? null : (int) $id;
+        }
+
+        $submitted = array_filter($ids);
+
+        // Komponen terkunci tidak boleh hilang dari kiriman halaman.
+        foreach ($existing as $komponen) {
+            if ($this->sudahTerkunci($komponen) && ! in_array($komponen->id, $submitted, true)) {
+                throw ValidationException::withMessages([
+                    'komponens' => $komponen->nama.' sudah terkunci karena melewati '.self::BATAS_EDIT_JAM.' jam sehingga tidak dapat dihapus.',
+                ]);
+            }
+        }
+
+        // Hapus komponen yang dilepas pada halaman, lalu rapikan urutannya.
+        foreach ($existing as $komponen) {
+            if (! in_array($komponen->id, $submitted, true)) {
+                $komponen->delete();
+            }
+        }
+
+        $now = now();
+
+        foreach ($komponens as $index => $component) {
+            $record = $ids[$index] === null ? null : $existing->get($ids[$index]);
+
+            if ($record !== null && $this->sudahTerkunci($record)) {
+                $this->pastikanKomponenTerkunciTetap($record, $index, $component['nama'], $students, $nilai, $catatan);
+                $record->update(['urutan' => $index + 1]);
+
+                continue;
+            }
+
+            if ($record === null) {
+                $record = $exam->komponens()->create([
+                    'nama' => $component['nama'],
+                    'urutan' => $index + 1,
+                    'dicatat_pada' => $now,
+                ]);
+            } else {
+                $record->update(['nama' => $component['nama'], 'urutan' => $index + 1]);
+                $record->nilais()->delete();
+            }
+
+            $records = [];
+
+            foreach ($students as $student) {
+                $score = $nilai[$index][$student->id] ?? null;
+                $note = $catatan[$index][$student->id] ?? null;
+
+                if ($score === null && $note === null) {
+                    continue;
+                }
+
+                $records[] = [
+                    'nilai_ujian_komponen_id' => $record->id,
+                    'murid_id' => $student->id,
+                    'nama_murid' => $student->nama,
+                    'nis' => $student->nis,
+                    'nilai' => $score,
+                    'catatan' => $note,
+                    'created_at' => $now,
+                    'updated_at' => $now,
+                ];
+            }
+
+            if ($records !== []) {
+                $record->nilais()->insert($records);
+            }
+        }
+    }
+
+    /**
+     * @param  array<int, array<int, int|null>>  $nilai
+     * @param  array<int, array<int, string|null>>  $catatan
+     */
+    private function pastikanKomponenTerkunciTetap(
+        NilaiUjianKomponen $komponen,
+        int $index,
+        string $nama,
+        Collection $students,
+        array $nilai,
+        array $catatan,
+    ): void {
+        $tersimpan = $komponen->nilais->keyBy('murid_id');
+        $berubah = trim($nama) !== $komponen->nama;
+
+        foreach ($students as $student) {
+            if ($berubah) {
+                break;
+            }
+
+            $row = $tersimpan->get($student->id);
+            $score = $nilai[$index][$student->id] ?? null;
+            $note = $catatan[$index][$student->id] ?? null;
+
+            $berubah = $row === null
+                ? $score !== null || $note !== null
+                : $row->nilai !== $score || $row->catatan !== $note;
+        }
+
+        if ($berubah) {
+            throw ValidationException::withMessages([
+                'komponens' => $komponen->nama.' sudah terkunci karena melewati '.self::BATAS_EDIT_JAM.' jam. Nilai, catatan, dan namanya tidak dapat diubah. Tambahkan ujian baru bila perlu.',
+            ]);
+        }
+    }
+
+    private function sudahTerkunci(NilaiUjianKomponen $komponen): bool
+    {
+        if ($this->isAdmin()) {
+            return false;
+        }
+
+        return $komponen->dicatat_pada !== null
+            && $komponen->dicatat_pada->copy()->addHours(self::BATAS_EDIT_JAM)->lessThanOrEqualTo(now());
+    }
+
+    private function isAdmin(): bool
+    {
+        return (bool) Filament::auth()->user()?->isAdministrator();
+    }
+
+    /**
+     * Nama guru pemilik jadwal, bukan nama admin yang sedang mengoreksi.
+     */
+    private function namaGuruPenilai(): ?string
+    {
+        if (! $this->isAdmin()) {
+            return Filament::auth()->user()?->name;
+        }
+
+        return $this->scheduleQuery()->first()?->guru?->user?->name;
+    }
+
+    private function namaKomponen(int $index): string
+    {
+        $nama = trim((string) ($this->komponens[$index]['nama'] ?? ''));
+
+        return $nama !== '' ? $nama : 'Ujian '.($index + 1);
+    }
+
+    /** @return array<int, string|null> */
+    private function batasEdit(): array
+    {
+        if ($this->isAdmin()) {
+            return [];
+        }
+
+        $exam = $this->examFor();
+        $komponenById = $exam?->komponens->keyBy('id') ?? collect();
+        $batas = [];
+
+        foreach (array_keys($this->komponens) as $index) {
+            $id = $this->komponenIds[$index] ?? null;
+            $komponen = $id === null ? null : $komponenById->get($id);
+            $terkunci = $this->komponenTerkunci[$index] ?? false;
+
+            $batas[$index] = $komponen?->dicatat_pada === null || $terkunci
+                ? null
+                : $komponen->dicatat_pada->copy()
+                    ->addHours(self::BATAS_EDIT_JAM)
+                    ->locale('id')
+                    ->translatedFormat('d F Y, H.i');
+        }
+
+        return $batas;
     }
 }

@@ -73,7 +73,7 @@ test('shows an empty state when there is no teaching schedule', function () {
         ->assertSee('Tidak ada kelas atau mata pelajaran yang diajar pada semester Ganjil tahun ajaran 2026/2027.');
 });
 
-test('lists class and subject rows with real counts status and links', function () {
+test('lists class cards then subject rows with real counts status and links', function () {
     $teacher = nilaiUjianOverviewTeacher();
     $subject = MataPelajaranFactory::new()->create(['nama_mapel' => 'Matematika']);
     $emptySubject = MataPelajaranFactory::new()->create(['nama_mapel' => 'Bahasa Arab']);
@@ -107,26 +107,46 @@ test('lists class and subject rows with real counts status and links', function 
     $this->actingAs($teacher->user);
 
     $page = Livewire::test(InputNilaiUjian::class)
-        ->assertSee('Kelas A')->assertSee('Kelas B')->assertSee('Matematika')->assertSee('Bahasa Arab')
+        ->assertOk()
+        ->assertSet('kelasId', null)
+        ->assertSee('Pilih kelas')
+        ->assertSee('Kelas A')->assertSee('Kelas B')
         ->assertDontSee('Mapel Semester Lama')->assertDontSee('Mapel Guru Lain')
-        ->assertSee('Sebagian')->assertSee('Belum ada ujian')
-        ->assertSeeHtml('href="'.e(IsiNilaiUjian::getUrl(['kelas' => $classA->id, 'mapel' => $subject->id])).'"')
-        ->assertSeeHtml('href="'.e(IsiNilaiUjian::getUrl(['kelas' => $classB->id, 'mapel' => $subject->id])).'"')
         ->assertDontSeeHtml('wire:submit="simpan"');
 
+    $kelasList = $page->viewData('kelasList');
+    $cardA = $kelasList->firstWhere('kelas.id', $classA->id);
+
+    expect($kelasList)->toHaveCount(2)
+        ->and($cardA['jumlah_mapel'])->toBe(2)
+        ->and($cardA['jumlah_siswa'])->toBe(2);
+
+    $page->call('pilihKelas', $classA->id)
+        ->assertSet('kelasId', $classA->id)
+        ->assertSee('Mata pelajaran kelas Kelas A')
+        ->assertSee('Matematika')->assertSee('Bahasa Arab')
+        ->assertSee('Sebagian')->assertSee('Belum ada ujian')
+        ->assertSeeHtml('href="'.e(IsiNilaiUjian::getUrl(['kelas' => $classA->id, 'mapel' => $subject->id])).'"');
+
     $rows = $page->viewData('rows');
-
-    expect($rows)->toHaveCount(3);
-
     $filled = $rows->first(fn (array $row): bool => $row['kelas']->id === $classA->id && $row['subject']->id === $subject->id);
-    $withoutExam = $rows->first(fn (array $row): bool => $row['kelas']->id === $classB->id && $row['subject']->id === $subject->id);
+    $withoutExam = $rows->first(fn (array $row): bool => $row['kelas']->id === $classA->id && $row['subject']->id === $emptySubject->id);
 
-    expect($filled['student_count'])->toBe(2)
+    expect($rows)->toHaveCount(2)
+        ->and($filled['student_count'])->toBe(2)
         ->and($filled['component_count'])->toBe(1)
         ->and($filled['filled_count'])->toBe(1)
         ->and($filled['possible_count'])->toBe(2)
         ->and($withoutExam['component_count'])->toBe(0)
         ->and($withoutExam['filled_count'])->toBe(0);
+
+    $page->call('kembaliKeDaftarKelas')
+        ->assertSet('kelasId', null)
+        ->assertSee('Pilih kelas');
+
+    $page->call('pilihKelas', $classB->id)
+        ->assertSee('Mata pelajaran kelas Kelas B')
+        ->assertSeeHtml('href="'.e(IsiNilaiUjian::getUrl(['kelas' => $classB->id, 'mapel' => $subject->id])).'"');
 });
 
 test('shows the score completion status from stored exams', function () {
@@ -153,6 +173,44 @@ test('shows the score completion status from stored exams', function () {
     $this->actingAs($teacher->user);
 
     Livewire::test(InputNilaiUjian::class)
+        ->call('pilihKelas', $class->id)
         ->assertSee('Lengkap')
         ->assertSee('1/1');
+});
+
+test('shows every teaching schedule to an administrator', function () {
+    $firstTeacher = nilaiUjianOverviewTeacher();
+    $secondTeacher = nilaiUjianOverviewTeacher();
+    $matematika = MataPelajaranFactory::new()->create(['nama_mapel' => 'Matematika']);
+    $fiqih = MataPelajaranFactory::new()->create(['nama_mapel' => 'Fiqih']);
+    $classA = KelasFactory::new()->create(['nama_kelas' => 'Kelas A']);
+    $classB = KelasFactory::new()->create(['nama_kelas' => 'Kelas B']);
+    nilaiUjianOverviewSchedule($firstTeacher, $matematika, $classA->id);
+    nilaiUjianOverviewSchedule($secondTeacher, $fiqih, $classB->id);
+    MuridFactory::new()->create(['kelas_id' => $classA->id]);
+    MuridFactory::new()->create(['kelas_id' => $classB->id]);
+
+    $this->actingAs(adminPanelUser('View:InputNilaiUjian'));
+
+    Livewire::test(InputNilaiUjian::class)
+        ->assertOk()
+        ->assertSee('Kelas A')->assertSee('Kelas B')
+        ->call('pilihKelas', $classB->id)
+        ->assertSee('Mata pelajaran kelas Kelas B')
+        ->assertSee('Fiqih')
+        ->assertDontSee('Matematika')
+        ->assertSeeHtml('href="'.e(IsiNilaiUjian::getUrl(['kelas' => $classB->id, 'mapel' => $fiqih->id])).'"');
+});
+
+test('forbids opening a class outside the schedule', function () {
+    $teacher = nilaiUjianOverviewTeacher();
+    $subject = MataPelajaranFactory::new()->create();
+    $class = KelasFactory::new()->create();
+    $otherClass = KelasFactory::new()->create();
+    nilaiUjianOverviewSchedule($teacher, $subject, $class->id);
+    $this->actingAs($teacher->user);
+
+    Livewire::test(InputNilaiUjian::class)
+        ->call('pilihKelas', $otherClass->id)
+        ->assertForbidden();
 });
