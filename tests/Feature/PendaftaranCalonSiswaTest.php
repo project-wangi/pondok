@@ -144,6 +144,17 @@ test('registers a candidate and emails the login credentials', function () {
     });
 });
 
+test('shows the registration success page after the email is sent', function () {
+    Mail::fake();
+
+    $this->post(route('pendaftaran.store'), calonPayload());
+
+    $this->get(route('pendaftaran.sukses'))
+        ->assertOk()
+        ->assertSee('Pendaftaran Berhasil Dikirim')
+        ->assertSee('ahmad.calon@example.test');
+});
+
 test('does not store the registration when the confirmation email fails', function () {
     Mail::shouldReceive('to')
         ->once()

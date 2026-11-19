@@ -103,6 +103,7 @@ class PendaftaranController extends Controller
         }
 
         return view('school.pendaftaran.sukses', [
+            'settings' => SiteSetting::current(),
             'nomor' => $request->session()->get('pendaftaran_nomor'),
             'email' => $request->session()->get('pendaftaran_email'),
         ]);
