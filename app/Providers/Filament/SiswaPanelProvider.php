@@ -35,7 +35,8 @@ class SiswaPanelProvider extends PanelProvider
             ->brandLogoHeight('2.5rem')
             ->favicon(fn (): ?string => SiteSetting::current()->logoUrl())
             ->colors([
-                'primary' => Color::Blue,
+                'primary' => Color::hex('#0f6b6b'),
+                'gray' => Color::Stone,
             ])
             ->renderHook(
                 PanelsRenderHook::AUTH_LOGIN_FORM_AFTER,

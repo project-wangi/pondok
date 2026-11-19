@@ -1,5 +1,61 @@
 /* Tema panel calon siswa ------------------------------------- */
 
+.fi {
+    --pondok-background: #f8f6f1; /* Latar halaman (kertas) */
+    --pondok-navigation: #ffffff; /* Header dan panel */
+    --pondok-border: #e3ddd3;     /* Garis pembatas */
+    --pondok-active: #efeae3;     /* Hover dan state aktif */
+    --pondok-accent: #0f6b6b;     /* Teks aksen */
+}
+
+.fi.dark {
+    --pondok-background: #072322;
+    --pondok-navigation: #0b3230;
+    --pondok-border: #1f4c49;
+    --pondok-active: #123f3d;
+    --pondok-accent: #7cc5c2;
+}
+
+.fi .fi-body {
+    background-color: var(--pondok-background);
+}
+
+.fi .fi-sidebar,
+.fi .fi-sidebar-header,
+.fi .fi-topbar > nav {
+    background-color: var(--pondok-navigation);
+}
+
+.fi .fi-sidebar-header,
+.fi .fi-topbar > nav {
+    border-bottom: 1px solid var(--pondok-border);
+}
+
+.fi .fi-sidebar {
+    border-inline-end: 1px solid var(--pondok-border);
+}
+
+.fi .fi-logo,
+.fi .fi-sidebar-group-label {
+    color: var(--pondok-accent);
+}
+
+.fi .fi-sidebar-item > .fi-sidebar-item-button:hover,
+.fi .fi-sidebar-item.fi-active > .fi-sidebar-item-button {
+    background-color: var(--pondok-active);
+}
+
+.fi .fi-sidebar-item.fi-active .fi-sidebar-item-label,
+.fi .fi-sidebar-item.fi-active .fi-sidebar-item-icon {
+    color: var(--pondok-accent);
+}
+
+.fi .fi-section,
+.fi .fi-ta-ctn,
+.fi .fi-simple-main {
+    --tw-ring-color: var(--pondok-border);
+}
+
 .siswa-panel {
     display: grid;
     gap: 1.25rem;
@@ -23,7 +79,7 @@
 
 .siswa-panel .siswa-label {
     margin: 0;
-    color: var(--gray-500, #6b7280);
+    color: var(--gray-500, #78716c);
     font-size: 0.75rem;
     font-weight: 600;
     letter-spacing: 0.04em;
@@ -32,7 +88,7 @@
 
 .siswa-panel .siswa-nomor {
     margin: 0.2rem 0 0;
-    color: var(--gray-950, #030712);
+    color: var(--gray-950, #0c0a09);
     font-size: 1.25rem;
     font-weight: 700;
     line-height: 1.3;
@@ -41,13 +97,13 @@
 
 .siswa-panel .siswa-text {
     margin: 0.85rem 0 0;
-    color: var(--gray-600, #4b5563);
+    color: var(--gray-600, #57534e);
     font-size: 0.875rem;
     line-height: 1.65;
 }
 
 .siswa-panel .siswa-text strong {
-    color: var(--gray-950, #030712);
+    color: var(--gray-950, #0c0a09);
     font-weight: 600;
 }
 
@@ -71,7 +127,7 @@
 
 .siswa-panel .siswa-item dt {
     margin: 0;
-    color: var(--gray-500, #6b7280);
+    color: var(--gray-500, #78716c);
     font-size: 0.75rem;
     font-weight: 600;
     letter-spacing: 0.04em;
@@ -80,7 +136,7 @@
 
 .siswa-panel .siswa-item dd {
     margin: 0.2rem 0 0;
-    color: var(--gray-950, #030712);
+    color: var(--gray-950, #0c0a09);
     font-size: 0.875rem;
     font-weight: 600;
     overflow-wrap: anywhere;
@@ -100,7 +156,7 @@
     align-items: baseline;
     gap: 0.15rem 0.5rem;
     padding-block-end: 0.5rem;
-    border-block-end: 1px solid var(--gray-200, #e5e7eb);
+    border-block-end: 1px solid var(--gray-200, #e7e5e4);
     font-size: 0.875rem;
 }
 
@@ -110,12 +166,12 @@
 }
 
 .siswa-panel .siswa-doc-name {
-    color: var(--gray-950, #030712);
+    color: var(--gray-950, #0c0a09);
     font-weight: 600;
 }
 
 .siswa-panel .siswa-doc-state {
-    color: var(--gray-500, #6b7280);
+    color: var(--gray-500, #78716c);
 }
 
 .siswa-panel .siswa-doc.is-done .siswa-doc-state {
@@ -139,16 +195,16 @@
 .siswa-auth-footer {
     margin-block-start: 1.5rem;
     text-align: center;
-    color: var(--gray-600, #4b5563);
+    color: var(--gray-600, #57534e);
     font-size: 0.875rem;
 }
 
 .siswa-auth-footer a {
-    color: var(--primary-600, #2563eb);
+    color: var(--primary-600, #0f6b6b);
     font-weight: 600;
 }
 
 .siswa-auth-footer a:hover {
-    color: var(--primary-500, #3b82f6);
+    color: var(--primary-500, #138080);
     text-decoration: underline;
 }
