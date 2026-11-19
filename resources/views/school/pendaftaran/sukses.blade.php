@@ -19,22 +19,10 @@
             <p class="text-sm font-semibold uppercase tracking-wide text-[var(--school-muted)]">Nomor Pendaftaran</p>
             <p class="mt-1 text-2xl font-bold text-[var(--school-ink)]">{{ $nomor }}</p>
 
-            @if ($mailSent)
-                <p class="mt-5 text-[var(--school-ink)]">
-                    Akun login telah dikirim ke <strong>{{ $email }}</strong>. Cek inbox atau folder spam,
-                    lalu masuk untuk melengkapi data administrasi dan memantau status seleksi.
-                </p>
-            @else
-                <div role="alert" class="school-alert mt-5">
-                    Pendaftaran tersimpan, tetapi email akun gagal dikirim. Hubungi admin sekolah
-                    @if ($settings->email)
-                        di <a href="mailto:{{ $settings->email }}" class="underline">{{ $settings->email }}</a>
-                    @elseif ($settings->phone)
-                        di {{ $settings->phone }}
-                    @endif
-                    untuk mendapatkan akun login.
-                </div>
-            @endif
+            <p class="mt-5 text-[var(--school-ink)]">
+                Akun login telah dikirim ke <strong>{{ $email }}</strong>. Cek inbox atau folder spam,
+                lalu masuk untuk melengkapi data administrasi dan memantau status seleksi.
+            </p>
 
             <div class="mt-6 rounded-lg border border-[var(--school-line)] bg-[var(--school-primary-soft)] p-4 text-sm leading-6 text-[var(--school-ink)]">
                 <p class="font-semibold">Langkah berikutnya</p>

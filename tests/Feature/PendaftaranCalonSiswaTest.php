@@ -144,6 +144,22 @@ test('registers a candidate and emails the login credentials', function () {
     });
 });
 
+test('does not store the registration when the confirmation email fails', function () {
+    Mail::shouldReceive('to')
+        ->once()
+        ->andThrow(new RuntimeException('535 Authentication failed'));
+
+    $response = $this->from(route('pendaftaran.create'))
+        ->post(route('pendaftaran.store'), calonPayload());
+
+    $response->assertRedirect(route('pendaftaran.create'))
+        ->assertSessionHasErrors('email')
+        ->assertSessionHasInput('email', 'ahmad.calon@example.test');
+
+    expect(User::query()->where('email', 'ahmad.calon@example.test')->exists())->toBeFalse()
+        ->and(CalonSiswa::query()->count())->toBe(0);
+});
+
 test('rejects invalid registration data', function (array $overrides, string $field) {
     Mail::fake();
 

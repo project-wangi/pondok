@@ -54,34 +54,38 @@ class PendaftaranController extends Controller
 
         $password = Str::password(10, symbols: false);
 
-        [$user, $calon] = DB::transaction(function () use ($data, $password): array {
-            $user = User::query()->create([
-                'name' => $data['nama'],
-                'email' => $data['email'],
-                'password' => $password,
-            ]);
-
-            $calon = CalonSiswa::query()->create([
-                'user_id' => $user->id,
-                'nomor_pendaftaran' => 'PPDB-'.now()->format('Y').'-'.str_pad((string) $user->id, 5, '0', STR_PAD_LEFT),
-                'nama' => $data['nama'],
-                'jenis_kelamin' => $data['jenis_kelamin'],
-                'email' => $data['email'],
-                'nohp' => $data['nohp'],
-                'status' => CalonSiswa::STATUS_MENUNGGU,
-            ]);
-
-            return [$user, $calon];
-        });
-
-        $mailSent = true;
-        $tautanMasuk = route('pendaftaran.masuk.tautan', $calon->buatTautanMasuk());
-
         try {
-            Mail::to($user->email)->send(new PendaftaranCalonSiswa($user, $calon, $password, $tautanMasuk));
+            [$user, $calon] = DB::transaction(function () use ($data, $password): array {
+                $user = User::query()->create([
+                    'name' => $data['nama'],
+                    'email' => $data['email'],
+                    'password' => $password,
+                ]);
+
+                $calon = CalonSiswa::query()->create([
+                    'user_id' => $user->id,
+                    'nomor_pendaftaran' => 'PPDB-'.now()->format('Y').'-'.str_pad((string) $user->id, 5, '0', STR_PAD_LEFT),
+                    'nama' => $data['nama'],
+                    'jenis_kelamin' => $data['jenis_kelamin'],
+                    'email' => $data['email'],
+                    'nohp' => $data['nohp'],
+                    'status' => CalonSiswa::STATUS_MENUNGGU,
+                ]);
+
+                $tautanMasuk = route('pendaftaran.masuk.tautan', $calon->buatTautanMasuk());
+
+                Mail::to($user->email)->send(new PendaftaranCalonSiswa($user, $calon, $password, $tautanMasuk));
+
+                return [$user, $calon];
+            });
         } catch (Throwable $exception) {
             report($exception);
-            $mailSent = false;
+
+            return back()
+                ->withInput()
+                ->withErrors([
+                    'email' => 'Email akun gagal dikirim sehingga pendaftaran dibatalkan. Periksa alamat email lalu coba lagi.',
+                ]);
         }
 
         return redirect()
@@ -89,7 +93,6 @@ class PendaftaranController extends Controller
             ->with([
                 'pendaftaran_nomor' => $calon->nomor_pendaftaran,
                 'pendaftaran_email' => $calon->email,
-                'mail_sent' => $mailSent,
             ]);
     }
 
@@ -100,10 +103,8 @@ class PendaftaranController extends Controller
         }
 
         return view('school.pendaftaran.sukses', [
-            'settings' => SiteSetting::current(),
             'nomor' => $request->session()->get('pendaftaran_nomor'),
             'email' => $request->session()->get('pendaftaran_email'),
-            'mailSent' => (bool) $request->session()->get('mail_sent', true),
         ]);
     }
 
