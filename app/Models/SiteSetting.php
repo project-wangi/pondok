@@ -44,9 +44,9 @@ class SiteSetting extends Model
     ];
 
     /**
-     * Disk R2 untuk logo dan gambar utama website, sama seperti foto absensi.
+     * Disk lokal untuk logo dan gambar utama website.
      */
-    public const IMAGE_DISK = 'r2';
+    public const IMAGE_DISK = 'public';
 
     public $incrementing = false;
 

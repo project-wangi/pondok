@@ -1,5 +1,12 @@
 <?php
 
+use App\Filament\Resources\Gurus\GuruResource;
+use App\Filament\Resources\Jabatans\JabatanResource;
+use App\Filament\Resources\JenisPeminatans\JenisPeminatanResource;
+use App\Filament\Resources\Kelas\KelasResource;
+use App\Filament\Resources\MataPelajarans\MataPelajaranResource;
+use App\Filament\Resources\Murids\MuridResource;
+use App\Filament\Resources\UserResource;
 use App\Filament\Resources\UserResource\Pages\CreateUser;
 use App\Filament\Resources\UserResource\Pages\EditUser;
 use App\Filament\Resources\UserResource\Pages\ListUsers;
@@ -75,6 +82,36 @@ test('allows the curriculum and homeroom roles into the admin panel', function (
 
         expect($user->canAccessPanel(Filament::getPanel('admin')))->toBeTrue();
     }
+});
+
+test('lets the curriculum role open every school management resource', function () {
+    $role = Role::findOrCreate('kurikulum', 'web');
+    $user = User::factory()->create()->assignRole($role);
+    $this->actingAs($user);
+
+    $resources = [
+        GuruResource::class,
+        JabatanResource::class,
+        JenisPeminatanResource::class,
+        KelasResource::class,
+        MataPelajaranResource::class,
+        MuridResource::class,
+        UserResource::class,
+    ];
+
+    foreach ($resources as $resource) {
+        $this->get($resource::getUrl('index'))->assertOk();
+    }
+
+    $this->get(KelasResource::getUrl('create'))->assertOk();
+});
+
+test('keeps school management user accounts read only for the curriculum role', function () {
+    $role = Role::findOrCreate('kurikulum', 'web');
+    $user = User::factory()->create()->assignRole($role);
+    $this->actingAs($user);
+
+    $this->get(UserResource::getUrl('create'))->assertForbidden();
 });
 
 test('keeps at least one role required', function () {

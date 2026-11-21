@@ -125,7 +125,7 @@ test('the homepage clearly labels missing photography without inventing a school
 });
 
 test('the homepage uses uploaded school photography and logo with image error feedback', function () {
-    config(['filesystems.disks.r2.url' => 'https://cdn.example.com']);
+    config(['filesystems.disks.public.url' => 'https://cdn.example.com']);
 
     SiteSetting::factory()->create([
         'hero_image' => 'website/school-photo.webp',

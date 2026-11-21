@@ -6,8 +6,8 @@ use Illuminate\Support\Facades\Storage;
 
 uses(LazilyRefreshDatabase::class);
 
-test('website images use the r2 disk', function () {
-    config(['filesystems.disks.r2.url' => 'https://cdn.example.com']);
+test('website images use the public disk', function () {
+    config(['filesystems.disks.public.url' => 'https://cdn.example.com']);
 
     $settings = SiteSetting::factory()->make([
         'logo' => 'website/logo.png',
@@ -19,7 +19,7 @@ test('website images use the r2 disk', function () {
 });
 
 test('blank website images have no url', function () {
-    config(['filesystems.disks.r2.url' => 'https://cdn.example.com']);
+    config(['filesystems.disks.public.url' => 'https://cdn.example.com']);
 
     $settings = SiteSetting::factory()->make([
         'logo' => null,
@@ -30,7 +30,7 @@ test('blank website images have no url', function () {
         ->and($settings->heroImageUrl())->toBeNull();
 });
 
-test('replacing a website image deletes the old r2 file', function (string $attribute) {
+test('replacing a website image deletes the old public file', function (string $attribute) {
     Storage::fake(SiteSetting::IMAGE_DISK);
 
     $settings = SiteSetting::factory()->create([$attribute => 'website/old.png']);
@@ -41,7 +41,7 @@ test('replacing a website image deletes the old r2 file', function (string $attr
     Storage::disk(SiteSetting::IMAGE_DISK)->assertMissing('website/old.png');
 })->with(['logo', 'hero_image']);
 
-test('clearing a website image deletes the r2 file', function () {
+test('clearing a website image deletes the public file', function () {
     Storage::fake(SiteSetting::IMAGE_DISK);
 
     $settings = SiteSetting::factory()->create(['logo' => 'website/logo.png']);
@@ -52,7 +52,7 @@ test('clearing a website image deletes the r2 file', function () {
     Storage::disk(SiteSetting::IMAGE_DISK)->assertMissing('website/logo.png');
 });
 
-test('keeping the same website image keeps the r2 file', function () {
+test('keeping the same website image keeps the public file', function () {
     Storage::fake(SiteSetting::IMAGE_DISK);
 
     $settings = SiteSetting::factory()->create(['logo' => 'website/logo.png']);
